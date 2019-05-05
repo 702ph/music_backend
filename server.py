@@ -1,9 +1,19 @@
-from flask import Flask, json, jsonify, request  # なぜかrequestsでは動かない。
-from flask_cors import CORS
-from flask_restful import Resource, Api
+import os
 import sqlite3
 
+from flask import Flask, json, jsonify, request, url_for  # なぜかrequestsでは動かない。
+from flask_cors import CORS
+from flask_restful import Api
+from werkzeug.utils import secure_filename, redirect
+
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
+UPLOAD_FOLDER = "/static/uploads"
+ALLOWED_EXTENSIONS = set(["mp3"])
+
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 api = Api(app)
 CORS(app)
 
@@ -67,13 +77,43 @@ def post_song():
     cursor.close()
     my_db.commit() # changes will not be saved without commit
     my_db.close()
-
     return jsonify(fetch_all)
+
+
+def allowed_file(filename):
+    return "." in filename and \
+           filename.rsplit(".",1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def save_file_to_local(file):
+
 
 
 @app.route("/upload", methods=["POST"])
 def upload_song():
-    pass
+
+    # http: // flask.pocoo.org / docs / 1.0 / patterns / fileuploads /
+    # check if the post request has the file part
+    if "inputFile" not in request.files:
+        return jsonify({"error": "no file part"})
+    file = request.files["inputFile"]
+
+    # even if user does not select file, browser also submit an empty part without filename
+    if file.filename == "":
+        return jsonify({"error": "no selected file"})
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+
+        filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
+
+        absolute_filepath_name = filepath + "/" + filename
+        file.save(absolute_filepath_name)
+
+        #return redirect(url_for("uploaded_file", filename=filename))
+        return "file saved"
+
+
 
 
 @app.route("/songs/<id>", methods=["DELETE"])
