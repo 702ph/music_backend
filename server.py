@@ -56,15 +56,12 @@ def post_song():
     my_db = sqlite3.connect("db/music.db")
     cursor = my_db.cursor()
 
-    param = ("title", "album", "year", "genre", "data", "created_at", "path")
-    cursor.execute("""
-    insert into
-    s(title, album, year, genre, data, created_at, path)
-    #values("title", "album", "year", "genre", "data", "created_at", "path");)
-    values("?, ?, ?, ?, ?, ?, ?);"""", param)
+    # INSERT
+    param = ("title", "album", "year", "genre", "data", "created_at", "path",)
+    cursor.execute("insert into s(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
 
-
-    cursor.execute("""select * from s where id = (select max(id) from s);""")
+    # get the last
+    cursor.execute("select * from s where id = (select max(id) from s);")
 
     fetch_all = cursor.fetchall()
     cursor.close()
@@ -74,6 +71,9 @@ def post_song():
     return jsonify(fetch_all)
 
 
+@app.route("/upload", methods=["POST"])
+def upload_song():
+    pass
 
 
 @app.route("/songs/<id>", methods=["DELETE"])
