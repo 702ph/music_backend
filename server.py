@@ -7,7 +7,7 @@ from flask_restful import Api
 from werkzeug.utils import secure_filename, redirect
 
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
-UPLOAD_FOLDER = "/static/uploads"
+UPLOAD_FOLDER = "static/uploads"
 ALLOWED_EXTENSIONS = set(["mp3"])
 
 app = Flask(__name__)
@@ -86,7 +86,32 @@ def allowed_file(filename):
 
 
 def save_file_to_local(file):
+    filename = secure_filename(file.filename)
 
+    #1. variation
+    #filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
+    #absolute_filepath_name = filepath + "/" + filename
+
+    # 2. variation
+    os.getcwd()
+    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
+
+    print(absolute_filepath_name)
+    file.save(absolute_filepath_name)
+
+
+def save_file_to_db(file):
+    db_connection = sqlite3.connect("db/music.db")
+    db_cursor = db_connection.cursor()
+
+    blob = sqlite3.Binary(file)
+
+    param = ("title", "album", "year", "genre", blob, "created_at", "path",)
+    db_cursor.execute("insert into s(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
+
+    db_cursor.close()
+    db_connection.commit()
+    db_connection.close()
 
 
 @app.route("/upload", methods=["POST"])
@@ -103,12 +128,8 @@ def upload_song():
         return jsonify({"error": "no selected file"})
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-
-        filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
-
-        absolute_filepath_name = filepath + "/" + filename
-        file.save(absolute_filepath_name)
+        #save_file_to_local(file)
+        save_file_to_db(file)
 
         #return redirect(url_for("uploaded_file", filename=filename))
         return "file saved"
