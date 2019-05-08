@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from flask import Flask, json, jsonify, request, url_for  # なぜかrequestsでは動かない。
+from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
 from flask_restful import Api
 from werkzeug.utils import secure_filename, redirect
@@ -104,9 +104,16 @@ def save_file_to_db(file):
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
 
-    blob = sqlite3.Binary(file)
+    #param = ("title", "album", "year", "genre", file, "created_at", "path",)
+    #db_cursor.execute("insert into s(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
 
-    param = ("title", "album", "year", "genre", blob, "created_at", "path",)
+    # https://codeday.me/jp/qa/20190110/126212.html
+    # binary = sqlite3.Binary(file.stream.read()) # works!
+    binary = sqlite3.Binary(file.read()) # works! same!
+    param2 = (binary,)
+    db_cursor.execute("insert into blob_demo(data) values(?);", param2)
+
+    param = ("title", "album", "year", "genre", binary, "created_at", "path",)
     db_cursor.execute("insert into s(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     db_cursor.close()
@@ -114,7 +121,41 @@ def save_file_to_db(file):
     db_connection.close()
 
 
-@app.route("/upload", methods=["POST"])
+
+@app.route("/read_from_db/<id>", methods=["GET"])
+def read_song(id):
+    db_connection = sqlite3.connect("db/music.db")
+    db_cursor = db_connection.cursor()
+
+    db_cursor.execute("select * from blob_demo where rowid=?", (id,))
+    binary = db_cursor.fetchone()
+
+    ## １．まずは何も考えずにこのbinaryをHTTPでreturnしてみる。->できない。
+    ## 1-1 たんなるreturnではあかんようだ。ファイルを返す例を探して実装してみる。
+    ## 2.それが動かなかったら、dbではなく、まずはローカルのファイルをhttpでreturnしてみる。
+
+    db_cursor.close()
+    db_connection.commit()
+    db_connection.close()
+
+    # response practice. file from local server
+    filename = "Lied.mp3"
+    os.getcwd() # get current path where this project exists
+    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
+
+    #response from db
+
+
+    response = make_response()
+    # https://docs.python.org/ja/3/library/functions.html#open
+    # r:read, b:binary for second parameter
+    response.data = open(absolute_filepath_name, "rb").read()
+    response.headers["Content-Disposition"] = "attachment; filename=" + filename
+    response.mimetype = "audio/mpeg"
+    return response
+
+
+@app.route("/upload_form_test", methods=["POST"])
 def upload_song():
 
     # http: // flask.pocoo.org / docs / 1.0 / patterns / fileuploads /
@@ -122,6 +163,7 @@ def upload_song():
     if "inputFile" not in request.files:
         return jsonify({"error": "no file part"})
     file = request.files["inputFile"]
+    #file2 = request.files.get("inputFile") #こちらでも動く？試してない。
 
     # even if user does not select file, browser also submit an empty part without filename
     if file.filename == "":
@@ -133,8 +175,6 @@ def upload_song():
 
         #return redirect(url_for("uploaded_file", filename=filename))
         return "file saved"
-
-
 
 
 @app.route("/songs/<id>", methods=["DELETE"])
