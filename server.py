@@ -1,9 +1,10 @@
 import os
 import sqlite3
+import mimetypes
 
 from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
-from flask_restful import Api
+from flask_restful import Api, http_status_message
 from werkzeug.utils import secure_filename, redirect
 
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
@@ -122,36 +123,40 @@ def save_file_to_db(file):
 
 
 
-@app.route("/read_from_db/<id>", methods=["GET"])
+@app.route("/read_song/<id>", methods=["GET"])
 def read_song(id):
+    # create response from local filesystem
+    filename = "Lied.mp3"
+    os.getcwd()  # get current path where this project exists
+    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
+    # https://docs.python.org/ja/3/library/functions.html#open
+    # r:read, b:binary for second parameter
+    #file = open(absolute_filepath_name, "rb").read()
+
+
+    #create response from db
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
 
     db_cursor.execute("select * from blob_demo where rowid=?", (id,))
-    binary = db_cursor.fetchone()
+    row = db_cursor.fetchone()
+    file = row[0]
 
-    ## １．まずは何も考えずにこのbinaryをHTTPでreturnしてみる。->できない。
-    ## 1-1 たんなるreturnではあかんようだ。ファイルを返す例を探して実装してみる。
-    ## 2.それが動かなかったら、dbではなく、まずはローカルのファイルをhttpでreturnしてみる。
-
+    ## close db
     db_cursor.close()
     db_connection.commit()
     db_connection.close()
 
-    # response practice. file from local server
-    filename = "Lied.mp3"
-    os.getcwd() # get current path where this project exists
-    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
-
-    #response from db
-
-
+    # create response
     response = make_response()
-    # https://docs.python.org/ja/3/library/functions.html#open
-    # r:read, b:binary for second parameter
-    response.data = open(absolute_filepath_name, "rb").read()
+    response.data = file
     response.headers["Content-Disposition"] = "attachment; filename=" + filename
     response.mimetype = "audio/mpeg"
+
+    #https://qiita.com/kekeho/items/58b24c2400ead44f3561
+    #response.mimetype = mimetypes.guess_type(file) # doesn't work
+
+    print(response.mimetype)
     return response
 
 
@@ -198,6 +203,37 @@ def delete_song(id):
     db_connection.close()
 
     return jsonify(fetch_all)
+
+
+## error handling practice
+@app.route('/po', methods=['POST'])
+def post_json():
+  try:
+    json = request.get_json()  # Get POST JSON
+    NAME = json['name']
+    result = {
+      "data": {
+        "id": 1,
+        "name": NAME
+        }
+      }
+    return jsonify(result)
+  except Exception as e:
+    result = error_handler(e)
+    return result
+
+@app.errorhandler(400)
+@app.errorhandler(404)
+@app.errorhandler(500)
+def error_handler(error):
+    response = jsonify({
+        "error": {
+                     "type": error.name,
+                     "message": error.description
+                 }
+                       })
+    return response, error.code
+
 
 
 @app.route('/')
