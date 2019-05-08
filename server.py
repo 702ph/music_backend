@@ -122,17 +122,18 @@ def save_file_to_db(file):
     db_connection.close()
 
 
-
-@app.route("/read_song/<id>", methods=["GET"])
-def read_song(id):
+def read_from_local():
     # create response from local filesystem
     filename = "Lied.mp3"
     os.getcwd()  # get current path where this project exists
     absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
     # https://docs.python.org/ja/3/library/functions.html#open
     # r:read, b:binary for second parameter
-    #file = open(absolute_filepath_name, "rb").read()
+    file = open(absolute_filepath_name, "rb").read()
+    return file
 
+
+def read_from_db(id):
 
     #create response from db
     db_connection = sqlite3.connect("db/music.db")
@@ -146,6 +147,14 @@ def read_song(id):
     db_cursor.close()
     db_connection.commit()
     db_connection.close()
+    return file
+
+
+@app.route("/read_song/<id>", methods=["GET"])
+def read_song(id):
+
+    filename = "Lied.mp3" # have to be implemented
+    file = read_from_db(id)
 
     # create response
     response = make_response()
