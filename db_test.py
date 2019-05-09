@@ -8,11 +8,11 @@ def post_song():
     cursor.execute(
     """
     insert into
-    s(title, album, year, genre, data, created_at, path)
+    song(title, album, year, genre, data, created_at, path)
     values("title", "album", "year", "genre", "data", "created_at", "path");
     """)
 
-    cursor.execute("""select * from s where id = (select max(id) from s);""")
+    cursor.execute("""select * from song where id = (select max(id) from song);""")
 
     fetch_all = cursor.fetchall()
     cursor.close()

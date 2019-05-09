@@ -18,7 +18,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 api = Api(app)
 CORS(app)
 
-
+## for my practice
 @app.route("/db")
 def db():
     my_db = sqlite3.connect("db/music.db")
@@ -31,12 +31,14 @@ def db():
     return jsonify(fetch_all)
 
 
+# return list of all column for song in json
+@app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
 def get_songs():
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
     # db_cursor.execute("select * from s")
-    db_cursor.execute("select id,title,album,year,genre,created_at from s")  # without data & path
+    db_cursor.execute("select id,title,album,year,genre,created_at from song")  # without data & path
     fetch_all = db_cursor.fetchall()
 
     db_cursor.close()
@@ -45,6 +47,7 @@ def get_songs():
     return jsonify(fetch_all)
 
 
+"""
 @app.route("/songs/<id>", methods=["GET"])
 def get_song(id):
     my_db = sqlite3.connect("db/music.db")
@@ -60,6 +63,7 @@ def get_song(id):
     cursor.close()
     my_db.close()
     return jsonify(fetch_all)
+"""
 
 
 @app.route("/songs", methods=["POST"])
@@ -69,10 +73,10 @@ def post_song():
 
     # INSERT
     param = ("title", "album", "year", "genre", "data", "created_at", "path",)
-    cursor.execute("insert into s(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
+    cursor.execute("insert into song(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     # get the last
-    cursor.execute("select * from s where id = (select max(id) from s);")
+    cursor.execute("select * from song where id = (select max(id) from song);")
 
     fetch_all = cursor.fetchall()
     cursor.close()
@@ -86,7 +90,7 @@ def allowed_file(filename):
            filename.rsplit(".",1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def save_file_to_local(file):
+def save_to_local_filesysytem(file):
     filename = secure_filename(file.filename)
 
     #1. variation
@@ -101,7 +105,7 @@ def save_file_to_local(file):
     file.save(absolute_filepath_name)
 
 
-def save_file_to_db(file):
+def save_to_db(file):
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
 
@@ -111,18 +115,19 @@ def save_file_to_db(file):
     # https://codeday.me/jp/qa/20190110/126212.html
     # binary = sqlite3.Binary(file.stream.read()) # works!
     binary = sqlite3.Binary(file.read()) # works! same!
-    param2 = (binary,)
-    db_cursor.execute("insert into blob_demo(data) values(?);", param2)
+    #param2 = (binary,)
+    #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
     param = ("title", "album", "year", "genre", binary, "created_at", "path",)
-    db_cursor.execute("insert into s(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
+    db_cursor.execute(
+        "insert into song(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     db_cursor.close()
     db_connection.commit()
     db_connection.close()
 
 
-def read_from_local():
+def read_from_local_filesystem():
     # create response from local filesystem
     filename = "Lied.mp3"
     os.getcwd()  # get current path where this project exists
@@ -134,14 +139,15 @@ def read_from_local():
 
 
 def read_from_db(id):
-
     #create response from db
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
 
-    db_cursor.execute("select * from blob_demo where rowid=?", (id,))
+    #execute SQL Query
+    #db_cursor.execute("select * from blob_demo where rowid=?", (id,))
+    db_cursor.execute("select * from song where id=?", (id,))
     row = db_cursor.fetchone()
-    file = row[0]
+    file = row[0] # get 1. row
 
     ## close db
     db_cursor.close()
@@ -150,9 +156,8 @@ def read_from_db(id):
     return file
 
 
-@app.route("/read_song/<id>", methods=["GET"])
+@app.route("/songs/<id>", methods=["GET"])
 def read_song(id):
-
     filename = "Lied.mp3" # have to be implemented
     file = read_from_db(id)
 
@@ -161,11 +166,11 @@ def read_song(id):
     response.data = file
     response.headers["Content-Disposition"] = "attachment; filename=" + filename
     response.mimetype = "audio/mpeg"
+    print(response.mimetype)
 
     #https://qiita.com/kekeho/items/58b24c2400ead44f3561
-    #response.mimetype = mimetypes.guess_type(file) # doesn't work
-
-    print(response.mimetype)
+    #mimetype = mimetypes.guess_type(file) # doesn't work
+    #print(mimetype)
     return response
 
 
@@ -185,7 +190,7 @@ def upload_song():
 
     if file and allowed_file(file.filename):
         #save_file_to_local(file)
-        save_file_to_db(file)
+        save_to_db(file)
 
         #return redirect(url_for("uploaded_file", filename=filename))
         return "file saved"
@@ -199,7 +204,7 @@ def delete_song(id):
 
     try:
         # delete
-        db_cursor.execute("delete from s where id = ?", param)
+        db_cursor.execute("delete from song where id = ?", param)
 
         # after delete
         db_cursor.execute("select id,title,album,year,genre,created_at from s")  # without data & path
@@ -230,6 +235,7 @@ def post_json():
   except Exception as e:
     result = error_handler(e)
     return result
+
 
 @app.errorhandler(400)
 @app.errorhandler(404)
@@ -354,20 +360,6 @@ def param_test2():
             return "no content type : application/json in header"
 
 
-def comment():
-    if request.method == 'POST':
-        do_the_login()
-    else:  # GET
-        show_the_login_form()
-
-
-"""
-def do_the_login():
-    return "do_the_login()"
-
-def show_the_login_form():
-    return "show_the_login_form()"
-"""
 
 ## this should be after @app.route
 if __name__ == '__main__':
