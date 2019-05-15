@@ -60,10 +60,10 @@ promise2.then(() => console.log('world!'));
 
 
 var audioCtx;
-var startBtn = document.getElementById('startAudioContext');
-var susresBtn = document.getElementById('suspendAudioContext');
-var stopBtn = document.getElementById('stopAudioContext');
-var timeDisplay = document.getElementById('counter');
+var startBtn = document.querySelector('#startAudioContext');
+var susresBtn = document.querySelector('#suspendAudioContext');
+var stopBtn = document.querySelector('#stopAudioContext');
+var timeDisplay = document.querySelector('#counter');
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
