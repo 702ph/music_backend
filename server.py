@@ -14,6 +14,7 @@ ALLOWED_EXTENSIONS = set(["mp3"])
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["DB_PATH"] = "db/music.db"
 
 api = Api(app)
 CORS(app)
@@ -21,24 +22,75 @@ CORS(app)
 ## for my practice
 @app.route("/db")
 def db():
-    my_db = sqlite3.connect("db/music.db")
-    cursor = my_db.cursor()
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
     # cursor.execute(".table") ##query でないので実行できないようだ。
-    cursor.execute("select * from sqlite_master where type='table'")
+    db_cursor.execute("select * from sqlite_master where type='table'")
     # cursor.execute("select * from aaa")
-    fetch_all = cursor.fetchall()
-    cursor.close()
+    fetch_all = db_cursor.fetchall()
+    db_cursor.close()
+    db_connection.close()
     return jsonify(fetch_all)
+
+
+@app.route("/db_test")
+def db_test():
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
+
+    db_cursor.execute("select id,title,album,year,genre,created_at from song")  # without data & path
+    fetch_all = db_cursor.fetchall()
+    description = db_cursor.description  # have to be placed after SQL Query
+
+    # 1. variation
+    """
+    entries = []
+    for row in fetch_all:
+        entries.append({
+            "id": row[0],
+            "title": row[1],
+            "album": row[2],
+            "year": row[3],
+            "genre": row[4],
+            "created_at": row[5]
+        })
+    """
+
+    # 2. variation as in slide from prof.
+    """
+    entries = [{
+        "id": row[0],
+        "title": row[1],
+        "album": row[2],
+        "year": row[3],
+        "genre": row[4],
+        "created_at": row[5]
+    }for row in fetch_all]
+    """
+
+    # 3. variation (automatic key generation)
+    entries = []  # array for all dictionaries
+    for row in fetch_all:
+
+        # dictionary for each row
+        entry = {}
+        for i_desc, val_desc in enumerate(description):
+            entry.update({val_desc[0]: row[i_desc]})  # update() adds new element to dictionary. name doesn't fit!
+        entries.append(entry)
+
+    db_cursor.close()
+    db_connection.close()
+    return jsonify(entries)
 
 
 # return list of all column for song in json
 @app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
 def get_songs():
-    db_connection = sqlite3.connect("db/music.db")
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
     # db_cursor.execute("select * from s")
-    db_cursor.execute("select id,title,album,year,genre,created_at from song")  # without data & path
+    db_cursor.execute("select id,title,artist,album,year,genre,created_at from song")  # without data & path
     fetch_all = db_cursor.fetchall()
 
     db_cursor.close()
@@ -66,25 +118,6 @@ def get_song(id):
 """
 
 
-@app.route("/songs", methods=["POST"])
-def post_song():
-    my_db = sqlite3.connect("db/music.db")
-    cursor = my_db.cursor()
-
-    # INSERT
-    param = ("title", "album", "year", "genre", "data", "created_at", "path",)
-    cursor.execute("insert into song(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
-
-    # get the last
-    cursor.execute("select * from song where id = (select max(id) from song);")
-
-    fetch_all = cursor.fetchall()
-    cursor.close()
-    my_db.commit() # changes will not be saved without commit
-    my_db.close()
-    return jsonify(fetch_all)
-
-
 def allowed_file(filename):
     return "." in filename and \
            filename.rsplit(".",1)[1].lower() in ALLOWED_EXTENSIONS
@@ -106,7 +139,7 @@ def save_to_local_filesysytem(file):
 
 
 def save_to_db(file):
-    db_connection = sqlite3.connect("db/music.db")
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
     #param = ("title", "album", "year", "genre", file, "created_at", "path",)
@@ -118,13 +151,63 @@ def save_to_db(file):
     #param2 = (binary,)
     #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
-    param = ("title", "album", "year", "genre", binary, "created_at", "path",)
-    db_cursor.execute(
-        "insert into song(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
+    # insert
+    #param = ("title here", "artist here", "album here", "year here", "genre here", binary, "created_at",)
+    #db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+
+    # update
+    param = (binary, 28,)
+    db_cursor.execute("update song set data=? where id=?;", param)
 
     db_cursor.close()
     db_connection.commit()
     db_connection.close()
+    return True
+
+
+
+@app.route("/songs", methods=["POST"])
+def upload_song():
+
+    # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
+    # check if the post request has the file part
+    if "inputFile" not in request.files:
+        return jsonify({"error": "no file part"})
+    file = request.files["inputFile"]
+    #file2 = request.files.get("inputFile") #こちらでも動く？試してない。
+
+    # even if user does not select file, browser also submit an empty part without filename
+    if file.filename == "":
+        return jsonify({"error": "no selected file"})
+
+    if file and allowed_file(file.filename):
+        #save_file_to_local(file)
+        result = save_to_db(file)
+
+        #return redirect(url_for("uploaded_file", filename=filename))
+        return jsonify(result)
+
+
+"""
+@app.route("/songs", methods=["POST"])
+def post_song():
+    my_db = sqlite3.connect(app.config["DB_PATH"])
+    cursor = my_db.cursor()
+
+    # INSERT
+    param = ("title", "album", "year", "genre", "data", "created_at", "path",)
+    cursor.execute("insert into song(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
+
+    # get the last
+    cursor.execute("select * from song where id = (select max(id) from song);")
+
+    fetch_all = cursor.fetchall()
+    cursor.close()
+    my_db.commit() # changes will not be saved without commit
+    my_db.close()
+    return jsonify(fetch_all)
+"""
+
 
 
 def read_from_local_filesystem():
@@ -140,14 +223,14 @@ def read_from_local_filesystem():
 
 def read_from_db(id):
     #create response from db
-    db_connection = sqlite3.connect("db/music.db")
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
     #execute SQL Query
     #db_cursor.execute("select * from blob_demo where rowid=?", (id,))
-    db_cursor.execute("select * from song where id=?", (id,))
+    db_cursor.execute("select data from song where id=?", (id,))
     row = db_cursor.fetchone()
-    file = row[0] # get 1. row
+    file = row[0]  # get 1. row
 
     ## close db
     db_cursor.close()
@@ -158,14 +241,14 @@ def read_from_db(id):
 
 @app.route("/songs/<id>", methods=["GET"])
 def read_song(id):
-    filename = "Lied.mp3" # have to be implemented
+    filename = "Lied.mp3"  # have to be implemented
     file = read_from_db(id)
 
     # create response
     response = make_response()
     response.data = file
     response.headers["Content-Disposition"] = "attachment; filename=" + filename
-    response.mimetype = "audio/mpeg"
+    response.mimetype = "audio/mpe"
     print(response.mimetype)
 
     #https://qiita.com/kekeho/items/58b24c2400ead44f3561
@@ -173,27 +256,6 @@ def read_song(id):
     #print(mimetype)
     return response
 
-
-@app.route("/upload_form_test", methods=["POST"])
-def upload_song():
-
-    # http: // flask.pocoo.org / docs / 1.0 / patterns / fileuploads /
-    # check if the post request has the file part
-    if "inputFile" not in request.files:
-        return jsonify({"error": "no file part"})
-    file = request.files["inputFile"]
-    #file2 = request.files.get("inputFile") #こちらでも動く？試してない。
-
-    # even if user does not select file, browser also submit an empty part without filename
-    if file.filename == "":
-        return jsonify({"error": "no selected file"})
-
-    if file and allowed_file(file.filename):
-        #save_file_to_local(file)
-        save_to_db(file)
-
-        #return redirect(url_for("uploaded_file", filename=filename))
-        return "file saved"
 
 
 @app.route("/songs/<id>", methods=["DELETE"])

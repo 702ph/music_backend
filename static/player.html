@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Player</title>
+</head>
+<body>
+
+  <!-- Dubug button for manual reloading -->
+
+  <h1>AudioContext states demo</h1>
+  <div>
+    <input type="number", id="songIDInput", value="25">
+  </div>
+
+  <div>
+  <button id="startAudioContext">Create context</button>
+  <button id="suspendAudioContext">Suspend context</button>
+  <button id="stopAudioContext">Stop context</button>
+  <p id="counter">Current context time: No context exists.</p>
+  </div>
+
+  <button type="button" onclick="console.log(getSong(25))">DEBUG</button>
+  <button type="button" onclick="console.log(1); window.scrollBy(0, 300);">ScrollBy</button>
+
+  <br><br><br> <!-- sorry.....-->
+
+  <div id="songSelectorTable"></div>
+
+  <section>
+  <div id="genreArtistList"></div>
+  </section>
+
+  <!--
+  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+  aaaaaa
+  <br><br><br><br><br><br><br>
+  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+  aaaaaa
+  <br><br><br><br><br><br><br>
+  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+  aaaaaa
+  <br><br><br><br><br><br><br>
+  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+  bbbb
+  <br><br><br><br><br><br><br>
+-->
+
+</body>
+
+<script src="scripts/player.js"></script>
+
+</html>
