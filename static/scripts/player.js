@@ -60,13 +60,6 @@ promise2.then(() => console.log('world!'));
 
 
 var audioCtx;
-/*
-var startBtn = document.querySelector('button:nth-of-type(1)');
-var susresBtn = document.querySelector('button:nth-of-type(2)');
-var stopBtn = document.querySelector('button:nth-of-type(3)');
-var timeDisplay = document.querySelector('p');
-*/
-
 var startBtn = document.getElementById('startAudioContext');
 var susresBtn = document.getElementById('suspendAudioContext');
 var stopBtn = document.getElementById('stopAudioContext');
@@ -206,6 +199,7 @@ Object.defineProperty(this, 'displaySongList', {
     let songSelector = document.querySelector("#songSelectorTable");
     let table = document.createElement("table")
     table.border = 1;
+    table.style="border: 1px solid black; border-collapse: collapse;"
     songSelector.appendChild(table);
 
     /*
