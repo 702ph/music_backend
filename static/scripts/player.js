@@ -56,9 +56,6 @@ promise2.then(() => console.log('world!'));
 
 
 
-
-
-
 var audioCtx;
 var startBtn = document.querySelector('#startAudioContext');
 var susresBtn = document.querySelector('#suspendAudioContext');
