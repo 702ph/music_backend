@@ -8,6 +8,19 @@
 <body>
 
   <h1>Player</h1>
+
+  <div class="uploaderContainer" >
+      <form method="POST", action="../songs" enctype="multipart/form-data">
+      <div class="from-group">
+          <label for="inputFile">choose file to upload</label>
+          <br>
+          <input type="file" name="inputFile" accept="audio/mpeg">
+      </div>
+          <button type="submit" class="btn btn-default">Submit</button>
+      </form>
+  </div>
+
+
   <div>
     <input type="number", id="songIDInput", value="25">
   </div>
@@ -23,7 +36,7 @@
   <button type="button" onclick="console.log(getSong(25))">DEBUG</button>
   <button type="button" onclick="console.log(1); window.scrollBy(0, 300);">ScrollBy</button>
 
-  <br><br><br> 
+  <br><br><br>
   -->
 
   <div id="songSelectorTable"></div>

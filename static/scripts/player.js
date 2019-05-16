@@ -303,3 +303,27 @@ Object.defineProperty(this, 'getSong', {
     return arrayBuffer;
   }
 });
+
+
+//post song to server
+Object.defineProperty(this, 'postSong', {
+  enumerable: false,
+  configurable: false,
+  value: async function(data) {
+
+    const resource = "/songs"
+    let response = await fetch(resource, {
+      method: "POST",
+      credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+      headers: {
+        "Accept": "audio/*"
+      }
+    });
+
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+    let arrayBuffer = await response.arrayBuffer();
+    //console.log(arrayBuffer);
+    return arrayBuffer;
+  }
+});

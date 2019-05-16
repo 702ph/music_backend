@@ -1,2 +1,11 @@
-.red{background-Color:red;}
-.skyblue{background-Color:skyblue }
+.red {
+  background-Color: red;
+}
+
+.skyblue {
+  background-Color: skyblue
+}
+
+.uploaderContainer {
+  margin: 10px 0
+}
