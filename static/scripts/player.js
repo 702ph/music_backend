@@ -66,6 +66,7 @@ document.addEventListener('click',function(e){
         x.classList.add('skyblue');
         var ch=x.children;
         clickedID = ch[0].textContent;
+        document.querySelector("#songIDInput").value = clickedID;
         //songID = clickedID;
 
         var content="";
@@ -99,9 +100,9 @@ async function start() {
   susresBtn.removeAttribute('disabled');
   stopBtn.removeAttribute('disabled');
 
-  let songID = document.querySelector("#songIDInput").value;
+  //let songID = document.querySelector("#songIDInput").value;
   songID = clickedID;
-  document.querySelector("#songIDInput").value = clickedID;
+  //document.querySelector("#songIDInput").value = clickedID;
   console.log(songID);
 
   try {
