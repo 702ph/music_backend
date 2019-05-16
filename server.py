@@ -147,17 +147,17 @@ def save_to_db(file):
 
     # https://codeday.me/jp/qa/20190110/126212.html
     # binary = sqlite3.Binary(file.stream.read()) # works!
-    binary = sqlite3.Binary(file.read()) # works! same!
+    binary = sqlite3.Binary(file.read())  # works! same!
     #param2 = (binary,)
     #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
     # insert
-    #param = ("title here", "artist here", "album here", "year here", "genre here", binary, "created_at",)
-    #db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+    param = ("title here", "artist here", "album here", "year here", "genre here", binary, "created_at",)
+    db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     # update
-    param = (binary, 28,)
-    db_cursor.execute("update song set data=? where id=?;", param)
+    #param = (binary, 28,)
+    #db_cursor.execute("update song set data=? where id=?;", param)
 
     db_cursor.close()
     db_connection.commit()
@@ -185,6 +185,7 @@ def upload_song():
         result = save_to_db(file)
 
         #return redirect(url_for("uploaded_file", filename=filename))
+        ## TODO: zukuenftig: aktuelle Liste der Lieder zurueckgeben
         return jsonify(result)
 
 
@@ -264,6 +265,7 @@ def delete_song(id):
     db_cursor = db_connection.cursor()
     param = (id,)
 
+    fetch_all = None
     try:
         # delete
         db_cursor.execute("delete from song where id = ?", param)
@@ -278,11 +280,12 @@ def delete_song(id):
     db_connection.commit()  # changes will not be saved without commit
     db_connection.close()
 
+    ## TODO: zukuenftig: aktuelle Liste der Lieder zurueckgeben
     return jsonify(fetch_all)
 
 
 ## error handling practice
-@app.route('/po', methods=['POST'])
+@app.route('/pop', methods=['POST'])
 def post_json():
   try:
     json = request.get_json()  # Get POST JSON

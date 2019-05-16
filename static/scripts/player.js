@@ -56,22 +56,52 @@ promise2.then(() => console.log('world!'));
 
 
 
+
+document.addEventListener('click',function(e){
+  var t=e.target;
+  if(t.nodeName=="TD"){
+    Array.prototype.map.call(t.parentNode.parentNode.children,function(x){
+      x.classList.remove('skyblue');
+      if(x==t.parentNode){
+        x.classList.add('skyblue');
+        var ch=x.children;
+        clickedID = ch[0].textContent;
+        //songID = clickedID;
+
+        var content="";
+        content+="cell1:"+ch[0].textContent+"<br>";
+        content+="cell2:"+ch[1].textContent+"<br>";
+        content+="cell3:"+ch[2].textContent+"<br>";
+        content+="cell4:"+ch[3].textContent;
+        document.querySelector('#hoge').innerHTML=content;
+      }
+    });
+  }
+});
+
+
+
 var audioCtx;
 var startBtn = document.querySelector('#startAudioContext');
 var susresBtn = document.querySelector('#suspendAudioContext');
 var stopBtn = document.querySelector('#stopAudioContext');
 var timeDisplay = document.querySelector('#counter');
+var clickedID;
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
 
 
-startBtn.onclick = async function start() {
+startBtn.onclick = function(){start()};
+
+async function start() {
   startBtn.setAttribute('disabled', 'disabled');
   susresBtn.removeAttribute('disabled');
   stopBtn.removeAttribute('disabled');
 
   let songID = document.querySelector("#songIDInput").value;
+  songID = clickedID;
+  document.querySelector("#songIDInput").value = clickedID;
   console.log(songID);
 
   try {
