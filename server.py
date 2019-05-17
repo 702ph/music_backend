@@ -171,21 +171,27 @@ def upload_song():
 
     # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
     # check if the post request has the file part
-    if "inputFile" not in request.files:
+    if not ("inputFile" in request.files or "input_file" in request.files):
         return jsonify({"error": "no file part"})
-    file = request.files["inputFile"]
-    #file2 = request.files.get("inputFile") #こちらでも動く？試してない。
+
+    file = None
+    if "inputFile" in request.files:  # for HTML form
+        file = request.files["inputFile"]
+        # file2 = request.files.get("inputFile") #こちらでも動く？試してない。
+
+    if "input_file" in request.files:  # for formData()
+        file = request.files["input_file"]
+        # file2 = request.files.get("inputFile") #こちらでも動く？試してない。
 
     # even if user does not select file, browser also submit an empty part without filename
     if file.filename == "":
-        return jsonify({"error": "no selected file"})
+        return jsonify({"error": "has no filename"})
 
     if file and allowed_file(file.filename):
         #save_file_to_local(file)
         result = save_to_db(file)
 
         #return redirect(url_for("uploaded_file", filename=filename))
-        ## TODO: zukuenftig: aktuelle Liste der Lieder zurueckgeben
         return jsonify(result)
 
 

@@ -70,11 +70,14 @@ document.addEventListener('click',function(e){
         //songID = clickedID;
 
         var content="";
-        content+="cell1:"+ch[0].textContent+"<br>";
-        content+="cell2:"+ch[1].textContent+"<br>";
-        content+="cell3:"+ch[2].textContent+"<br>";
-        content+="cell4:"+ch[3].textContent;
-        document.querySelector('#hoge').innerHTML=content;
+        content+="1.cell:"+ch[0].textContent+", ";
+        content+="2.cell:"+ch[1].textContent+", ";
+        content+="3.cell:"+ch[2].textContent+", ";
+        content+="4.cell:"+ch[3].textContent;
+
+
+
+        document.querySelector('#tableDebug').innerHTML=content;
       }
     });
   }
@@ -191,6 +194,26 @@ function displayTime() {
 displayTime();
 
 
+function testFunc(){
+  console.log("hallo testFunc");
+}
+
+//post song button
+var btn = document.querySelector("#submit_button");
+btn.onclick = function() {
+    console.log("hallo #submit_button");
+    //testFunc();
+    postSong();
+}
+
+/*
+var testBtn = document.querySelector("#test_button");
+testBtn.onclick = function() {
+    console.log("hallo #test_button");
+}
+*/
+
+
 
 /**
  * Displays the given error in the footer, or resets it if none is given.
@@ -220,25 +243,22 @@ Object.defineProperty(this, 'displaySongList', {
   value: async function() {
 
     let songList = await getSongList();
-    //getSongList().then( (list) => songListJson=list);
     console.log(songList);
 
-    //let songSelector = document.querySelector("#songTable");
     let songSelector = document.querySelector("#songSelectorTable");
+
+    // clear previous data
+    while (songSelector.lastChild){
+      songSelector.removeChild(songSelector.lastChild);
+    }
+
+    //create table
     let table = document.createElement("table")
     table.border = 1;
     table.style="border: 1px solid black; border-collapse: collapse;"
     songSelector.appendChild(table);
 
-    /*
-    let tr = table.insertRow(-1);
-    let td = tr.insertCell(-1);
-    let td2 = tr.insertCell(-1);
-    td.innerHTML = "あ";
-    td2.innerHTML = "い";
-    tr.insertCell(-1).innerHTML = "う";
-    */
-
+    //create table cell
     for (song of songList) {
       let tr = table.insertRow(-1);
       for (cell of song) {
@@ -301,5 +321,50 @@ Object.defineProperty(this, 'getSong', {
     let arrayBuffer = await response.arrayBuffer();
     //console.log(arrayBuffer);
     return arrayBuffer;
+  }
+});
+
+
+
+//post song to server
+Object.defineProperty(this, 'postSong', {
+  enumerable: false,
+  configurable: false,
+  value: async function(data) {
+
+    //TODO: この部分を外に出す。
+    const file = document.querySelector("#input_file");
+    if(!file.value){ //if file is empty, return falase
+      return false;
+    }
+
+    //prepare data to upload
+    let formData = new FormData();
+    formData.append("input_file", file.files[0]);
+
+    //disable button while uploading
+    btn.disable = true;
+    btn.value = "uploading..."
+
+    const resource = "/songs"
+    let response = await fetch(resource, {
+      method: "POST",
+      credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+      body: formData,
+    }) /*.then(r=>r.json).then(j =>console.log(j)) */;
+
+    //show response json
+    (response.json()).then(j => console.log(j));
+
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+    //enable button again
+    btn.disabled = false;
+    btn.value = "Submit";
+    file.value = null;
+    formData = new FormData();
+
+    //renew song list
+    displaySongList();
   }
 });

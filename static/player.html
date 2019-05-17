@@ -8,6 +8,28 @@
 <body>
 
   <h1>Player</h1>
+
+  <div class="uploaderContainer" >
+      <!--
+      <form method="POST", action="../songs" enctype="multipart/form-data">
+      -->
+      <div class="from-group">
+          <label for="inputFile">choose file to upload</label>
+          <br>
+          <input type="file" name="inputFile" id="input_file">
+          <!--
+          <input type="file" name="inputFile" accept="audio/mpeg" id="input_file">
+          -->
+      </div>
+          <!--
+          <button type="submit" id="submit_button">Submit.</button>
+        -->
+          <input type="button" id="submit_button" value="submit">
+      <!--
+      </form>
+    -->
+  </div>
+
   <div>
     <input type="number", id="songIDInput", value="25">
   </div>
@@ -19,12 +41,6 @@
   <p id="counter">Current context time: No context exists.</p>
   </div>
 
-  <!--
-  <button type="button" onclick="console.log(getSong(25))">DEBUG</button>
-  <button type="button" onclick="console.log(1); window.scrollBy(0, 300);">ScrollBy</button>
-
-  <br><br><br> 
-  -->
 
   <div id="songSelectorTable"></div>
 
@@ -32,32 +48,18 @@
   <div id="genreArtistList"></div>
   </section>
 
-
-  <table>
+  <!--
+  <table style="margin: 10px 0">
   <tbody>
   <tr><td>1</td><td>2</td><td>3</td><td>4</td></tr>
   <tr><td>5</td><td>6</td><td>7</td><td>8</td></tr>
   <tr><td>9</td><td>10</td><td>11</td><td>12</td></tr>
   </tbody>
   </table>
-  <div id="hoge"></div>
+  -->
+  <div id="tableDebug" style="margin: 10px 0"></div>
 
 
-
-  <!--
-  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-  aaaaaa
-  <br><br><br><br><br><br><br>
-  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-  aaaaaa
-  <br><br><br><br><br><br><br>
-  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-  aaaaaa
-  <br><br><br><br><br><br><br>
-  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-  bbbb
-  <br><br><br><br><br><br><br>
--->
 
 </body>
 
