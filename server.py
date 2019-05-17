@@ -177,11 +177,11 @@ def upload_song():
     file = None
     if "inputFile" in request.files:  # for HTML form
         file = request.files["inputFile"]
-        # file2 = request.files.get("inputFile") #こちらでも動く？試してない。
+        # file2 = request.files.get("inputFile") #this also works? have't tried yet
 
     if "input_file" in request.files:  # for formData()
         file = request.files["input_file"]
-        # file2 = request.files.get("inputFile") #こちらでも動く？試してない。
+        # file2 = request.files.get("input_file") ##this also works? have't tried yet
 
     # even if user does not select file, browser also submit an empty part without filename
     if file.filename == "":

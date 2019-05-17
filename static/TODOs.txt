@@ -10,6 +10,6 @@ ENG
 [] refactoring postSong(). some code should be out
 [] remove test selecting table
 [] refactoring table selection code
-[] automatic continuesly playing by array
+[] automatic continuously playing by array
 [] solve that playing doesn't stop automatically
 [] remove /static/ from URL. it's not beautiful
