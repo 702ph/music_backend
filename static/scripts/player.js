@@ -70,11 +70,14 @@ document.addEventListener('click',function(e){
         //songID = clickedID;
 
         var content="";
-        content+="1.cell:"+ch[0].textContent+"<br>";
-        content+="2.cell:"+ch[1].textContent+"<br>";
-        content+="3.cell:"+ch[2].textContent+"<br>";
+        content+="1.cell:"+ch[0].textContent+", ";
+        content+="2.cell:"+ch[1].textContent+", ";
+        content+="3.cell:"+ch[2].textContent+", ";
         content+="4.cell:"+ch[3].textContent;
-        document.querySelector('#hoge').innerHTML=content;
+
+
+
+        document.querySelector('#tableDebug').innerHTML=content;
       }
     });
   }
