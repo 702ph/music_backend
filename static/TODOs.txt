@@ -7,6 +7,7 @@
 ・staticをURLから取り除く
 
 ENG
+01_server
 [] refactoring postSong(). some code should be out
 [] remove test selecting table
 [] refactoring table selection code
