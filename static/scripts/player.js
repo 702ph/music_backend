@@ -358,8 +358,8 @@ Object.defineProperty(this, 'postSong', {
     //enable button again
     btn.disabled = false;
     btn.value = "Submit";
-    //file.value = null;
-    //formData = new FormData();
+    file.value = null;
+    formData = new FormData();
 
     //renew song list
     displaySongList();
