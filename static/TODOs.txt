@@ -1,9 +1,13 @@
 
 ENG
 01_server
+
 [] refactoring postSong(). some code should be out
+[] drag & drop to upload
+
 [X] remove test selecting table
 [] refactoring table selection code
+
 [] automatic continuously playing by array
 [] solve that playing doesn't stop automatically
 [] remove /static/ from URL. it's not beautiful

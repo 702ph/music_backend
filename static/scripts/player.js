@@ -58,26 +58,57 @@ promise2.then(() => console.log('world!'));
 
 
 document.addEventListener('click',function(e){
-  var t=e.target;
+  let t = e.target;
   if(t.nodeName=="TD"){
     Array.prototype.map.call(t.parentNode.parentNode.children,function(x){
       x.classList.remove('skyblue');
-      if(x==t.parentNode){
+      if(x == t.parentNode){
         x.classList.add('skyblue');
-        var ch=x.children;
+        let ch = x.children;
         clickedID = ch[0].textContent;
         document.querySelector("#songIDInput").value = clickedID;
         //songID = clickedID;
 
-        var content="";
-        content+="1.cell:"+ch[0].textContent+", ";
-        content+="2.cell:"+ch[1].textContent+", ";
-        content+="3.cell:"+ch[2].textContent+", ";
-        content+="4.cell:"+ch[3].textContent;
+        //TODO: replace with let, replace with for loop
+        let content="";
+
+        //covert HTMLColletion to array(dictionary?) -> no this is not correct. still HTMLCollection. -> no array
+        //ch2 = Array.prototype.slice.call(ch);
+        let ch2 = Array.from(ch);
+        //ch2 = ch2.slice();
+
+        //iterate over array
+        let ul = document.createElement("ul");
+        for (key in ch2){
+          const ele = ch2[key].textContent;
+          const li = document.createElement("li");
+          li.innerHTML = key + ": " + ele + ";";
+          ul.appendChild(li);
+        }
+
+        //ch2 = new Map().set("key", "value");
+        ch2 = new Map();
+        ch2.set("this is key", "this is value");
+
+        ch2 = new Array();
+        ch2.push("1");
+        ch2.push(2);
+        ch2.push("3");
+        ch2.push(4);
+        console.log(ch2);
+
+        //https://qiita.com/kerupani129/items/6bb14acb2213179156a2
+        for (const [key, value] of ch2){
+          //const ele = ch2[key].textContent;
+          const li = document.createElement("li");
+          li.innerHTML = key + ": " + value + ";";
+          ul.appendChild(li);
+        }         
 
 
-
-        document.querySelector('#tableDebug').innerHTML=content;
+        //TODO: implemente delete function
+        document.querySelector('#tableDebug').innerHTML = content;
+        document.querySelector('#tableDebug').appendChild(ul);
       }
     });
   }
