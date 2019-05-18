@@ -77,18 +77,25 @@ document.addEventListener('click',function(e){
         let ch2 = Array.from(ch);
         //ch2 = ch2.slice();
 
-        //iterate over array
         let ul = document.createElement("ul");
+        
+        //iterate over array
+        /*
+        
         for (key in ch2){
           const ele = ch2[key].textContent;
           const li = document.createElement("li");
           li.innerHTML = key + ": " + ele + ";";
           ul.appendChild(li);
         }
+        */
 
 
-        ch2.map(function(value, index, array){
-          console.log({index, value});
+        ch2.map((value, index, array) => {
+          //console.log({index, value});
+          const li = document.createElement("li");
+          li.innerHTML = index +": " + value.textContent;
+          ul.appendChild(li);
         });
 
         /*
