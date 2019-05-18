@@ -4,6 +4,7 @@ ENG
 
 [] refactoring postSong(). some code should be out
 [] drag & drop to upload
+[] add table title
 
 [X] remove test selecting table
 [] refactoring table selection code

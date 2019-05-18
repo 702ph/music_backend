@@ -62,34 +62,20 @@ document.addEventListener('click',function(e){
   if(t.nodeName=="TD"){
     Array.prototype.map.call(t.parentNode.parentNode.children,function(x){
       x.classList.remove('skyblue');
+
       if(x == t.parentNode){
         x.classList.add('skyblue');
         let ch = x.children;
-        clickedID = ch[0].textContent;
+        clickedID = ch[0].textContent; //the first children
         document.querySelector("#songIDInput").value = clickedID;
-        //songID = clickedID;
-
-        //TODO: replace with let, replace with for loop
-        let content="";
-
-        //covert HTMLColletion to array(dictionary?) -> no this is not correct. still HTMLCollection. -> no array
-        //ch2 = Array.prototype.slice.call(ch);
-        let ch2 = Array.from(ch);
-        //ch2 = ch2.slice();
-
-        let ul = document.createElement("ul");
-        
-        //iterate over array
-        /*
-        
-        for (key in ch2){
-          const ele = ch2[key].textContent;
-          const li = document.createElement("li");
-          li.innerHTML = key + ": " + ele + ";";
-          ul.appendChild(li);
+ 
+        // clear previous data
+        while (tableDebug.lastChild){
+          tableDebug.removeChild(tableDebug.lastChild);
         }
-        */
-
+        
+        let ch2 = Array.from(ch);
+        let ul = document.createElement("ul");
 
         ch2.map((value, index, array) => {
           //console.log({index, value});
@@ -98,42 +84,6 @@ document.addEventListener('click',function(e){
           ul.appendChild(li);
         });
 
-        /*
-        //ch2 = new Map().set("key", "value");
-        ch2 = new Map();
-        ch2.set("this is key", "this is value"); //map is iteratable
-        ch2.set("key2", "value2");
-
-        ch2 = new Array();
-        ch2.push("1");
-        ch2.push(2);
-        ch2.push("3");
-        ch2.push(4); //array should be iteratable but... has of course no keys.
-        console.log(ch2);
-        */
-
-        //https://qiita.com/kerupani129/items/6bb14acb2213179156a2
-        // this doesn't work with ch2 above
-        // this also doesn't help: https://qiita.com/tsin1rou/items/b30885b189a8ec596c72
-        /*
-        for (const [key, value] of ch2.entries){
-          //const ele = ch2[key].textContent;
-          const li = document.createElement("li");
-          li.innerHTML = key + ": " + value + ";";
-          ul.appendChild(li);
-        }         
-        */
-
-        //this works!
-        //https://infoteck-life.com/a0119-js-array-loop-map/
-        /*
-        ch2.map(function(value, index, array){
-          console.log({index, value});
-        });
-        */
-
-        //TODO: implemente delete function
-        document.querySelector('#tableDebug').innerHTML = content;
         document.querySelector('#tableDebug').appendChild(ul);
       }
     });
