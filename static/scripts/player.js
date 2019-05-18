@@ -86,25 +86,44 @@ document.addEventListener('click',function(e){
           ul.appendChild(li);
         }
 
+
+        ch2.map(function(value, index, array){
+          console.log({index, value});
+        });
+
+        /*
         //ch2 = new Map().set("key", "value");
         ch2 = new Map();
-        ch2.set("this is key", "this is value");
+        ch2.set("this is key", "this is value"); //map is iteratable
+        ch2.set("key2", "value2");
 
         ch2 = new Array();
         ch2.push("1");
         ch2.push(2);
         ch2.push("3");
-        ch2.push(4);
+        ch2.push(4); //array should be iteratable but... has of course no keys.
         console.log(ch2);
+        */
 
         //https://qiita.com/kerupani129/items/6bb14acb2213179156a2
-        for (const [key, value] of ch2){
+        // this doesn't work with ch2 above
+        // this also doesn't help: https://qiita.com/tsin1rou/items/b30885b189a8ec596c72
+        /*
+        for (const [key, value] of ch2.entries){
           //const ele = ch2[key].textContent;
           const li = document.createElement("li");
           li.innerHTML = key + ": " + value + ";";
           ul.appendChild(li);
         }         
+        */
 
+        //this works!
+        //https://infoteck-life.com/a0119-js-array-loop-map/
+        /*
+        ch2.map(function(value, index, array){
+          console.log({index, value});
+        });
+        */
 
         //TODO: implemente delete function
         document.querySelector('#tableDebug').innerHTML = content;
