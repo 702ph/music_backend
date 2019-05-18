@@ -30,32 +30,6 @@ function Controller () {
 
 
 
-
-
-
-//what is promise?
-//https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
-
-//display hello 50000 mili second later
-//be mentioned! world will be displayed at first.
-setTimeout(() => console.log('hello'), 50000);
-console.log('world!');
-
-//an example of promise
-const promise = new Promise((resolve, reject) => resolve()); // Promiseを作成し、終了する
-promise.then(() => console.log('done!')); // Promiseが終了したら「done!」と表示する
-
-//display hello at first 5000 mili second later,  then world
-const promise2 = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        console.log('hello');
-        resolve();
-    }, 5000);
-});
-promise2.then(() => console.log('world!'));
-
-
-
 //get element in table
 document.addEventListener('click',function(e){
   let t = e.target;
