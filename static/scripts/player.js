@@ -56,7 +56,7 @@ promise2.then(() => console.log('world!'));
 
 
 
-
+//get element in table
 document.addEventListener('click',function(e){
   let t = e.target;
   if(t.nodeName=="TD"){
