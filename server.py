@@ -88,21 +88,6 @@ def db_test():
     return result
 
 
-# return list of all column for song in json
-@app.route("/songs_old/", methods=['GET'])
-@app.route("/songs_old", methods=['GET'])
-def get_songs():
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-    # db_cursor.execute("select * from s")
-    db_cursor.execute("select id,title,artist,album,year,genre,created_at from song")  # without data & path
-    fetch_all = db_cursor.fetchall()
-
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
-    return jsonify(fetch_all)
-
 
 """
 @app.route("/songs/<id>", methods=["GET"])
