@@ -9,6 +9,7 @@ ENG
 
 
 backlog
+[] define all functions with same  menner
 [] check if we need api = Api(app)
 [] understand the function of CORS(app)
 [] avoid 0 row to be colored
