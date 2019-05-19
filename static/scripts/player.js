@@ -8,7 +8,7 @@
 
 // update contents once at page load
 window.addEventListener('load', function() {
-  //displaySongList();
+  displaySongList();
   displaySongListWithKey();
 });
 
@@ -164,7 +164,8 @@ stopBtn.onclick = function() {
 }
 
 
-//TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。implement pause
+//TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。
+//have to implement process during pause
 //https://www.tcmobile.jp/dev_blog/programming/web-audio-api%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E7%B0%A1%E5%8D%98%E3%81%AA%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B%EF%BC%883%EF%BC%89/
 
 function displayTime() {
@@ -267,6 +268,7 @@ Object.defineProperty(this, 'displaySongListWithKey', {
     let songList = await getSongListWithKey();
     console.log(songList);
 
+    //get div
     let songSelector = document.querySelector("#songSelectorTable");
 
     // clear previous data
@@ -401,6 +403,6 @@ Object.defineProperty(this, 'uploadSong', {
     formData = new FormData();
 
     //renew song list
-    displaySongList();
+    displaySongListWithKey();
   }
 });
