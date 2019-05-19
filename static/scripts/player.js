@@ -8,7 +8,8 @@
 
 // update contents once at page load
 window.addEventListener('load', function() {
-  displaySongList();
+  //displaySongList();
+  displaySongListWithKey();
 });
 
 
@@ -228,8 +229,8 @@ Object.defineProperty(this, 'displaySongList', {
     //create table cell
     for (song of songList) {
       let tr = table.insertRow(-1);
-      for (cell of song) {
-        tr.insertCell(-1).innerHTML = cell;
+      for (value of song) {
+        tr.insertCell(-1).innerHTML = value;
       }
     }
 
@@ -243,6 +244,69 @@ Object.defineProperty(this, 'getSongList', {
   configurable: false,
   value: async function() {
     const resource = "/songs";
+
+    let response = await fetch(resource, {
+      method: 'GET',
+      credentials: "include", //https://chaika.hatenablog.com/entry/2019/01/08/123000
+      headers: { Accept: "application/json"}
+    });
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+    let result = await response.json();
+    return result;
+  }
+});
+
+
+
+//display song list on viewport
+Object.defineProperty(this, 'displaySongListWithKey', {
+  enumerable: false,
+  configurable: false,
+  value: async function() {
+
+    let songList = await getSongListWithKey();
+    console.log(songList);
+
+    let songSelector = document.querySelector("#songSelectorTable");
+
+    // clear previous data
+    while (songSelector.lastChild){
+      songSelector.removeChild(songSelector.lastChild);
+    }
+
+    //create table
+    let table = document.createElement("table")
+    table.border = 1;
+    table.style="border: 1px solid black; border-collapse: collapse;"
+    songSelector.appendChild(table);
+
+    const songTitle = songList[0] 
+      let tr = table.insertRow(-1);
+      const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
+      for (value of songMap.keys()) {
+        tr.insertCell(-1).innerHTML = value;
+      }
+    
+    
+    for (song of songList) {
+      let tr = table.insertRow(-1);
+      const songMap = new Map(Object.entries(song));  //https://www.sejuku.net/blog/21812#Map
+      for (value of songMap.values()) {
+        tr.insertCell(-1).innerHTML = value;
+      }
+    }
+    
+
+  }
+});
+
+
+
+Object.defineProperty(this, 'getSongListWithKey', {
+  enumerable: false,
+  configurable: false,
+  value: async function() {
+    const resource = "/db_test";
 
     let response = await fetch(resource, {
       method: 'GET',

@@ -39,7 +39,7 @@ def db_test():
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    db_cursor.execute("select id,title,album,year,genre,created_at from song")  # without data & path
+    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song")  # without data & path
     fetch_all = db_cursor.fetchall()
     description = db_cursor.description  # have to be placed after SQL Query
 
