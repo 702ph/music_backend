@@ -65,6 +65,15 @@ document.addEventListener('click',function(e){
 });
 
 
+//have to be korrigiert.
+/*
+Object.defineProperty(this, 'audioCtx', {
+  enumerable: true,
+  get: () => this,
+  set: object => this = object
+});
+*/
+
 
 var audioCtx;
 var startBtn = document.querySelector('#startAudioContext');
@@ -98,19 +107,11 @@ async function start() {
 
 
     //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
-    //Promiseの前にawaitを書くことで、Promiseの終了を待つことができます。
-    //　ーー＞？？　動いてないやん！？
-    //let buffer = await response.arrayBuffer();
+    //await Promise to be solved
     let buffer = await getSong(songID);
     console.log(buffer.byteLength);
 
-    /*
-    //this doensn't work. reason: see next paragraph
-    let decodedAudio = audioCtx.decodeAudioData(buffer);
-    audioSource.buffer = decodedAudio;
-    */
-
-    //because buffer here is a Promise Object, you have to wait till it's set to settled.
+    //because buffer is a Promise Object, you have to wait till it's set to settled.
     //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
     audioCtx.decodeAudioData(buffer).then((decodedAudio)=> { //(decodedAudio)=>{} means function(decodedAudio){}
       audioSource.buffer = decodedAudio;
@@ -123,6 +124,7 @@ async function start() {
 
     //play
     audioSource.start(0);
+
   } catch (error) {
     //this.displayError(error);
     console.log(error);
@@ -161,7 +163,7 @@ stopBtn.onclick = function() {
 }
 
 
-//TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。
+//TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。implement pause
 //https://www.tcmobile.jp/dev_blog/programming/web-audio-api%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E7%B0%A1%E5%8D%98%E3%81%AA%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B%EF%BC%883%EF%BC%89/
 
 function displayTime() {
@@ -187,14 +189,6 @@ btn.onclick = function() {
     postSong();
 }
 
-/*
-var testBtn = document.querySelector("#test_button");
-testBtn.onclick = function() {
-    console.log("hallo #test_button");
-}
-*/
-
-
 
 /**
  * Displays the given error in the footer, or resets it if none is given.
@@ -215,9 +209,7 @@ Object.defineProperty(this, "displayError", {
 
 
 
-
-//retrive song from server
-//var songListJson;
+//display song list on viewport
 Object.defineProperty(this, 'displaySongList', {
   enumerable: false,
   configurable: false,
@@ -247,7 +239,6 @@ Object.defineProperty(this, 'displaySongList', {
       }
     }
 
-
   }
 });
 
@@ -276,7 +267,6 @@ Object.defineProperty(this, 'getSong', {
   enumerable: false,
   configurable: false,
   value: async function(songID) {
-    //const songID=25; //for debug
     const resource = "/songs/" + songID;
     let response = await fetch(resource, {
       method: "GET",
@@ -285,22 +275,10 @@ Object.defineProperty(this, 'getSong', {
         "Accept": "audio/*"
       }
     });
-    //https://riptutorial.com/ja/web-audio/example/10926/%E3%82%AA%E3%83%BC%E3%83%87%E3%82%A3%E3%82%AA%E3%82%92%E5%86%8D%E7%94%9F%E3%81%99%E3%82%8B
-    /*
-    fetch("sound/track.mp3")
-        // Return the data as an ArrayBuffer
-        .then(response => response.arrayBuffer())
-        // Decode the audio data
-        .then(buffer => audioCtx.decodeAudioData(buffer))
-        .then(decodedData => {
-            // ...
-        });
-      */
 
     if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
     let arrayBuffer = await response.arrayBuffer();
-    //console.log(arrayBuffer);
     return arrayBuffer;
   }
 });
