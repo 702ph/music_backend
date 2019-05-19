@@ -8,7 +8,6 @@
 
 // update contents once at page load
 window.addEventListener('load', function() {
-  displaySongList();
   displaySongListWithKey();
 });
 
@@ -200,60 +199,6 @@ Object.defineProperty(this, "displayError", {
     } else {
       outputElement.value = "";
     }
-  }
-});
-
-
-
-//display song list on viewport
-Object.defineProperty(this, 'displaySongList', {
-  enumerable: false,
-  configurable: false,
-  value: async function() {
-
-    let songList = await getSongList();
-    console.log(songList);
-
-    let songSelector = document.querySelector("#songSelectorTable");
-
-    // clear previous data
-    while (songSelector.lastChild){
-      songSelector.removeChild(songSelector.lastChild);
-    }
-
-    //create table
-    let table = document.createElement("table")
-    table.border = 1;
-    table.style="border: 1px solid black; border-collapse: collapse;"
-    songSelector.appendChild(table);
-
-    //create table cell
-    for (song of songList) {
-      let tr = table.insertRow(-1);
-      for (value of song) {
-        tr.insertCell(-1).innerHTML = value;
-      }
-    }
-
-  }
-});
-
-
-//retrive song list from server
-Object.defineProperty(this, 'getSongList', {
-  enumerable: false,
-  configurable: false,
-  value: async function() {
-    const resource = "/songs";
-
-    let response = await fetch(resource, {
-      method: 'GET',
-      credentials: "include", //https://chaika.hatenablog.com/entry/2019/01/08/123000
-      headers: { Accept: "application/json"}
-    });
-    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
-    let result = await response.json();
-    return result;
   }
 });
 
