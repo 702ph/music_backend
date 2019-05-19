@@ -8,7 +8,7 @@
 
 // update contents once at page load
 window.addEventListener('load', function() {
-  displaySongListWithKey();
+  displaySongList();
 });
 
 
@@ -205,7 +205,7 @@ Object.defineProperty(this, "displayError", {
 
 
 //display song list on viewport
-Object.defineProperty(this, 'displaySongListWithKey', {
+Object.defineProperty(this, 'displaySongList', {
   enumerable: false,
   configurable: false,
   value: async function() {
@@ -348,6 +348,6 @@ Object.defineProperty(this, 'uploadSong', {
     formData = new FormData();
 
     //renew song list
-    displaySongListWithKey();
+    displaySongList();
   }
 });
