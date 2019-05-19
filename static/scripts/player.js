@@ -177,11 +177,7 @@ function displayTime() {
 displayTime();
 
 
-function testFunc(){
-  console.log("hallo testFunc");
-}
-
-//post song button
+//upload song button
 var btn = document.querySelector("#submit_button");
 btn.onclick = function() {
     uploadSong();
