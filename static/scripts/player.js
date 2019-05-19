@@ -210,7 +210,7 @@ Object.defineProperty(this, 'displaySongList', {
   configurable: false,
   value: async function() {
 
-    let songList = await getSongListWithKey();
+    let songList = await getSongList();
     console.log(songList);
 
     //get div
@@ -249,11 +249,11 @@ Object.defineProperty(this, 'displaySongList', {
 
 
 
-Object.defineProperty(this, 'getSongListWithKey', {
+Object.defineProperty(this, 'getSongList', {
   enumerable: false,
   configurable: false,
   value: async function() {
-    const resource = "/db_test";
+    const resource = "/songs";
 
     let response = await fetch(resource, {
       method: 'GET',
