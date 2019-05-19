@@ -37,10 +37,11 @@ document.addEventListener('click', function (e) {
     Array.prototype.map.call(t.parentNode.parentNode.children, function (x) {
       x.classList.remove('skyblue');
 
+      //TODO: avoid 0 row to be colored
       if (x == t.parentNode) {
         x.classList.add('skyblue');
         let ch = x.children;
-        clickedID = ch[0].textContent; //the first children
+        clickedID = ch[0].textContent; //the first children for id
         document.querySelector("#songIDInput").value = clickedID;
 
         // clear previous data

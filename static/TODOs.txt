@@ -4,16 +4,17 @@ ENG
 
 [X] refactoring postSong(). some code should be out
 [] drag & drop to upload
-[] add table title
-
+[X] add table title
 [X] remove test selecting table
+
+
+backlog
+[] check if we need api = Api(app)
+[] understand the function of CORS(app)
+[] avoid 0 row to be colored
+
 [] refactoring table selection code
 
 [] automatic continuously playing by array
 [] solve that playing doesn't stop automatically
 [] remove /static/ from URL. it's not beautiful
-
-
-etc
-[] check if we need api = Api(app)
-[] understand the function of CORS(app)
