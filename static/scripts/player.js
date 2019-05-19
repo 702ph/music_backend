@@ -184,9 +184,7 @@ function testFunc(){
 //post song button
 var btn = document.querySelector("#submit_button");
 btn.onclick = function() {
-    console.log("hallo #submit_button");
-    //testFunc();
-    postSong();
+    uploadSong();
 }
 
 
@@ -289,11 +287,35 @@ Object.defineProperty(this, 'getSong', {
 Object.defineProperty(this, 'postSong', {
   enumerable: false,
   configurable: false,
+  value: async function(formData) {
+
+    const resource = "/songs"
+    let response = await fetch(resource, {
+      method: "POST",
+      credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+      body: formData,
+    });
+
+    //show response json
+    const result = (response.json()).then(j => {return j});
+
+    //TODO: this should be over "show response json?"
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+    
+    return result;
+  }
+});
+
+
+//upload song to server
+Object.defineProperty(this, 'uploadSong', {
+  enumerable: false,
+  configurable: false,
   value: async function(data) {
 
-    //TODO: この部分を外に出す。
+    //assign file from form
     const file = document.querySelector("#input_file");
-    if(!file.value){ //if file is empty, return falase
+    if(!file.value){ //if file is empty, return false
       return false;
     }
 
@@ -305,17 +327,12 @@ Object.defineProperty(this, 'postSong', {
     btn.disable = true;
     btn.value = "uploading..."
 
-    const resource = "/songs"
-    let response = await fetch(resource, {
-      method: "POST",
-      credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
-      body: formData,
-    }) /*.then(r=>r.json).then(j =>console.log(j)) */;
-
-    //show response json
-    (response.json()).then(j => console.log(j));
-
-    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+    try {
+      const response = await postSong(formData);
+      console.log(response);
+    } catch(error) {
+      console.log(error);
+    }
 
     //enable button again
     btn.disabled = false;

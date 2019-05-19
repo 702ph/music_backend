@@ -15,6 +15,7 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["DB_PATH"] = "db/music.db"
+app.config['JSON_SORT_KEYS'] = False
 
 api = Api(app)
 CORS(app)
@@ -80,7 +81,9 @@ def db_test():
 
     db_cursor.close()
     db_connection.close()
-    return jsonify(entries)
+
+    result = jsonify(entries)
+    return result
 
 
 # return list of all column for song in json
