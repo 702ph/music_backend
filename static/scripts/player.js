@@ -41,6 +41,7 @@ function handleDragOver(evt){
 }
 
 
+// https://www.html5rocks.com/en/tutorials/file/dndfiles/
 function handleFileSelect(evt){
   console.log("drop");
   evt.stopPropagation();

@@ -9,15 +9,19 @@ ENG
 
 
 backlog
+[] implement multiple file upload
+
+
 [] define all functions with same  menner
 [] check if we need api = Api(app)
 [] understand the function of CORS(app)
-[] avoid 0 row to be colored
 
+[] avoid 0 row to be colored
 [] refactoring table selection code
 
-[] automatic continuously playing by array
+[] automatic continuously playing by using array
 [] solve that playing doesn't stop automatically
 [] remove /static/ from URL. it's not beautiful
 
 [] replace var by let &/ const
+
