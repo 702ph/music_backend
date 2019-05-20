@@ -6,10 +6,10 @@
     background-Color: skyblue
 }
   
-.uploaderContainer {
+#uploaderContainer {
     margin: 10px 0
 }
 
-.drop_zone_container {
+#drop_zone_container {
     margin: 20px 0
 }
