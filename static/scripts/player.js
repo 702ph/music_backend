@@ -28,8 +28,16 @@ function Controller () {
 */
 
 
-//even listner for drop zone
-var dropZone = document.getElementById("drop_zone");
+//event listner for drop zone
+
+new Map([["dragover","handleDragOver"],["drop","handleFileSelect"]]).forEach((value,key) => {console.log(key,value)});
+Object.entries({"dragover":"handleDragOver", "drop":"handleFileSelect"}).map(([key, value]) => console.log(key,value));
+
+const a1 = {"dragover":"handleDragOver", "drop":"handleFileSelect"};
+const a2 = Object.entries(a1);
+
+
+let dropZone = document.getElementById("drop_zone");
 dropZone.addEventListener("dragover", handleDragOver, false);
 dropZone.addEventListener("drop", handleFileSelect, false);
 
@@ -37,6 +45,10 @@ function handleDragOver(evt){
   evt.stopPropagation();  //stops the bubbling of an event to parent elements, preventing any parent event handlers from being executed.
   evt.preventDefault(); //prevent page transition
   evt.dataTransfer.dropEffect = "copy"; // explicity show this is a copy.
+
+  //change style
+  dropZone.classList.add("is-dragover");
+
   console.log("dragover");
 }
 
@@ -48,6 +60,7 @@ function handleFileSelect(evt){
   evt.preventDefault();
 
   //https://www.html5rocks.com/ja/tutorials/file/dndfiles/
+  // show dropped file list
   /*
   const files = evt.dataTransfer.files;
   let output = [];
@@ -59,8 +72,6 @@ function handleFileSelect(evt){
   document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
   */
 
-
-  //let files = evt.target.files; //FileList object
   let files = evt.dataTransfer.files;
 
   // loop throuth the FIleList and render image files as thumbnails.
@@ -151,7 +162,7 @@ document.addEventListener('click', function (e) {
         let ch2 = Array.from(ch);
         let ul = document.createElement("ul");
 
-        ch2.map((value, index, array) => {
+        ch2.map((value, index) => {
           //console.log({index, value});
           const li = document.createElement("li");
           li.innerHTML = index + ": " + value.textContent;
@@ -328,7 +339,7 @@ Object.defineProperty(this, 'displaySongList', {
     songSelector.appendChild(table);
 
     //insert title
-    const songTitle = songList[0]
+    const songTitle = songList[0]; // take one you want. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
     let tr = table.insertRow(-1);
     const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
     for (value of songMap.keys()) {

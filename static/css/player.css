@@ -10,6 +10,42 @@
     margin: 10px 0
 }
 
+/*
 #drop_zone_container {
     margin: 20px 0
 }
+*/
+
+/*
+memo
+# for id
+. for class
+
+priority:  # > .
+*/
+
+#drop_zone_container {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#drop_zone {
+    border: 2px dashed #bbb;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    font: 20pt bold 'Vollkorn';
+    color: #bbb;
+  }
+
+#drop_zone.is-dragover
+  {
+      /* ここで先の太さの指示だけを追加したい*/
+      outline-offset: -20px;
+      outline-color: #c8dadf;
+      background-color: peru;
+  }
+
