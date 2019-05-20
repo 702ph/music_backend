@@ -33,7 +33,6 @@ var dropZone = document.getElementById("drop_zone");
 dropZone.addEventListener("dragover", handleDragOver, false);
 dropZone.addEventListener("drop", handleFileSelect, false);
 
-
 function handleDragOver(evt){
   evt.stopPropagation();  //stops the bubbling of an event to parent elements, preventing any parent event handlers from being executed.
   evt.preventDefault(); //prevent page transition
@@ -48,6 +47,7 @@ function handleFileSelect(evt){
   evt.preventDefault();
 
   //https://www.html5rocks.com/ja/tutorials/file/dndfiles/
+  /*
   const files = evt.dataTransfer.files;
   let output = [];
   for (let i=0; f = files[i]; i++){
@@ -56,8 +56,74 @@ function handleFileSelect(evt){
     f.lastModifiedDate.toLocaleDateString(), '</li>');
   }
   document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
-  
+  */
+
+
+  //let files = evt.target.files; //FileList object
+  let files = evt.dataTransfer.files;
+
+  // loop throuth the FIleList and render image files as thumbnails.
+  for(let i=0,f; f=files[i]; i++){ //TODO: f???
+
+    //only process image files
+    if(!f.type.match("image.*")){
+      continue; //skip process in this time and go to the next repetition. FYI: break ends the loop itself.   
+    }
+
+    //create reader
+    let reader = new FileReader();
+
+    //closure to capture the file information
+    reader.onload = (function(theFile){
+      return function(e) {
+        //render thumbnail
+        let span = document.createElement("span");
+        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name),'"/>'].join('');
+        document.getElementById("list").insertBefore(span, null);
+      }
+    })(f);
+
+    //read in the image file as a data URL.
+    reader.readAsDataURL(f);
+  }
 }
+
+
+
+document.getElementById("files").addEventListener("change", handleFileSelectButton, false);
+function handleFileSelectButton(evt){
+
+  let files = evt.target.files; //FileList object for <input>
+
+  // loop throuth the FIleList and render image files as thumbnails.
+  for(let i=0,f; f=files[i]; i++){ //TODO: f???
+
+    //only process image files
+    if(!f.type.match("image.*")){
+      continue; //skip process in this time and go to the next repetition. FYI: break ends the loop itself.   
+    }
+
+    //create reader
+    let reader = new FileReader();
+
+    //closure to capture the file information
+    reader.onload = (function(theFile){
+      return function(e) {
+        //render thumbnail
+        let span = document.createElement("span");
+        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name),'"/>'].join('');
+        document.getElementById("list").insertBefore(span, null);
+      }
+    })(f);
+
+    //read in the image file as a data URL.
+    reader.readAsDataURL(f);
+
+  }
+}
+
+
+
 
 
 

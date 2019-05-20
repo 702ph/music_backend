@@ -19,3 +19,5 @@ backlog
 [] automatic continuously playing by array
 [] solve that playing doesn't stop automatically
 [] remove /static/ from URL. it's not beautiful
+
+[] replace var by let &/ const
