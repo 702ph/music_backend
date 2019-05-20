@@ -28,6 +28,38 @@ function Controller () {
 */
 
 
+//even listner for drop zone
+var dropZone = document.getElementById("drop_zone");
+dropZone.addEventListener("dragover", handleDragOver, false);
+dropZone.addEventListener("drop", handleFileSelect, false);
+
+
+function handleDragOver(evt){
+  evt.stopPropagation();  //stops the bubbling of an event to parent elements, preventing any parent event handlers from being executed.
+  evt.preventDefault(); //prevent page transition
+  evt.dataTransfer.dropEffect = "copy"; // explicity show this is a copy.
+  console.log("dragover");
+}
+
+
+function handleFileSelect(evt){
+  console.log("drop");
+  evt.stopPropagation();
+  evt.preventDefault();
+
+  //https://www.html5rocks.com/ja/tutorials/file/dndfiles/
+  const files = evt.dataTransfer.files;
+  let output = [];
+  for (let i=0; f = files[i]; i++){
+    output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+    f.size, ' bytes, last modified: ',
+    f.lastModifiedDate.toLocaleDateString(), '</li>');
+  }
+  document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+  
+}
+
+
 
 
 //get element in table
