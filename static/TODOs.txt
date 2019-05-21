@@ -1,16 +1,18 @@
 
-ENG
 01_server
 
 [X] refactoring postSong(). some code should be out
-[] drag & drop to upload
 [X] add table title
 [X] remove test selecting table
+------------------------------------
 
+02_server
+[] deleting file
+[] editing entry i.e.: title, artist, album...
+---------------------------------
 
 backlog
 [] implement multiple file upload
-
 
 [] define all functions with same  menner
 [] check if we need api = Api(app)

@@ -16,13 +16,13 @@ let dropZone = document.querySelector("#drop_zone");
 
 //Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
 // -> solution: second parameter in addEventListner must be function!!! -> write value in dictionary without quatation marks!
-Object.entries({"dragover":handleDragOver, "drop":handleFileSelect, "dragleave":handleDragLeave}).map(([key, value]) => {
+Object.entries({ "dragover": handleDragOver, "drop": handleFileDropped, "dragleave": handleDragLeave }).map(([key, value]) => {
   //console.log(key,value)
   dropZone.addEventListener(key, value, false);
 });
 
 
-function handleDragOver(evt){
+function handleDragOver(evt) {
   evt.stopPropagation();  //stops the bubbling of an event to parent elements, preventing any parent event handlers from being executed.
   evt.preventDefault(); //prevent page transition
   evt.dataTransfer.dropEffect = "copy"; // explicity show this is a copy.
@@ -32,14 +32,84 @@ function handleDragOver(evt){
   console.log("dragover");
 }
 
-
-function handleDragLeave(evt){
+//initialize style
+function handleDragLeave(evt) {
   dropZone.classList.remove("is-dragover")
 }
 
 
+async function handleFileDropped(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+
+  let dropZoneMessage = document.querySelector("#drop_zone_message");
+  dropZoneMessage.innerHTML = "abc";
+
+  //dropped file list
+  let files = evt.dataTransfer.files;
+
+  //check number of files
+  const maxFileNum = 1;
+  if (files.length > maxFileNum) {
+    dropZoneMessage.innerHTML = "currently accepts only one file at time";
+    handleDragLeave();
+    return;
+  }
+
+  //reading file
+  let reader = new FileReader();
+
+  //process only the first file
+  reader.readAsArrayBuffer(files[0]);
+
+
+  //TODO: implement here type check (audio/mpeg)!!
+
+
+  //assign file from form
+  //const file = document.querySelector("#input_file");
+  //process only the first file
+  const file = files[0];
+  if (file.size = 0) { //if file is empty, return false
+    dropZoneMessage.innerHTML = "file is empty";
+    return false;
+  }
+
+  //prepare data to upload
+  let formData = new FormData();
+  formData.append("input_file", file);
+
+  //disable button while uploading
+  //btn.disable = true;
+  //btn.value = "uploading..."
+
+  try {
+    const response = await postSong(formData);
+    console.log(response);
+  } catch (error) {
+    console.log(error);
+  }
+
+  dropZoneMessage.innerHTML = "finished uploading: " + file.name;
+
+  //enable button again
+  //btn.disabled = false;
+  //btn.value = "Submit";
+  //file.value = null;
+
+  file.value = null;
+  formData = new FormData();
+
+  //initialaize style
+  handleDragLeave();
+
+  //reload song list
+  displaySongList();
+}
+
+
 // https://www.html5rocks.com/en/tutorials/file/dndfiles/
-function handleFileSelect(evt){
+function handleFileSelect(evt) {
   console.log("drop");
   evt.stopPropagation();
   evt.preventDefault();
@@ -60,10 +130,10 @@ function handleFileSelect(evt){
   let files = evt.dataTransfer.files;
 
   // loop throuth the FIleList and render image files as thumbnails.
-  for(let i=0,f; f=files[i]; i++){ //TODO: f???
+  for (let i = 0, f; f = files[i]; i++) { //TODO: f???
 
     //only process image files
-    if(!f.type.match("image.*")){
+    if (!f.type.match("image.*")) {
       continue; //skip process in this time and go to the next repetition. FYI: break ends the loop itself.   
     }
 
@@ -71,11 +141,11 @@ function handleFileSelect(evt){
     let reader = new FileReader();
 
     //closure to capture the file information
-    reader.onload = (function(theFile){
-      return function(e) {
+    reader.onload = (function (theFile) {
+      return function (e) {
         //render thumbnail
         let span = document.createElement("span");
-        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name),'"/>'].join('');
+        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name), '"/>'].join('');
         document.getElementById("list").insertBefore(span, null);
       }
     })(f);
@@ -87,16 +157,16 @@ function handleFileSelect(evt){
 
 
 
-document.getElementById("files").addEventListener("change", handleFileSelectButton, false);
-function handleFileSelectButton(evt){
+//document.getElementById("files").addEventListener("change", handleFileSelectButton, false);
+function handleFileSelectButton(evt) {
 
   let files = evt.target.files; //FileList object for <input>
 
   // loop throuth the FIleList and render image files as thumbnails.
-  for(let i=0,f; f=files[i]; i++){ //TODO: f???
+  for (let i = 0, f; f = files[i]; i++) { //TODO: f???
 
     //only process image files
-    if(!f.type.match("image.*")){
+    if (!f.type.match("image.*")) {
       continue; //skip process in this time and go to the next repetition. FYI: break ends the loop itself.   
     }
 
@@ -104,11 +174,11 @@ function handleFileSelectButton(evt){
     let reader = new FileReader();
 
     //closure to capture the file information
-    reader.onload = (function(theFile){
-      return function(e) {
+    reader.onload = (function (theFile) {
+      return function (e) {
         //render thumbnail
         let span = document.createElement("span");
-        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name),'"/>'].join('');
+        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name), '"/>'].join('');
         document.getElementById("list").insertBefore(span, null);
       }
     })(f);
