@@ -29,17 +29,56 @@ function Controller () {
 
 
 //event listner for drop zone
-
-new Map([["dragover","handleDragOver"],["drop","handleFileSelect"]]).forEach((value,key) => {console.log(key,value)});
-Object.entries({"dragover":"handleDragOver", "drop":"handleFileSelect"}).map(([key, value]) => console.log(key,value));
-
-const a1 = {"dragover":"handleDragOver", "drop":"handleFileSelect"};
-const a2 = Object.entries(a1);
-
-
 let dropZone = document.getElementById("drop_zone");
-dropZone.addEventListener("dragover", handleDragOver, false);
-dropZone.addEventListener("drop", handleFileSelect, false);
+
+//NG: Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
+/*
+new Map([["dragover","handleDragOver"],["drop","handleFileSelect"]]).forEach((value,key) => {
+  //console.log(key,value)
+  dropZone.addEventListener(key, value, false);
+});
+*/
+
+
+//NG :Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
+// -> solution: second parameter in addEventListner must be function!!! -> write value in dictionary without quatation marks!
+Object.entries({"dragover":handleDragOver, "drop":handleFileSelect}).map(([key, value]) => {
+  //console.log(key,value)
+  dropZone.addEventListener(key, value, false);
+});
+
+
+//convert 連想配列(Dictionary) to Map
+const method = Object.entries({"dragover":"handleDragOver", "drop":"handleFileSelect"}).map(([key, value]) => ({key, value}));
+console.log(method);
+
+method.forEach(element => {
+  //console.log(element.key, element.value);
+});
+
+//assign event listner
+//NG: player.js:61 Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object. 
+// -> solution: second parameter in addEventListner must be function!!! 
+/*
+Object.entries({"dragover":handleDragOver, "drop":handleFileSelect}).map(([key, value]) => ({key, value})).forEach(entry => {
+  //console.log(element.key, element.value);
+  
+    dropZone.addEventListener(entry.key, entry.value, false)
+  
+});
+*/
+
+//it not working
+/*
+Object.entries({"dragover":"handleDragOver", "drop":"handleFileSelect"}).forEach(entry => {
+  console.log(entry.key, entry.value)
+  e = entry;
+});
+*/
+
+
+//dropZone.addEventListener("dragover", handleDragOver, false);
+//dropZone.addEventListener("drop", handleFileSelect, false);
 
 function handleDragOver(evt){
   evt.stopPropagation();  //stops the bubbling of an event to parent elements, preventing any parent event handlers from being executed.
