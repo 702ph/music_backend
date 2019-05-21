@@ -1,68 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Player</title>
-    <link rel="stylesheet" type="text/css" href="css/player.css" />
+  <meta charset="UTF-8">
+  <title>Music Drop</title>
+  <link rel="stylesheet" type="text/css" href="css/player.css" />
 </head>
+
 <body>
 
-  <h1>Player</h1>
+  <h1>Music Drop</h1>
 
-  <div class="uploaderContainer" >
-      <!--
-      <form method="POST", action="../songs" enctype="multipart/form-data">
-      -->
-      <div class="from-group">
-          <label for="inputFile">choose file to upload</label>
-          <br>
-          <input type="file" name="inputFile" id="input_file">
-          <!--
-          <input type="file" name="inputFile" accept="audio/mpeg" id="input_file">
-          -->
-      </div>
-          <!--
-          <button type="submit" id="submit_button">Submit.</button>
-        -->
-          <input type="button" id="submit_button" value="submit">
-      <!--
-      </form>
-    -->
+  <div id="uploaderContainer">
+    <div class="from-group">
+      <label for="inputFile">choose file to upload(this function is going to be removed in the future or remain in the drop area for non-mouse environment)</label>
+      <br>
+      <input type="file" name="inputFile" id="input_file" accept="audio/mpeg">
+    </div>
+    <input type="button" id="submit_button" value="submit">
+  </div>
+
+  <div id="drop_zone_container">
+    <div id="drop_zone" >Drop files here! </div>
+    <span id="drop_zone_message"><span>
   </div>
 
   <div>
-    <input type="number", id="songIDInput", value="25">
+    <input type="number", id="songIDInput" , value="25">
   </div>
 
   <div>
-  <button id="startAudioContext">&#x25b6; Play</button>
-  <button id="suspendAudioContext">&#x23ef; Pause</button>
-  <button id="stopAudioContext">&#x23f9; Stop</button>
-  <p id="counter">Current context time: No context exists.</p>
+    <button id="startAudioContext">&#x25b6; Play</button>
+    <button id="suspendAudioContext">&#x23ef; Pause</button>
+    <button id="stopAudioContext">&#x23f9; Stop</button>
+    <p id="counter">Current context time: No context exists.</p>
   </div>
 
 
   <div id="songSelectorTable"></div>
 
   <section>
-  <div id="genreArtistList"></div>
+    <div id="genreArtistList"></div>
   </section>
 
-  <!--
-  <table style="margin: 10px 0">
-  <tbody>
-  <tr><td>1</td><td>2</td><td>3</td><td>4</td></tr>
-  <tr><td>5</td><td>6</td><td>7</td><td>8</td></tr>
-  <tr><td>9</td><td>10</td><td>11</td><td>12</td></tr>
-  </tbody>
-  </table>
-  -->
   <div id="tableDebug" style="margin: 10px 0"></div>
 
 
 
 </body>
-
 <script src="scripts/player.js"></script>
-
 </html>

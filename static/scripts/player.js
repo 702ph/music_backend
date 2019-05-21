@@ -2,82 +2,134 @@
  * author: Shuya Fuchigami, 554092
  *
  *
- *
  */
 
 
 // update contents once at page load
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
   displaySongList();
 });
 
 
-//let CONTEXT = { audioContext: null };
-
-/**
- * Creates an "abstract" controller.
- */
-/*
-function Controller () {
-	Object.defineProperty(this, 'audioContext', {
-		enumerable: true,
-		get: () => CONTEXT.audioContext,
-		set: object => CONTEXT.audioContext = object
-	});
-}
-*/
-
-
-
-
-
-
-
-//what is promise?
-//https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
-
-//display hello 50000 mili second later
-//be mentioned! world will be displayed at first.
-setTimeout(() => console.log('hello'), 50000);
-console.log('world!');
-
-//an example of promise
-const promise = new Promise((resolve, reject) => resolve()); // Promiseを作成し、終了する
-promise.then(() => console.log('done!')); // Promiseが終了したら「done!」と表示する
-
-//display hello at first 5000 mili second later,  then world
-const promise2 = new Promise((resolve, reject) => {
-    setTimeout(() => {
-        console.log('hello');
-        resolve();
-    }, 5000);
+//set event listner for drop zone
+let dropZone = document.querySelector("#drop_zone");
+Object.entries({ "dragover": handleDragOver, "drop": handleFileDropped, "dragleave": handleDragLeave }).map(([key, value]) => {
+  dropZone.addEventListener(key, value, false);
 });
-promise2.then(() => console.log('world!'));
 
 
+function handleDragOver(evt) {
+  evt.stopPropagation();  //stops the bubbling of an event to parent elements, preventing any parent event handlers from being executed.
+  evt.preventDefault(); //prevent page transition
+  evt.dataTransfer.dropEffect = "copy"; // explicity show this is a copy.
+
+  //change style
+  dropZone.classList.add("is-dragover");
+  console.log("dragover");
+}
+
+//initialize style
+function handleDragLeave(evt) {
+  dropZone.classList.remove("is-dragover")
+}
 
 
-document.addEventListener('click',function(e){
-  var t=e.target;
-  if(t.nodeName=="TD"){
-    Array.prototype.map.call(t.parentNode.parentNode.children,function(x){
+async function handleFileDropped(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+
+  let dropZoneMessage = document.querySelector("#drop_zone_message");
+  dropZoneMessage.innerHTML = "abc";
+
+  //dropped file list
+  let files = evt.dataTransfer.files;
+
+  //check number of files
+  const maxFileNum = 1;
+  if (files.length > maxFileNum) {
+    dropZoneMessage.innerHTML = "currently accepts only one file at time";
+    handleDragLeave();
+    return;
+  }
+
+  //reading file
+  //let reader = new FileReader();
+
+  //process only the first file
+  //reader.readAsArrayBuffer(files[0]);
+
+
+  //TODO: implement here type check (audio/mpeg)!!
+
+
+  //assign file from form
+  //process only the first file
+  const file = files[0];
+  if (file.size = 0) { //if file is empty, return false
+    dropZoneMessage.innerHTML = "file is empty";
+    return false;
+  }
+
+  //prepare data to upload
+  const formData = new FormData();
+  formData.append("input_file", file); //at siver side it should also be "input_file"
+
+  //uploading message
+  dropZoneMessage.innerHTML = "now uploading: " + file.name;
+
+  try {
+    const response = await postSong(formData);
+    console.log(response);
+  } catch (error) {
+    console.log(error);
+  }
+
+  //upload finish message
+  dropZoneMessage.innerHTML = "uploading finished: " + file.name;
+
+  //reset
+  //file = null;
+  //formData = new FormData();
+
+  //initialaize style
+  handleDragLeave();
+
+  //reload song list
+  displaySongList();
+}
+
+
+//get element in table
+document.addEventListener('click', function (e) {
+  let t = e.target;
+  if (t.nodeName == "TD") {
+    Array.prototype.map.call(t.parentNode.parentNode.children, function (x) {
       x.classList.remove('skyblue');
-      if(x==t.parentNode){
+
+      //TODO: avoid 0 row to be colored
+      if (x == t.parentNode) {
         x.classList.add('skyblue');
-        var ch=x.children;
-        clickedID = ch[0].textContent;
+        let ch = x.children;
+        clickedID = ch[0].textContent; //the first children for id
         document.querySelector("#songIDInput").value = clickedID;
-        //songID = clickedID;
 
-        var content="";
-        content+="1.cell:"+ch[0].textContent+", ";
-        content+="2.cell:"+ch[1].textContent+", ";
-        content+="3.cell:"+ch[2].textContent+", ";
-        content+="4.cell:"+ch[3].textContent;
+        // clear previous data
+        while (tableDebug.lastChild) {
+          tableDebug.removeChild(tableDebug.lastChild);
+        }
 
+        //convert HTMLCollection to array
+        let ch2 = Array.from(ch);
+        let ul = document.createElement("ul");
 
+        ch2.map((value, index) => {
+          //console.log({index, value});
+          const li = document.createElement("li");
+          li.innerHTML = index + ": " + value.textContent;
+          ul.appendChild(li);
+        });
 
-        document.querySelector('#tableDebug').innerHTML=content;
+        document.querySelector('#tableDebug').appendChild(ul);
       }
     });
   }
@@ -94,9 +146,8 @@ var clickedID;
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
+startBtn.onclick = () => start();
 
-
-startBtn.onclick = function(){start()};
 
 async function start() {
   startBtn.setAttribute('disabled', 'disabled');
@@ -117,21 +168,13 @@ async function start() {
 
 
     //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
-    //Promiseの前にawaitを書くことで、Promiseの終了を待つことができます。
-    //　ーー＞？？　動いてないやん！？
-    //let buffer = await response.arrayBuffer();
+    //await Promise to be solved
     let buffer = await getSong(songID);
     console.log(buffer.byteLength);
 
-    /*
-    //this doensn't work. reason: see next paragraph
-    let decodedAudio = audioCtx.decodeAudioData(buffer);
-    audioSource.buffer = decodedAudio;
-    */
-
-    //because buffer here is a Promise Object, you have to wait till it's set to settled.
+    //because buffer is a Promise Object, you have to wait till it's set to settled.
     //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
-    audioCtx.decodeAudioData(buffer).then((decodedAudio)=> { //(decodedAudio)=>{} means function(decodedAudio){}
+    audioCtx.decodeAudioData(buffer).then((decodedAudio) => { //(decodedAudio)=>{} means function(decodedAudio){}
       audioSource.buffer = decodedAudio;
       console.log(decodedAudio);
     }).catch((error) => console.log(error));
@@ -142,14 +185,14 @@ async function start() {
 
     //play
     audioSource.start(0);
+
   } catch (error) {
-    //this.displayError(error);
     console.log(error);
   }
 
   // report the state of the audio context to the
   // console, when it changes
-  audioCtx.onstatechange = function() {
+  audioCtx.onstatechange = function () {
     console.log(audioCtx.state);
   }
 }
@@ -158,21 +201,21 @@ async function start() {
 
 
 // suspend/resume the audiocontext
-susresBtn.onclick = function() {
+susresBtn.onclick = function () {
   if (audioCtx.state === 'running') {
-    audioCtx.suspend().then(function() {
+    audioCtx.suspend().then(function () {
       susresBtn.textContent = 'Resume context';
     });
   } else if (audioCtx.state === 'suspended') {
-    audioCtx.resume().then(function() {
+    audioCtx.resume().then(function () {
       susresBtn.textContent = 'Suspend context';
     });
   }
 }
 
 // close the audiocontext
-stopBtn.onclick = function() {
-  audioCtx.close().then(function() {
+stopBtn.onclick = function () {
+  audioCtx.close().then(function () {
     startBtn.removeAttribute('disabled');
     susresBtn.setAttribute('disabled', 'disabled');
     stopBtn.setAttribute('disabled', 'disabled');
@@ -181,6 +224,7 @@ stopBtn.onclick = function() {
 
 
 //TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。
+//have to implement process during pause
 //https://www.tcmobile.jp/dev_blog/programming/web-audio-api%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E7%B0%A1%E5%8D%98%E3%81%AA%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B%EF%BC%883%EF%BC%89/
 
 function displayTime() {
@@ -194,94 +238,68 @@ function displayTime() {
 displayTime();
 
 
-function testFunc(){
-  console.log("hallo testFunc");
-}
-
-//post song button
-var btn = document.querySelector("#submit_button");
-btn.onclick = function() {
-    console.log("hallo #submit_button");
-    //testFunc();
-    postSong();
-}
-
-/*
-var testBtn = document.querySelector("#test_button");
-testBtn.onclick = function() {
-    console.log("hallo #test_button");
-}
-*/
+//upload song button
+var submitBtn = document.querySelector("#submit_button");
+submitBtn.onclick = () => uploadSong();
 
 
 
-/**
- * Displays the given error in the footer, or resets it if none is given.
- * @param error {Object} the optional error
- */
-Object.defineProperty(this, "displayError", {
-  writable: true,
-  value: function(error) {
-    let outputElement = document.querySelector("body > footer output");
-    if (error) {
-      console.error(error);
-      outputElement.value = error instanceof Error ? error.message : error;
-    } else {
-      outputElement.value = "";
-    }
-  }
-});
-
-
-
-
-//retrive song from server
-//var songListJson;
+//display song list on viewport
 Object.defineProperty(this, 'displaySongList', {
   enumerable: false,
   configurable: false,
-  value: async function() {
+  value: async function () {
 
     let songList = await getSongList();
     console.log(songList);
 
+    //get div
     let songSelector = document.querySelector("#songSelectorTable");
 
     // clear previous data
-    while (songSelector.lastChild){
+    while (songSelector.lastChild) {
       songSelector.removeChild(songSelector.lastChild);
     }
 
     //create table
     let table = document.createElement("table")
     table.border = 1;
-    table.style="border: 1px solid black; border-collapse: collapse;"
+    table.style = "border: 1px solid black; border-collapse: collapse;"
     songSelector.appendChild(table);
 
-    //create table cell
-    for (song of songList) {
-      let tr = table.insertRow(-1);
-      for (cell of song) {
-        tr.insertCell(-1).innerHTML = cell;
-      }
+    //insert title
+    const songTitle = songList[0]; // take one you want. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
+    let tr = table.insertRow(-1);
+    const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
+    for (value of songMap.keys()) {
+      tr.insertCell(-1).innerHTML = value;
     }
 
+    //insert cell for songs
+    for (song of songList) {
+      let tr = table.insertRow(-1);
 
+      //convert Object to Map so that it's iteratable
+      const songMap = new Map(Object.entries(song));  //https://www.sejuku.net/blog/21812#Map
+      for (value of songMap.values()) {
+        tr.insertCell(-1).innerHTML = value;
+      }
+    }
   }
 });
 
 
-//retrive song list from server
+
 Object.defineProperty(this, 'getSongList', {
   enumerable: false,
   configurable: false,
-  value: async function() {
+  value: async function () {
     const resource = "/songs";
 
     let response = await fetch(resource, {
       method: 'GET',
       credentials: "include", //https://chaika.hatenablog.com/entry/2019/01/08/123000
-      headers: { Accept: "application/json"}
+      headers: { Accept: "application/json" }
     });
     if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
     let result = await response.json();
@@ -294,8 +312,7 @@ Object.defineProperty(this, 'getSongList', {
 Object.defineProperty(this, 'getSong', {
   enumerable: false,
   configurable: false,
-  value: async function(songID) {
-    //const songID=25; //for debug
+  value: async function (songID) {
     const resource = "/songs/" + songID;
     let response = await fetch(resource, {
       method: "GET",
@@ -304,22 +321,10 @@ Object.defineProperty(this, 'getSong', {
         "Accept": "audio/*"
       }
     });
-    //https://riptutorial.com/ja/web-audio/example/10926/%E3%82%AA%E3%83%BC%E3%83%87%E3%82%A3%E3%82%AA%E3%82%92%E5%86%8D%E7%94%9F%E3%81%99%E3%82%8B
-    /*
-    fetch("sound/track.mp3")
-        // Return the data as an ArrayBuffer
-        .then(response => response.arrayBuffer())
-        // Decode the audio data
-        .then(buffer => audioCtx.decodeAudioData(buffer))
-        .then(decodedData => {
-            // ...
-        });
-      */
 
     if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
     let arrayBuffer = await response.arrayBuffer();
-    //console.log(arrayBuffer);
     return arrayBuffer;
   }
 });
@@ -330,11 +335,35 @@ Object.defineProperty(this, 'getSong', {
 Object.defineProperty(this, 'postSong', {
   enumerable: false,
   configurable: false,
-  value: async function(data) {
+  value: async function (formData) {
 
-    //TODO: この部分を外に出す。
+    const resource = "/songs"
+    let response = await fetch(resource, {
+      method: "POST",
+      credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+      body: formData,
+    });
+
+    //show response json
+    const result = (response.json()).then(j => { return j });
+
+    //TODO: this should be over "show response json?"
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+    return result;
+  }
+});
+
+
+//upload song to server
+Object.defineProperty(this, 'uploadSong', {
+  enumerable: false,
+  configurable: false,
+  value: async function (data) {
+
+    //assign file from form
     const file = document.querySelector("#input_file");
-    if(!file.value){ //if file is empty, return falase
+    if (!file.value) { //if file is empty, return false
       return false;
     }
 
@@ -346,17 +375,12 @@ Object.defineProperty(this, 'postSong', {
     btn.disable = true;
     btn.value = "uploading..."
 
-    const resource = "/songs"
-    let response = await fetch(resource, {
-      method: "POST",
-      credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
-      body: formData,
-    }) /*.then(r=>r.json).then(j =>console.log(j)) */;
-
-    //show response json
-    (response.json()).then(j => console.log(j));
-
-    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+    try {
+      const response = await postSong(formData);
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
 
     //enable button again
     btn.disabled = false;

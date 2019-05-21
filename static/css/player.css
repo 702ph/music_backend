@@ -1,2 +1,51 @@
-.red{background-Color:red;}
-.skyblue{background-Color:skyblue }
+.red {
+    background-Color: red;
+  }
+
+.skyblue {
+    background-Color: skyblue
+}
+  
+#uploaderContainer {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+/*
+#drop_zone_container {
+    margin: 20px 0
+}
+*/
+
+/*
+memo
+# for id
+. for class
+
+priority:  # > .
+*/
+
+#drop_zone_container {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#drop_zone {
+    border: 2px dashed #bbb;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    font: 20pt bold 'Vollkorn';
+    color: #bbb;
+  }
+
+#drop_zone.is-dragover
+  {
+      background-color: rgb(237, 243, 250);
+      border-color: black 
+  }
+

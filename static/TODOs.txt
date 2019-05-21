@@ -1,16 +1,39 @@
-・postSongのりファクター。関係ない処理を外に出す。
-・テスト用テーブルを消す
-・テーブル選択アルゴリズムの部分のコードをきれいにする。
-・PUSHして、サムに連絡。大きな変更を加える際はPULLしろよと。
-・arrayに表を格納して、自動連続再生
-・再生が自動的に終わらない問題を解決する。
-・staticをURLから取り除く
 
-ENG
-01_server
-[] refactoring postSong(). some code should be out
-[] remove test selecting table
+01_server_and_javascript
+
+[X] refactoring postSong(). some code should be out
+[X] add table title
+[X] remove test selecting table
+------------------------------------
+
+02_server_and_javascript
+[] show drop area only when file(s) are being dragged
+[] type check (audio/mpeg)!!
+[] deleting song on browser
+[] editing entry i.e.: title, artist, album... on browser
+[] serverside: extract mp3 tag information for db
+
+[] hide drop are by default or show in small size
+[] let upload button remain in the drop area for non-mouse environment
+---------------------------------
+
+backlog
+[] implement multiple file upload
+
+[] define all functions with same  menner
+[] check if we need api = Api(app)
+[] understand the function of CORS(app)
+
+[] avoid 0 row to be colored
 [] refactoring table selection code
-[] automatic continuously playing by array
+
+[] automatic continuously playing by using array
 [] solve that playing doesn't stop automatically
 [] remove /static/ from URL. it's not beautiful
+
+[] replace var by let &/ const
+
+[] log-in function?
+
+[] implement slider for play
+

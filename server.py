@@ -15,6 +15,7 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["DB_PATH"] = "db/music.db"
+app.config['JSON_SORT_KEYS'] = False
 
 api = Api(app)
 CORS(app)
@@ -33,12 +34,14 @@ def db():
     return jsonify(fetch_all)
 
 
-@app.route("/db_test")
+# return list of all column for song in json
+@app.route("/songs/", methods=['GET'])
+@app.route("/songs", methods=['GET'])
 def db_test():
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    db_cursor.execute("select id,title,album,year,genre,created_at from song")  # without data & path
+    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song")  # without data & path
     fetch_all = db_cursor.fetchall()
     description = db_cursor.description  # have to be placed after SQL Query
 
@@ -80,23 +83,10 @@ def db_test():
 
     db_cursor.close()
     db_connection.close()
-    return jsonify(entries)
 
+    result = jsonify(entries)
+    return result
 
-# return list of all column for song in json
-@app.route("/songs/", methods=['GET'])
-@app.route("/songs", methods=['GET'])
-def get_songs():
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-    # db_cursor.execute("select * from s")
-    db_cursor.execute("select id,title,artist,album,year,genre,created_at from song")  # without data & path
-    fetch_all = db_cursor.fetchall()
-
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
-    return jsonify(fetch_all)
 
 
 """
