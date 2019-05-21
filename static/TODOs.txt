@@ -12,6 +12,9 @@
 [] deleting song on browser
 [] editing entry i.e.: title, artist, album... on browser
 [] serverside: extract mp3 tag information for db
+
+[] hide drop are by default or show in small size
+[] let upload button remain in the drop area for non-mouse environment
 ---------------------------------
 
 backlog
@@ -31,4 +34,6 @@ backlog
 [] replace var by let &/ const
 
 [] log-in function?
+
+[] implement slider for play
 

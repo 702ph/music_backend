@@ -11,13 +11,9 @@ window.addEventListener('load', function () {
 });
 
 
-//event listner for drop zone
+//set event listner for drop zone
 let dropZone = document.querySelector("#drop_zone");
-
-//Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
-// -> solution: second parameter in addEventListner must be function!!! -> write value in dictionary without quatation marks!
 Object.entries({ "dragover": handleDragOver, "drop": handleFileDropped, "dragleave": handleDragLeave }).map(([key, value]) => {
-  //console.log(key,value)
   dropZone.addEventListener(key, value, false);
 });
 
@@ -75,7 +71,7 @@ async function handleFileDropped(evt) {
   }
 
   //prepare data to upload
-  let formData = new FormData();
+  const formData = new FormData();
   formData.append("input_file", file); //at siver side it should also be "input_file"
 
   //uploading message
@@ -92,8 +88,8 @@ async function handleFileDropped(evt) {
   dropZoneMessage.innerHTML = "uploading finished: " + file.name;
 
   //reset
-  file = null;
-  formData = new FormData();
+  //file = null;
+  //formData = new FormData();
 
   //initialaize style
   handleDragLeave();
@@ -101,89 +97,6 @@ async function handleFileDropped(evt) {
   //reload song list
   displaySongList();
 }
-
-
-// https://www.html5rocks.com/en/tutorials/file/dndfiles/
-function handleFileSelect(evt) {
-  console.log("drop");
-  evt.stopPropagation();
-  evt.preventDefault();
-
-  //https://www.html5rocks.com/ja/tutorials/file/dndfiles/
-  // show dropped file list
-  /*
-  const files = evt.dataTransfer.files;
-  let output = [];
-  for (let i=0; f = files[i]; i++){
-    output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
-    f.size, ' bytes, last modified: ',
-    f.lastModifiedDate.toLocaleDateString(), '</li>');
-  }
-  document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
-  */
-
-  let files = evt.dataTransfer.files;
-
-  // loop throuth the FIleList and render image files as thumbnails.
-  for (let i = 0, f; f = files[i]; i++) { //TODO: f???
-
-    //only process image files
-    if (!f.type.match("image.*")) {
-      continue; //skip process in this time and go to the next repetition. FYI: break ends the loop itself.   
-    }
-
-    //create reader
-    let reader = new FileReader();
-
-    //closure to capture the file information
-    reader.onload = (function (theFile) {
-      return function (e) {
-        //render thumbnail
-        let span = document.createElement("span");
-        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name), '"/>'].join('');
-        document.getElementById("list").insertBefore(span, null);
-      }
-    })(f);
-
-    //read in the image file as a data URL.
-    reader.readAsDataURL(f);
-  }
-}
-
-
-
-//document.getElementById("files").addEventListener("change", handleFileSelectButton, false);
-function handleFileSelectButton(evt) {
-
-  let files = evt.target.files; //FileList object for <input>
-
-  // loop throuth the FIleList and render image files as thumbnails.
-  for (let i = 0, f; f = files[i]; i++) { //TODO: f???
-
-    //only process image files
-    if (!f.type.match("image.*")) {
-      continue; //skip process in this time and go to the next repetition. FYI: break ends the loop itself.   
-    }
-
-    //create reader
-    let reader = new FileReader();
-
-    //closure to capture the file information
-    reader.onload = (function (theFile) {
-      return function (e) {
-        //render thumbnail
-        let span = document.createElement("span");
-        span.innerHTML = ['<img class="thumb" src="', e.target.result, '" title="', escape(theFile.name), '"/>'].join('');
-        document.getElementById("list").insertBefore(span, null);
-      }
-    })(f);
-
-    //read in the image file as a data URL.
-    reader.readAsDataURL(f);
-
-  }
-}
-
 
 
 //get element in table
@@ -205,6 +118,7 @@ document.addEventListener('click', function (e) {
           tableDebug.removeChild(tableDebug.lastChild);
         }
 
+        //convert HTMLCollection to array
         let ch2 = Array.from(ch);
         let ul = document.createElement("ul");
 
@@ -232,9 +146,8 @@ var clickedID;
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
+startBtn.onclick = () => start();
 
-
-startBtn.onclick = function () { start() };
 
 async function start() {
   startBtn.setAttribute('disabled', 'disabled');
@@ -326,10 +239,8 @@ displayTime();
 
 
 //upload song button
-var btn = document.querySelector("#submit_button");
-btn.onclick = function () {
-  uploadSong();
-}
+var submitBtn = document.querySelector("#submit_button");
+submitBtn.onclick = () => uploadSong();
 
 
 
