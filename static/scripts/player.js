@@ -12,7 +12,7 @@ window.addEventListener('load', function () {
 
 
 //event listner for drop zone
-let dropZone = document.getElementById("drop_zone");
+let dropZone = document.querySelector("#drop_zone");
 
 //Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
 // -> solution: second parameter in addEventListner must be function!!! -> write value in dictionary without quatation marks!
