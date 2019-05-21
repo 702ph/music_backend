@@ -57,17 +57,16 @@ async function handleFileDropped(evt) {
   }
 
   //reading file
-  let reader = new FileReader();
+  //let reader = new FileReader();
 
   //process only the first file
-  reader.readAsArrayBuffer(files[0]);
+  //reader.readAsArrayBuffer(files[0]);
 
 
   //TODO: implement here type check (audio/mpeg)!!
 
 
   //assign file from form
-  //const file = document.querySelector("#input_file");
   //process only the first file
   const file = files[0];
   if (file.size = 0) { //if file is empty, return false
@@ -77,11 +76,10 @@ async function handleFileDropped(evt) {
 
   //prepare data to upload
   let formData = new FormData();
-  formData.append("input_file", file);
+  formData.append("input_file", file); //at siver side it should also be "input_file"
 
-  //disable button while uploading
-  //btn.disable = true;
-  //btn.value = "uploading..."
+  //uploading message
+  dropZoneMessage.innerHTML = "now uploading: " + file.name;
 
   try {
     const response = await postSong(formData);
@@ -90,14 +88,11 @@ async function handleFileDropped(evt) {
     console.log(error);
   }
 
-  dropZoneMessage.innerHTML = "finished uploading: " + file.name;
+  //upload finish message
+  dropZoneMessage.innerHTML = "uploading finished: " + file.name;
 
-  //enable button again
-  //btn.disabled = false;
-  //btn.value = "Submit";
-  //file.value = null;
-
-  file.value = null;
+  //reset
+  file = null;
   formData = new FormData();
 
   //initialaize style
