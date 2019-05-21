@@ -16,11 +16,10 @@ let dropZone = document.getElementById("drop_zone");
 
 //Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
 // -> solution: second parameter in addEventListner must be function!!! -> write value in dictionary without quatation marks!
-Object.entries({"dragover":handleDragOver, "drop":handleFileSelect}).map(([key, value]) => {
+Object.entries({"dragover":handleDragOver, "drop":handleFileSelect, "dragleave":handleDragLeave}).map(([key, value]) => {
   //console.log(key,value)
   dropZone.addEventListener(key, value, false);
 });
-
 
 
 function handleDragOver(evt){
@@ -30,8 +29,12 @@ function handleDragOver(evt){
 
   //change style
   dropZone.classList.add("is-dragover");
-
   console.log("dragover");
+}
+
+
+function handleDragLeave(evt){
+  dropZone.classList.remove("is-dragover")
 }
 
 

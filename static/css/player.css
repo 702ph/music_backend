@@ -43,9 +43,11 @@ priority:  # > .
 
 #drop_zone.is-dragover
   {
-      /* ここで先の太さの指示だけを追加したい*/
+    /*
       outline-offset: -20px;
       outline-color: #c8dadf;
-      background-color: peru;
+    */
+      background-color: rgb(237, 243, 250);
+      border-color: black 
   }
 
