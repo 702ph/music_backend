@@ -2,7 +2,6 @@
  * author: Shuya Fuchigami, 554092
  *
  *
- *
  */
 
 
@@ -12,35 +11,10 @@ window.addEventListener('load', function () {
 });
 
 
-//let CONTEXT = { audioContext: null };
-
-/**
- * Creates an "abstract" controller.
- */
-/*
-function Controller () {
-	Object.defineProperty(this, 'audioContext', {
-		enumerable: true,
-		get: () => CONTEXT.audioContext,
-		set: object => CONTEXT.audioContext = object
-	});
-}
-*/
-
-
 //event listner for drop zone
 let dropZone = document.getElementById("drop_zone");
 
-//NG: Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
-/*
-new Map([["dragover","handleDragOver"],["drop","handleFileSelect"]]).forEach((value,key) => {
-  //console.log(key,value)
-  dropZone.addEventListener(key, value, false);
-});
-*/
-
-
-//NG :Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
+//Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object.
 // -> solution: second parameter in addEventListner must be function!!! -> write value in dictionary without quatation marks!
 Object.entries({"dragover":handleDragOver, "drop":handleFileSelect}).map(([key, value]) => {
   //console.log(key,value)
@@ -48,37 +22,6 @@ Object.entries({"dragover":handleDragOver, "drop":handleFileSelect}).map(([key, 
 });
 
 
-//convert 連想配列(Dictionary) to Map
-const method = Object.entries({"dragover":"handleDragOver", "drop":"handleFileSelect"}).map(([key, value]) => ({key, value}));
-console.log(method);
-
-method.forEach(element => {
-  //console.log(element.key, element.value);
-});
-
-//assign event listner
-//NG: player.js:61 Uncaught TypeError: Failed to execute 'addEventListener' on 'EventTarget': The callback provided as parameter 2 is not an object. 
-// -> solution: second parameter in addEventListner must be function!!! 
-/*
-Object.entries({"dragover":handleDragOver, "drop":handleFileSelect}).map(([key, value]) => ({key, value})).forEach(entry => {
-  //console.log(element.key, element.value);
-  
-    dropZone.addEventListener(entry.key, entry.value, false)
-  
-});
-*/
-
-//it not working
-/*
-Object.entries({"dragover":"handleDragOver", "drop":"handleFileSelect"}).forEach(entry => {
-  console.log(entry.key, entry.value)
-  e = entry;
-});
-*/
-
-
-//dropZone.addEventListener("dragover", handleDragOver, false);
-//dropZone.addEventListener("drop", handleFileSelect, false);
 
 function handleDragOver(evt){
   evt.stopPropagation();  //stops the bubbling of an event to parent elements, preventing any parent event handlers from being executed.
@@ -175,10 +118,6 @@ function handleFileSelectButton(evt){
 
 
 
-
-
-
-
 //get element in table
 document.addEventListener('click', function (e) {
   let t = e.target;
@@ -214,15 +153,6 @@ document.addEventListener('click', function (e) {
   }
 });
 
-
-//have to be korrigiert.
-/*
-Object.defineProperty(this, 'audioCtx', {
-  enumerable: true,
-  get: () => this,
-  set: object => this = object
-});
-*/
 
 
 var audioCtx;
@@ -276,7 +206,6 @@ async function start() {
     audioSource.start(0);
 
   } catch (error) {
-    //this.displayError(error);
     console.log(error);
   }
 
@@ -333,24 +262,6 @@ var btn = document.querySelector("#submit_button");
 btn.onclick = function () {
   uploadSong();
 }
-
-
-/**
- * Displays the given error in the footer, or resets it if none is given.
- * @param error {Object} the optional error
- */
-Object.defineProperty(this, "displayError", {
-  writable: true,
-  value: function (error) {
-    let outputElement = document.querySelector("body > footer output");
-    if (error) {
-      console.error(error);
-      outputElement.value = error instanceof Error ? error.message : error;
-    } else {
-      outputElement.value = "";
-    }
-  }
-});
 
 
 
