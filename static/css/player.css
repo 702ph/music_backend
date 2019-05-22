@@ -1,3 +1,27 @@
+body {
+    height: 100vh;
+    background: -webkit-radial-gradient(center ellipse, #564c84 0%, #0c0b17 100%);
+    background: radial-gradient(ellipse at center, #564c84 0%, #0c0b17 100%);
+    color: #888;
+}
+
+#audioDropPanel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-top: 5%;
+    padding: 0% 3% 3% 3%;
+    -webkit-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
+    width: 500px;
+    height: 90%;
+    background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
+    background: radial-gradient(ellipse at center, #444 0%, #111 100%);
+    box-shadow: 0 30px 20px -20px #000;
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+
 .red {
     background-Color: red;
   }
@@ -11,20 +35,6 @@
     padding: 10px;
     border: 1px solid #ccc;
 }
-
-/*
-#drop_zone_container {
-    margin: 20px 0
-}
-*/
-
-/*
-memo
-# for id
-. for class
-
-priority:  # > .
-*/
 
 #drop_zone_container {
     margin: 20px 0;
