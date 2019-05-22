@@ -18,7 +18,8 @@
                 <br> <div class="space"></div>
                 <input type="file" name="inputFile" id="input_file" accept="audio/mpeg">
             </div>
-            <input type="button" id="submit_button" value="submit">
+            <div class="space"></div>
+            <input type="button" class="submitButton" id="submit_button" value="Submit">
         </div>
 
         <div id="drop_zone_container">
@@ -31,9 +32,9 @@
         </div>
 
         <div>
-            <button class="myButton" id="startAudioContext">Play</button>
-            <button class="myButton" id="suspendAudioContext">Pause</button>
-            <button class="myButton" id="stopAudioContext">Stop</button>
+            <button class="playerButtons" id="startAudioContext">Play</button>
+            <button class="playerButtons" id="suspendAudioContext">Pause</button>
+            <button class="playerButtons" id="stopAudioContext">Stop</button>
             <div class="space"></div>
             <p id="counter">Current context time: No context exists.</p>
         </div>
