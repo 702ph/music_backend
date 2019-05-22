@@ -280,8 +280,8 @@ def delete_song(id):
     return jsonify(fetch_all)
 
 
-## error handling practice
-@app.route('/pop', methods=['POST'])
+## error handling debugging
+@app.route('/poppop', methods=['POST'])
 def post_json():
   try:
     json = request.get_json()  # Get POST JSON
@@ -323,16 +323,6 @@ def hello_world():
     return "index page"
 
 
-@app.route("/hello/<name>")
-def hello(name):
-    return "hello" + name
-
-
-@app.route("/hello2")
-def hello2():
-    return "hello world"
-
-
 @app.route('/user/<username>')
 def show_user_profile(username):
     # show the user profile for that user
@@ -345,16 +335,6 @@ def show_post(post_id):
     # show the post with the given id, the id is an integer
     # passS
     return str(post_id)
-
-
-@app.route('/projects/')  # works like directories
-def projects():
-    return "/projects/"
-
-
-@app.route('/about')  # works like files
-def about():
-    return "about"
 
 
 @app.route('/login', methods=['POST', 'GET'])
