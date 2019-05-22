@@ -25,7 +25,7 @@ function handleDragOver(evt) {
 
   //change style
   dropZone.classList.add("is-dragover");
-  console.log("dragover");
+  //console.log("dragover");
 }
 
 //initialize style
@@ -59,13 +59,20 @@ async function handleFileDropped(evt) {
   //reader.readAsArrayBuffer(files[0]);
 
 
-  //TODO: implement here type check (audio/mpeg)!!
-
-
   //assign file from form
   //process only the first file
   const file = files[0];
-  if (file.size = 0) { //if file is empty, return false
+
+  console.log(file.type);
+
+  //TODO: implement here type check (audio/mpeg)!!
+  if (!file.type.match("audio/mp3")){
+    dropZoneMessage.innerHTML = "only accepts mp3 audio!";
+    return false;
+  }
+
+  //if file is empty, return false
+  if (file.size = 0) { 
     dropZoneMessage.innerHTML = "file is empty";
     return false;
   }

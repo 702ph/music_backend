@@ -7,14 +7,19 @@
 ------------------------------------
 
 02_server_and_javascript
-[] show drop area only when file(s) are being dragged
-[] type check (audio/mpeg)!!
+[x] type check (audio/mpeg)!!
+
+before doing task, talk about it with some
 [] deleting song on browser
 [] editing entry i.e.: title, artist, album... on browser
+
+yes
 [] serverside: extract mp3 tag information for db
 
 [] hide drop are by default or show in small size
 [] let upload button remain in the drop area for non-mouse environment
+
+[] show drop area only when file(s) are being dragged
 ---------------------------------
 
 backlog
