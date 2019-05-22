@@ -264,7 +264,7 @@ Object.defineProperty(this, 'displaySongList', {
     //create table
     let table = document.createElement("table")
     table.border = 1;
-    table.style = "border: 1px solid black; border-collapse: collapse;"
+    table.style = "border: 1px solid #ccc; border-collapse: collapse;"
     songSelector.appendChild(table);
 
     //insert title

@@ -5,6 +5,10 @@ body {
     color: #888;
 }
 
+h1 {
+    text-align: center;
+}
+
 #audioDropPanel {
     position: absolute;
     top: 50%;
@@ -13,7 +17,7 @@ body {
     padding: 0% 3% 3% 3%;
     -webkit-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
-    width: 500px;
+    width: 45%;
     height: 90%;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
     background: radial-gradient(ellipse at center, #444 0%, #111 100%);
@@ -22,6 +26,17 @@ body {
     border-radius: 10px;
 }
 
+/*================== SEPERATOR AND SPACES ==================*/
+
+.space {
+    padding-bottom: 10px;
+}
+
+.padding {
+    padding: 10px;
+}
+/*================== COLORS ================================*/
+
 .red {
     background-Color: red;
   }
@@ -29,7 +44,36 @@ body {
 .skyblue {
     background-Color: skyblue
 }
-  
+
+/*=================== BUTTONS =============================*/
+
+.myButton {
+	background-color:#44c767;
+	-moz-border-radius:20px;
+	-webkit-border-radius:20px;
+	border-radius:20px;
+	border:1px solid #18ab29;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:17px;
+	padding:5px 30px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #2f6627;
+    margin-right: 10px;
+}
+.myButton:hover {
+	background-color:#5cbf2a;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
+
+
+/*======================== UPLOAD AND DROP CONTAINER =================*/
+
 #uploaderContainer {
     margin: 10px 0;
     padding: 10px;

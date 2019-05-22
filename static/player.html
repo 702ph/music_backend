@@ -13,9 +13,9 @@
 
         <div id="uploaderContainer">
             <div class="from-group">
-                <label for="inputFile">choose file to upload(this function is going to be removed in the future or remain in
+                <label for="inputFile">choose file to upload <br>(this function is going to be removed in the future or remain in
                     the drop area for non-mouse environment)</label>
-                <br>
+                <br> <div class="space"></div>
                 <input type="file" name="inputFile" id="input_file" accept="audio/mpeg">
             </div>
             <input type="button" id="submit_button" value="submit">
@@ -26,19 +26,20 @@
             <span id="drop_zone_message"></span>
         </div>
 
-        <div>
+        <div class="space">
             <input type="number" , id="songIDInput" , value="25">
         </div>
 
         <div>
-            <button id="startAudioContext">&#x25b6; Play</button>
-            <button id="suspendAudioContext">&#x23ef; Pause</button>
-            <button id="stopAudioContext">&#x23f9; Stop</button>
+            <button class="myButton" id="startAudioContext">Play</button>
+            <button class="myButton" id="suspendAudioContext">Pause</button>
+            <button class="myButton" id="stopAudioContext">Stop</button>
+            <div class="space"></div>
             <p id="counter">Current context time: No context exists.</p>
         </div>
 
 
-        <div id="songSelectorTable"></div>
+        <div class="padding" id="songSelectorTable"></div>
 
         <section>
             <div id="genreArtistList"></div>
