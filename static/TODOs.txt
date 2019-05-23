@@ -19,7 +19,6 @@ yes
 [] automatic continuously playing by using array
 [] solve that playing doesn't stop automatically
 
-
 [] hide drop are by default or show in small size
 [] let upload button remain in the drop area for non-mouse environment
 

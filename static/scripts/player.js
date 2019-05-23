@@ -379,8 +379,8 @@ Object.defineProperty(this, 'uploadSong', {
     formData.append("input_file", file.files[0]);
 
     //disable button while uploading
-    btn.disable = true;
-    btn.value = "uploading..."
+    submitBtn.disable = true;
+    submitBtn.value = "uploading..."
 
     try {
       const response = await postSong(formData);
@@ -390,8 +390,8 @@ Object.defineProperty(this, 'uploadSong', {
     }
 
     //enable button again
-    btn.disabled = false;
-    btn.value = "Submit";
+    submitBtn.disabled = false;
+    submitBtn.value = "Submit";
     file.value = null;
     formData = new FormData();
 

@@ -238,14 +238,15 @@ def read_from_db(id):
 
 @app.route("/songs/<id>", methods=["GET"])
 def read_song(id):
-    filename = "Lied.mp3"  # have to be implemented
+    filename = "song.mp3"  # have to be implemented
     file = read_from_db(id)
 
     # create response
     response = make_response()
     response.data = file
     response.headers["Content-Disposition"] = "attachment; filename=" + filename
-    response.mimetype = "audio/mpe"
+    response.mimetype = "audio/mpeg"
+
     print(response.mimetype)
 
     #https://qiita.com/kekeho/items/58b24c2400ead44f3561
