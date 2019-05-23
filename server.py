@@ -1,11 +1,17 @@
 import os
 import sqlite3
 import mimetypes
+import io
 
 from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
 from flask_restful import Api, http_status_message
 from werkzeug.utils import secure_filename, redirect
+# from mutagen.easyid3 import EasyID3 # to import mp3 tags
+#import mutagen
+from mutagen.easyid3 import EasyID3
+
+## problem installing modules. have to type ./env/bin/pip
 
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
 UPLOAD_FOLDER = "static/uploads"
@@ -141,6 +147,9 @@ def save_to_db(file):
     #param2 = (binary,)
     #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
+    # get mp3 tag
+    get_mp3_tags(binary)
+
     # insert
     param = ("title here", "artist here", "album here", "year here", "genre here", binary, "created_at",)
     db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
@@ -155,9 +164,24 @@ def save_to_db(file):
     return True
 
 
+def get_mp3_tags(file):
+
+    #print(mutagen.File(io.BytesIO(file)).pprint())
+
+    # get tags from audio
+    tags = EasyID3(io.BytesIO(file))
+    print(tags["title"])
+
+    # debug. print all tags
+    for tag in tags.items():
+        print(tag)
+
+
+    return None
+
 
 @app.route("/songs", methods=["POST"])
-def upload_song():
+def save_song():
 
     # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
     # check if the post request has the file part
@@ -173,7 +197,7 @@ def upload_song():
         file = request.files["input_file"]
         # file2 = request.files.get("input_file") ##this also works? have't tried yet
 
-    # even if user does not select file, browser also submit an empty part without filename
+    # even so if user does not select file, browser also submit an empty part without filename
     if file.filename == "":
         return jsonify({"error": "has no filename"})
 
