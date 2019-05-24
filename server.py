@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename, redirect
 # from mutagen.easyid3 import EasyID3 # to import mp3 tags
 #import mutagen
 from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import EasyMP3
 
 ## problem installing modules. have to type ./env/bin/pip
 
@@ -147,8 +148,11 @@ def save_to_db(file):
     #param2 = (binary,)
     #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
-    # get mp3 tag
-    get_mp3_tags(binary)
+    # get mp3 tags
+    tags = get_mp3_infos(binary)
+
+    print("save_to_db")
+    print(tags)
 
     # insert
     param = ("title here", "artist here", "album here", "year here", "genre here", binary, "created_at",)
@@ -164,20 +168,46 @@ def save_to_db(file):
     return True
 
 
-def get_mp3_tags(file):
+def get_mp3_infos(file):
 
     #print(mutagen.File(io.BytesIO(file)).pprint())
 
     # get tags from audio
     tags = EasyID3(io.BytesIO(file))
-    print(tags["title"])
+    #print(tags["title"])
 
     # debug. print all tags
-    for tag in tags.items():
-        print(tag)
+    #for tag in tags.items():
+    #    print(tag)
+
+    # get mp3 information from audio
+    mp3_length = EasyMP3(io.BytesIO(file))
+    #print(mp3_length.info.length)
+
+    length1 = EasyMP3(io.BytesIO(file)).info.length
+    #print(length1)
 
 
-    return None
+    # initiate EasyMP3 object
+    mp3 = EasyMP3(io.BytesIO(file))
+
+    ## return value
+    result = {}
+
+    ## get length
+    length = mp3.info.length
+    print(length)
+
+    ## get tags
+    for key in mp3.tags:  # mp3.tags return key of dictionary. here ie.: title, artist, genre, date.
+        # artist name is at 0. position in array in a dictionary(or tuple?). ie: {"artist":["artist name]}.
+        # we have to get it by giving index 0.
+        value = mp3.tags.get(key)[0]
+        result.update({key: value})
+
+    print(result)
+    return result
+
 
 
 @app.route("/songs", methods=["POST"])
