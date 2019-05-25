@@ -149,16 +149,16 @@ def save_to_db(file):
     #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
     # get mp3 tags
-    tags = get_mp3_infos(binary)
+    mp3_infos = get_mp3_infos(binary)
 
     print("save_to_db")
-    print(tags)
+    print(mp3_infos)
 
     ##TODO: dictionaryに値が存在しない時、デフォルト値を与えられるか？？
 
     # insert
-    #param = (tags["title"], tags["artist"], tags["album"], tags["date"], tags["genre"], binary, "created_at",)
-    #db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+    param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, "created_at",)
+    db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     # update
     #param = (binary, 28,)
@@ -171,78 +171,30 @@ def save_to_db(file):
 
 
 def get_mp3_infos(file):
-    # initiate EasyMP3 object
+    # initiate EasyMP3 class
     mp3 = EasyMP3(io.BytesIO(file))
 
-    ## return value
+    # initialize
+    id3_tags = dict()
     result = dict()
 
-    ## get length
+    # get length
     length = mp3.info.length
     result.update({"length": length})
 
-    ## get tags #このやり方だと、mp3がそのタグの情報を持っている場合しか抽出されない！
+    # get tags #this way isn't suitable. only the tags are iterated which the file has.
+    """
     for key in mp3.tags:  # mp3.tags return key of dictionary. here ie.: title, artist, genre, date.
         # artist name is at 0. position in array in a dictionary(or tuple?). ie: {"artist":["artist name]}.
         # we have to get it by giving index 0.
         value = mp3.tags.get(key)[0]
-        #print(value)
         result.update({key: value})
+    """
 
-
-    ##これで全Keyをiterationできる！！
-    #id3_tags = mp3.ID3
-    #print(mp3_id3.valid_keys.keys())
-    #keys = mp3_id3.valid_keys.keys()
-    #for key in mp3.ID3.valid_keys.keys():
-    #    print(key)
-
-
-    def remove_array(array):
-        if array is None:
-            return None
-        else:
-            return array[0]
-
-    f = remove_array
-
-    id3_tags = dict()
-    for key in mp3.ID3.valid_keys.keys():
-        #id3_tags.update({key: remove_array(mp3.tags.get(key))})
-        #value = None if mp3.tags.get(key) is None else mp3.tags.get(key)[0]
-        value = mp3.tags.get(key)[0] if mp3.tags.get(key) is not None else None
+    for key in mp3.ID3.valid_keys.keys():  # iterate through mp3 keys which in ID3 designated
+        value = mp3.tags.get(key)[0] if mp3.tags.get(key) is not None else None  # keys in 0. position in array. sometimes key doesn't has value so None have to be returned
         id3_tags.update({key: value})
-
-
-
-
-    mp3_id3 = mp3.ID3(io.BytesIO(file))
-    #print(mp3_id3.Get.items())
-    #for k, v in mp3_id3.items():
-    #    print(k, v)
-    #print(mp3_id3.List.keys())
-    #mp3_id3.pprint()
-
-    ## これでkeyの一覧は取得できる！！！　##
-    #for key in mp3_id3.valid_keys.keys():
-    #id3_tags.update({key: mp3.ID3.get(key)[0]})
-        #print(mp3_id3.get(key)[0]) ##これは動かない。
-     #   print(key)
-
-    #print(mp3_id3.get("artist", "not artist exists"))
-    #print(mp3_id3.get("title", "no title exists"))
-
-    # 間違ってないわ。中身は空っぽやわ。たぶんmp3.ID3(ファイル名）みたいにせなあかん。→やはりそうだった。これはEasyID3そのものや。
-    #print(mp3_id3.items())
-
-    mp3_t = mp3.tags #これはなんとEasyID3を返す！
-    mp3.tags.pprint()
-
-
-    print(id3_tags)
-    return None
-    #return result
-    #return tags
+    return id3_tags
 
 
 @app.route("/songs", methods=["POST"])
