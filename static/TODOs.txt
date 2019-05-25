@@ -7,17 +7,27 @@
 ------------------------------------
 
 02_server_and_javascript
-[] show drop area only when file(s) are being dragged
-[] type check (audio/mpeg)!!
+[x] type check (audio/mpeg)!!
+
+before doing task, talk about it with some
 [] deleting song on browser
 [] editing entry i.e.: title, artist, album... on browser
-[] serverside: extract mp3 tag information for db
 
-[] hide drop are by default or show in small size
+[X] serverside: extract mp3 tag information for db
+
+[] plevent from file being drag and dropped outside of drop area
 [] let upload button remain in the drop area for non-mouse environment
+
 ---------------------------------
 
 backlog
+[] automatic continuously playing by using array
+[] hide drop are by default or show in small size
+[] show drop area only when file(s) are being dragged?
+
+[] stop playing music when at the end of file
+
+
 [] implement multiple file upload
 
 [] define all functions with same  menner
@@ -27,13 +37,15 @@ backlog
 [] avoid 0 row to be colored
 [] refactoring table selection code
 
-[] automatic continuously playing by using array
-[] solve that playing doesn't stop automatically
 [] remove /static/ from URL. it's not beautiful
 
 [] replace var by let &/ const
 
 [] log-in function?
 
-[] implement slider for play
+[] implement slider for player
 
+[] error handling for db when there's no data
+[] error handling for drop are when no internet connection
+
+[] implement create_at for db

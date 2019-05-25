@@ -14,7 +14,7 @@ window.addEventListener('load', function () {
 //set event listner for drop zone
 let dropZone = document.querySelector("#drop_zone");
 Object.entries({ "dragover": handleDragOver, "drop": handleFileDropped, "dragleave": handleDragLeave }).map(([key, value]) => {
-  dropZone.addEventListener(key, value, false);
+  dropZone.addEventListener(key, value, false); //key: event name, value: function name(attention! without parenthesis )
 });
 
 
@@ -25,7 +25,7 @@ function handleDragOver(evt) {
 
   //change style
   dropZone.classList.add("is-dragover");
-  console.log("dragover");
+  //console.log("dragover");
 }
 
 //initialize style
@@ -59,13 +59,20 @@ async function handleFileDropped(evt) {
   //reader.readAsArrayBuffer(files[0]);
 
 
-  //TODO: implement here type check (audio/mpeg)!!
-
-
   //assign file from form
   //process only the first file
   const file = files[0];
-  if (file.size = 0) { //if file is empty, return false
+
+  console.log(file.type);
+
+  //TODO: implement here type check (audio/mpeg)!!
+  if (!file.type.match("audio/mp3")){
+    dropZoneMessage.innerHTML = "only accepts mp3 audio!";
+    return false;
+  }
+
+  //if file is empty, return false
+  if (file.size = 0) { 
     dropZoneMessage.innerHTML = "file is empty";
     return false;
   }
@@ -97,6 +104,22 @@ async function handleFileDropped(evt) {
   //reload song list
   displaySongList();
 }
+
+
+//edit table
+let tableInEditing = false;
+let editBtn = document.querySelector("#editButton");
+//editBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
+editBtn.onclick = () => editTable();
+
+Object.defineProperty(this, 'editTable', {
+  enumerable: false,
+  configurable: false,
+  value: async function () {
+    console.log("hello from editTable()");
+  }
+});
+
 
 
 //get element in table
@@ -372,8 +395,8 @@ Object.defineProperty(this, 'uploadSong', {
     formData.append("input_file", file.files[0]);
 
     //disable button while uploading
-    btn.disable = true;
-    btn.value = "uploading..."
+    submitBtn.disable = true;
+    submitBtn.value = "uploading..."
 
     try {
       const response = await postSong(formData);
@@ -383,8 +406,8 @@ Object.defineProperty(this, 'uploadSong', {
     }
 
     //enable button again
-    btn.disabled = false;
-    btn.value = "Submit";
+    submitBtn.disabled = false;
+    submitBtn.value = "Submit";
     file.value = null;
     formData = new FormData();
 

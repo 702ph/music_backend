@@ -3,7 +3,7 @@ app = Flask(__name__)
 
 @app.route("/hello/")
 @app.route("/hello/<name>")
-def hello(name=None):　#set default paramter: name=None
+def hello(name=None): # set default paramter: name=None
     return render_template("hello.html", name=name) #このnameをhtml内で使用可能。
 
 

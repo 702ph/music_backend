@@ -1,11 +1,18 @@
 import os
 import sqlite3
 import mimetypes
+import io
 
 from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
 from flask_restful import Api, http_status_message
 from werkzeug.utils import secure_filename, redirect
+# from mutagen.easyid3 import EasyID3 # to import mp3 tags
+#import mutagen
+from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import EasyMP3
+
+## problem installing modules. have to type ./env/bin/pip
 
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
 UPLOAD_FOLDER = "static/uploads"
@@ -141,8 +148,16 @@ def save_to_db(file):
     #param2 = (binary,)
     #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
+    # get mp3 tags
+    mp3_infos = get_mp3_infos(binary)
+
+    print("save_to_db")
+    print(mp3_infos)
+
+    ##TODO: dictionaryに値が存在しない時、デフォルト値を与えられるか？？
+
     # insert
-    param = ("title here", "artist here", "album here", "year here", "genre here", binary, "created_at",)
+    param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, "created_at",)
     db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     # update
@@ -155,9 +170,35 @@ def save_to_db(file):
     return True
 
 
+def get_mp3_infos(file):
+    # initiate EasyMP3 class
+    mp3 = EasyMP3(io.BytesIO(file))
+
+    # initialize
+    id3_tags = dict()
+    result = dict()
+
+    # get length
+    length = mp3.info.length
+    result.update({"length": length})
+
+    # get tags #this way isn't suitable. only the tags are iterated which the file has.
+    """
+    for key in mp3.tags:  # mp3.tags return key of dictionary. here ie.: title, artist, genre, date.
+        # artist name is at 0. position in array in a dictionary(or tuple?). ie: {"artist":["artist name]}.
+        # we have to get it by giving index 0.
+        value = mp3.tags.get(key)[0]
+        result.update({key: value})
+    """
+
+    for key in mp3.ID3.valid_keys.keys():  # iterate through mp3 keys which in ID3 designated
+        value = mp3.tags.get(key)[0] if mp3.tags.get(key) is not None else None  # keys in 0. position in array. sometimes key doesn't has value so None have to be returned
+        id3_tags.update({key: value})
+    return id3_tags
+
 
 @app.route("/songs", methods=["POST"])
-def upload_song():
+def save_song():
 
     # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
     # check if the post request has the file part
@@ -173,7 +214,7 @@ def upload_song():
         file = request.files["input_file"]
         # file2 = request.files.get("input_file") ##this also works? have't tried yet
 
-    # even if user does not select file, browser also submit an empty part without filename
+    # even so if user does not select file, browser also submit an empty part without filename
     if file.filename == "":
         return jsonify({"error": "has no filename"})
 
@@ -238,14 +279,15 @@ def read_from_db(id):
 
 @app.route("/songs/<id>", methods=["GET"])
 def read_song(id):
-    filename = "Lied.mp3"  # have to be implemented
+    filename = "song.mp3"  # have to be implemented
     file = read_from_db(id)
 
     # create response
     response = make_response()
     response.data = file
     response.headers["Content-Disposition"] = "attachment; filename=" + filename
-    response.mimetype = "audio/mpe"
+    response.mimetype = "audio/mpeg"
+
     print(response.mimetype)
 
     #https://qiita.com/kekeho/items/58b24c2400ead44f3561
@@ -280,8 +322,8 @@ def delete_song(id):
     return jsonify(fetch_all)
 
 
-## error handling practice
-@app.route('/pop', methods=['POST'])
+## error handling debugging
+@app.route('/poppop', methods=['POST'])
 def post_json():
   try:
     json = request.get_json()  # Get POST JSON
@@ -323,16 +365,6 @@ def hello_world():
     return "index page"
 
 
-@app.route("/hello/<name>")
-def hello(name):
-    return "hello" + name
-
-
-@app.route("/hello2")
-def hello2():
-    return "hello world"
-
-
 @app.route('/user/<username>')
 def show_user_profile(username):
     # show the user profile for that user
@@ -345,16 +377,6 @@ def show_post(post_id):
     # show the post with the given id, the id is an integer
     # passS
     return str(post_id)
-
-
-@app.route('/projects/')  # works like directories
-def projects():
-    return "/projects/"
-
-
-@app.route('/about')  # works like files
-def about():
-    return "about"
 
 
 @app.route('/login', methods=['POST', 'GET'])
