@@ -107,7 +107,10 @@ h1 {
 	position:relative;
 	top:1px;
 }
-
+#editButton {
+	font-size:17px;
+	padding:5px 31px;
+}
 
 
 /*======================== UPLOAD AND DROP CONTAINER =================*/

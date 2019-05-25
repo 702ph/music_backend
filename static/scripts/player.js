@@ -14,7 +14,7 @@ window.addEventListener('load', function () {
 //set event listner for drop zone
 let dropZone = document.querySelector("#drop_zone");
 Object.entries({ "dragover": handleDragOver, "drop": handleFileDropped, "dragleave": handleDragLeave }).map(([key, value]) => {
-  dropZone.addEventListener(key, value, false);
+  dropZone.addEventListener(key, value, false); //key: event name, value: function name(attention! without parenthesis )
 });
 
 
@@ -104,6 +104,22 @@ async function handleFileDropped(evt) {
   //reload song list
   displaySongList();
 }
+
+
+//edit table
+let tableInEditing = false;
+let editBtn = document.querySelector("#editButton");
+//editBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
+editBtn.onclick = () => editTable();
+
+Object.defineProperty(this, 'editTable', {
+  enumerable: false,
+  configurable: false,
+  value: async function () {
+    console.log("hello from editTable()");
+  }
+});
+
 
 
 //get element in table
