@@ -160,30 +160,85 @@ Object.defineProperty(this, 'editTable', {
             //originalRows = rows;
             //originalRows = Object.assign(rows);
 
-            const keys = ["id", "title", "artist", "album", "year", "genre"];
+            //const keys = ["id", "title", "artist", "album", "year", "genre"];
+
+            /*
+const a = Array.prototype.slice.call(value.cells);
+for (const [index, value] of a.entries()) {
+    console.log(value.innerText);
+}
+ */
+
 
             //TODO:
+            let songs = [];
+            let jsons = [];
+            let jsonsString = "[";
             Array.prototype.slice.call(rows).forEach((value, index) => {
                 if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
 
-                    /*
-                    const a = Array.prototype.slice.call(value.cells);
-                    for (const [index, value] of a.entries()) {
-                        console.log(value.innerText);
-                    }
 
-                     */
-                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
-                        console.log(index +" and " + value.innerText);
+                    let trs = Array.prototype.slice.call(value.cells).map((value, index) => {
+                        return (value.innerText);
+                    });
+                    //console.log(trs);
+                    const t = trs;
+
+
+                    let song =
+                        {
+                            "id": -1,
+                            "title": "",
+                            "artist": "",
+                            "album": "",
+                            "year": "",
+                            "genre": "",
+                            "created_at": ""
+                        };
+
+                    let keys = ["id", "title", "artist", "album", "year", "genre"];
+                    let s = new Map();
+
+                    Array.prototype.slice.call(value.cells).forEach((value ,index) => {
+
+                        if (!(index === 6)) {
+
+                        //console.log(index +" and " + value.innerText);
+                        s.set(keys[index], value.innerText);
+                        //console.log(keys[index]);
+                    }
                     });
 
+                    console.log(s);
+                    songs.push(s);
 
+                    let j = JSON.stringify( Array.from(s).reduce( (sum, [v,k]) => (sum[v]=k, sum), {} ) );
+                    console.log(j);
+                    jsons.push(j);
+
+                    jsonsString = jsonsString+j;
+                    jsonsString = jsonsString + ",";
+
+                    let p = JSON.parse(j);
+                    console.log(p);
                 }
             });
+            console.log(songs);
+            console.log(jsons);
 
+            let jsonOfJsons = JSON.stringify(jsons);
+            console.log(jsonOfJsons);
+            console.log(JSON.parse(jsonOfJsons));
 
-            //Array.prototype.slice.call(value.cells).forEach((value, index, array) => {});
-            //Array.prototype.slice.call(value.cells).map((value, index, array) => {})
+            jsonsString = jsonsString + "]";
+            console.log(jsonsString);
+
+            let jsonsStringByJoin = jsons.join(",");
+            let jsonsStringByJoinToSend = "[" + jsonsStringByJoin + "]";
+            console.log(jsonsStringByJoinToSend);
+
+            console.log(JSON.parse(jsonsStringByJoinToSend)); //動く！！！
+            console.log(Array.from(JSON.parse(jsonsStringByJoinToSend))); //変化なし！mapに変換はできていない！
 
 
             // make cells editable
