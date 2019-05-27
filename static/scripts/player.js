@@ -106,8 +106,9 @@ async function handleFileDropped(evt) {
 }
 
 
-//edit table
-let tableInEditing = false;
+//edit table contents
+let inTableEditMode = false
+let originalRows;
 let editBtn = document.querySelector("#editButton");
 //editBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
 editBtn.onclick = () => editTable();
@@ -117,6 +118,38 @@ Object.defineProperty(this, 'editTable', {
   configurable: false,
   value: async function () {
     console.log("hello from editTable()");
+
+    //set mode
+    inTableEditMode = true;
+
+    //change button value
+    editBtn.value = "Finish";
+
+    //get table
+    let songSelector = document.querySelector("#songSelectorTable");
+    let rows = songSelector.children[0].rows //<tr> in <table>
+
+    //save original
+    originalRows = rows;
+
+    //iteration to set editable
+    Array.from(rows).map((value, index) => {
+      //console.log(index, value)
+
+      if (!(index === 0)){ // 0. row is for title
+
+        //a2 = Array.from(value.cells);
+
+        a = Array.prototype.slice.call(value.cells);
+        a.forEach((item)=>{
+          console.log(item)
+          item.setAttribute("contenteditable", "true");
+        });
+      }
+
+    });
+
+
   }
 });
 
@@ -124,6 +157,10 @@ Object.defineProperty(this, 'editTable', {
 
 //get element in table
 document.addEventListener('click', function (e) {
+
+  if (inTableEditMode) return; // if in table edit mode return;
+
+
   let t = e.target;
   if (t.nodeName == "TD") {
     Array.prototype.map.call(t.parentNode.parentNode.children, function (x) {
@@ -221,8 +258,6 @@ async function start() {
 }
 
 
-
-
 // suspend/resume the audiocontext
 susresBtn.onclick = function () {
   if (audioCtx.state === 'running') {
@@ -266,8 +301,7 @@ var submitBtn = document.querySelector("#submit_button");
 submitBtn.onclick = () => uploadSong();
 
 
-
-//display song list on viewport
+//display song list on in table
 Object.defineProperty(this, 'displaySongList', {
   enumerable: false,
   configurable: false,
@@ -290,7 +324,7 @@ Object.defineProperty(this, 'displaySongList', {
     table.style = "border: 1px solid #ccc; border-collapse: collapse;"
     songSelector.appendChild(table);
 
-    //insert title
+    //insert title (table head)
     const songTitle = songList[0]; // take one you want. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
     let tr = table.insertRow(-1);
     const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
