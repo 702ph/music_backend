@@ -109,7 +109,7 @@ async function handleFileDropped(evt) {
 //edit table contents
 let inTableEditMode = false
 let originalRows;
-let editBtn = document.querySelector("#editButton");
+let editBtn = document.querySelector("#editStartButton");
 //editBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
 editBtn.onclick = () => editTable();
 
@@ -117,39 +117,70 @@ Object.defineProperty(this, 'editTable', {
   enumerable: false,
   configurable: false,
   value: async function () {
-    console.log("hello from editTable()");
+    console.log("hello from editTable()");  
 
-    //set mode
-    inTableEditMode = true;
-
-    //change button value
-    editBtn.value = "Finish";
 
     //get table
-    let songSelector = document.querySelector("#songSelectorTable");
-    let rows = songSelector.children[0].rows //<tr> in <table>
-
-    //save original
-    originalRows = rows;
-
-    //iteration to set editable
-    Array.from(rows).map((value, index) => {
-      //console.log(index, value)
-
-      if (!(index === 0)){ // 0. row is for title
-
-        //a2 = Array.from(value.cells);
-
-        a = Array.prototype.slice.call(value.cells);
-        a.forEach((item)=>{
-          console.log(item)
-          item.setAttribute("contenteditable", "true");
-        });
-      }
-
-    });
+      let songSelector = document.querySelector("#songSelectorTable");
+      let rows = songSelector.children[0].rows //<tr> in <table>
 
 
+    // if in table edit mode, finish the mode and send changes to server.
+    if (inTableEditMode) {
+
+            //iteration to set editable
+      Array.from(rows).map((value, index) => {
+        //console.log(index, value)
+
+        if (!(index === 0)) { // 0. row is for title
+
+          //a2 = Array.from(value.cells);
+
+          a = Array.prototype.slice.call(value.cells);
+          a.forEach((item) => {
+            console.log(item)
+            item.setAttribute("contenteditable", "false");
+          });
+        }
+
+      });
+
+      //change button value
+      editBtn.value = "&#x1f58c;";
+
+      //set mode
+      inTableEditMode = false;
+
+
+    } else { // if not, change to edit mode
+
+      //set mode
+      inTableEditMode = true;
+
+      //change button value
+      editBtn.value = "Finish";
+
+
+      //save original
+      originalRows = rows;
+
+      //iteration to set editable=true
+      Array.from(rows).map((value, index) => {
+        //console.log(index, value)
+
+        if (!(index === 0)) { // 0. row is for title
+
+          //a2 = Array.from(value.cells);
+
+          a = Array.prototype.slice.call(value.cells);
+          a.forEach((item) => {
+            console.log(item)
+            item.setAttribute("contenteditable", "true");
+          });
+        }
+
+      });
+    }
   }
 });
 
