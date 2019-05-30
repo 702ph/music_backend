@@ -21,6 +21,9 @@ before doing task, talk about it with some
 ---------------------------------
 
 backlog
+
+[] pack originalRows in editStartButton() and give it over to editCancelButton() when it is called
+
 [] automatic continuously playing by using array
 [] hide drop are by default or show in small size
 [] show drop area only when file(s) are being dragged?
