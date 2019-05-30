@@ -136,6 +136,72 @@ Object.defineProperty(this, 'editTable', {
             //set cells not editable
             setContentNonEditable(rows);
 
+
+            //send table contents to server
+            let songs = [];
+            let songsArray = [];
+            let jsons = [];
+            let jsonsString = "[";
+            Array.prototype.slice.call(rows).forEach((value, index) => {
+                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+
+
+                    let trs = Array.prototype.slice.call(value.cells).map((value, index) => {
+                        return (value.innerText);
+                    });
+                    //console.log(trs);
+                    const t = trs;
+
+
+                    let song =
+                        {
+                            "id": -1,
+                            "title": "",
+                            "artist": "",
+                            "album": "",
+                            "year": "",
+                            "genre": "",
+                            "created_at": ""
+                        };
+
+                    let keys = ["id", "title", "artist", "album", "year", "genre"];
+                    let s = new Map();
+
+                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
+
+                        if (!(index === 6)) {
+
+                            //console.log(index +" and " + value.innerText);
+                            s.set(keys[index], value.innerText);
+                            //console.log(keys[index]);
+
+                            song[index] = value.innerText
+                        }
+                    });
+
+                    console.log(song); //false. can not reference property in object
+                    songsArray.push(song);
+
+                    //TODO: works fine!!
+                    console.log(s);
+                    songs.push(s);
+
+                    //way 2, convert to json string and push it to json array
+                    let j = JSON.stringify(Array.from(s).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
+                    console.log(j);
+                    jsons.push(j);
+
+                    //way 3, concatenate json string,
+                    jsonsString = jsonsString + j;
+                    jsonsString = jsonsString + ",";
+
+                    let p = JSON.parse(j);
+                    console.log(p);
+                }
+            });
+
+
+
             //reset button value
             editStartBtn.value = "🖋";
 
@@ -160,7 +226,6 @@ Object.defineProperty(this, 'editTable', {
 
             //save current table contents
             saveCurrentTableRows(rows);
-
 
 
             //TODO:
@@ -307,21 +372,18 @@ Object.defineProperty(this, 'convertFromJson', {
         //console.log(songList);
 
 
-        // this is for the "cancel button"
-        // keys to garantierted elementen extraktion from object
+        // this is for the "cancel button" -> not any more
+        // keys to garantierted reihenfolge der elementen extraktion from object
         const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
 
         //oh forEach works!?
         songList.forEach((item) => {
             //console.log(item);
-
             for (const key of keyOrder) {
                 //console.log(key);
-                //console.log(item[key]);
+                console.log(item[key]);
             }
-
         });
-
 
         return songList;
     }
@@ -378,8 +440,8 @@ Object.defineProperty(this, 'cancelEditTable', {
 
 
         //recovery previous contents. (override current table with previous contents )
-        Array.prototype.slice.call(rows).forEach((row, rindex)=>{
-            Array.prototype.slice.call(row.cells).forEach((cell, cindex)=>{
+        Array.prototype.slice.call(rows).forEach((row, rindex) => {
+            Array.prototype.slice.call(row.cells).forEach((cell, cindex) => {
                 cell.innerText = originalRows[rindex][cindex];
             });
         });
