@@ -18,7 +18,7 @@ h1 {
     -webkit-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
     width: 45%;
-    height: 90%;
+    height: 100%;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
     background: radial-gradient(ellipse at center, #444 0%, #111 100%);
     box-shadow: 0 30px 20px -20px #000;
@@ -43,6 +43,16 @@ h1 {
 
 .skyblue {
     background-Color: skyblue
+}
+
+.white {
+	color: white;
+}
+
+/*=================== TABLE   =============================*/
+
+#songSelectorTable {
+	padding: 10px;
 }
 
 /*=================== BUTTONS =============================*/
@@ -108,7 +118,7 @@ h1 {
 	top:1px;
 }
 #editStartButton {
-	font-size:17px;
+	font-size:17pt;
 	padding:5px 31px;
 }
 
@@ -116,15 +126,17 @@ h1 {
 /*======================== UPLOAD AND DROP CONTAINER =================*/
 
 #uploaderContainer {
-    margin: 10px 0;
-    padding: 10px;
+    margin: 2% 0;
+    padding: 2%;
     border: 1px solid #ccc;
+	border-radius: 5px;
 }
 
 #drop_zone_container {
-    margin: 20px 0;
-    padding: 10px;
+    margin: 4% 0;
+    padding: 2%;
     border: 1px solid #ccc;
+	border-radius: 5px;
 }
 
 #drop_zone {
@@ -134,7 +146,8 @@ h1 {
     border-radius: 5px;
     padding: 25px;
     text-align: center;
-    font: 20pt bold 'Vollkorn';
+    font-family: Verdana;
+	font-size: 20pt;
     color: #bbb;
   }
 
