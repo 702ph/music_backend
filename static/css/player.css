@@ -177,3 +177,7 @@ h1 {
       border-color: black 
   }
 
+#editCancelButton
+  {
+	visibility: hidden;
+  }

@@ -136,6 +136,72 @@ Object.defineProperty(this, 'editTable', {
             //set cells not editable
             setContentNonEditable(rows);
 
+
+            //send table contents to server
+            let songs = [];
+            let songsArray = [];
+            let jsons = [];
+            let jsonsString = "[";
+            Array.prototype.slice.call(rows).forEach((value, index) => {
+                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+
+
+                    let trs = Array.prototype.slice.call(value.cells).map((value, index) => {
+                        return (value.innerText);
+                    });
+                    //console.log(trs);
+                    const t = trs;
+
+
+                    let song =
+                        {
+                            "id": -1,
+                            "title": "",
+                            "artist": "",
+                            "album": "",
+                            "year": "",
+                            "genre": "",
+                            "created_at": ""
+                        };
+
+                    let keys = ["id", "title", "artist", "album", "year", "genre"];
+                    let s = new Map();
+
+                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
+
+                        if (!(index === 6)) {
+
+                            //console.log(index +" and " + value.innerText);
+                            s.set(keys[index], value.innerText);
+                            //console.log(keys[index]);
+
+                            song[index] = value.innerText
+                        }
+                    });
+
+                    console.log(song); //false. can not reference property in object
+                    songsArray.push(song);
+
+                    //TODO: works fine!!
+                    console.log(s);
+                    songs.push(s);
+
+                    //way 2, convert to json string and push it to json array
+                    let j = JSON.stringify(Array.from(s).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
+                    console.log(j);
+                    jsons.push(j);
+
+                    //way 3, concatenate json string,
+                    jsonsString = jsonsString + j;
+                    jsonsString = jsonsString + ",";
+
+                    let p = JSON.parse(j);
+                    console.log(p);
+                }
+            });
+
+
+
             //reset button value
             editStartBtn.value = "🖋";
 
@@ -158,16 +224,7 @@ Object.defineProperty(this, 'editTable', {
             editStartBtn.value = "Finish";
 
 
-            //save original //TODO: have to be refactored with deep copy.
-            //originalRows = rows;
-            //originalRows = Object.assign(rows);
-
-            //originalRows = rows.cloneNode();
-            //console.log(originalRows);
-
-            //originalSongSelector = songSelector.cloneNode(true);
-
-
+            //save current table contents
             saveCurrentTableRows(rows);
 
 
@@ -315,34 +372,18 @@ Object.defineProperty(this, 'convertFromJson', {
         //console.log(songList);
 
 
-        // this is for the "cancel button"
-        // keys to garantierted elementen extraktion from object
+        // this is for the "cancel button" -> not any more
+        // keys to garantierted reihenfolge der elementen extraktion from object
         const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
 
         //oh forEach works!?
         songList.forEach((item) => {
             //console.log(item);
-
             for (const key of keyOrder) {
                 //console.log(key);
-                //console.log(item[key]);
+                console.log(item[key]);
             }
-
         });
-
-
-        //TODO:なんとこれでreferenceを断ち切れるのではないか！？
-        //→しかし、これをcancel時にTableに代入した際、このarrayがreferrenceされてしまい、ややこしいことになるような気もしなくもない。
-        let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let newArr = arr.map((item) => {
-            return item;
-        });
-        console.log(arr);
-        console.log(newArr);
-        arr[0] = 10;
-        console.log(arr);
-        console.log(newArr);
-
 
         return songList;
     }
@@ -354,19 +395,6 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
     configurable: false,
     value: function (tableRows) {
 
-
-        //→しかし、これをcancel時にTableに代入した際、このarrayがreferrenceされてしまい、ややこしいことになるような気もしなくもない。
-        let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let newArr = arr.map((item) => {
-            return item;
-        });
-        console.log(arr);
-        console.log(newArr);
-        arr[0] = 10;
-        console.log(arr);
-        console.log(newArr);
-
-
         // get contents in table
         originalRows = Array.prototype.slice.call(tableRows).map((row) => {
             return Array.prototype.slice.call(row.cells).map((cell) => {
@@ -375,7 +403,6 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
         });
         console.log(originalRows);
 
-        //originalRows = tableRowsMap;
     }
 });
 
@@ -399,7 +426,6 @@ Object.defineProperty(this, 'setContentNonEditable', {
 
 
 let editCancelBtn = document.querySelector("#editCancelButton");
-editCancelBtn.style.visibility = "hidden";
 editCancelBtn.onclick = () => cancelEditTable();
 
 Object.defineProperty(this, 'cancelEditTable', {
@@ -414,8 +440,8 @@ Object.defineProperty(this, 'cancelEditTable', {
 
 
         //recovery previous contents. (override current table with previous contents )
-        Array.prototype.slice.call(rows).forEach((row, rindex)=>{
-            Array.prototype.slice.call(row.cells).forEach((cell, cindex)=>{
+        Array.prototype.slice.call(rows).forEach((row, rindex) => {
+            Array.prototype.slice.call(row.cells).forEach((cell, cindex) => {
                 cell.innerText = originalRows[rindex][cindex];
             });
         });
