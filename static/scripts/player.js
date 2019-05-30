@@ -158,17 +158,9 @@ Object.defineProperty(this, 'editTable', {
             editStartBtn.value = "Finish";
 
 
-            //save original //TODO: have to be refactored with deep copy.
-            //originalRows = rows;
-            //originalRows = Object.assign(rows);
-
-            //originalRows = rows.cloneNode();
-            //console.log(originalRows);
-
-            //originalSongSelector = songSelector.cloneNode(true);
-
-
+            //save current table contents
             saveCurrentTableRows(rows);
+
 
 
             //TODO:
@@ -331,19 +323,6 @@ Object.defineProperty(this, 'convertFromJson', {
         });
 
 
-        //TODO:なんとこれでreferenceを断ち切れるのではないか！？
-        //→しかし、これをcancel時にTableに代入した際、このarrayがreferrenceされてしまい、ややこしいことになるような気もしなくもない。
-        let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let newArr = arr.map((item) => {
-            return item;
-        });
-        console.log(arr);
-        console.log(newArr);
-        arr[0] = 10;
-        console.log(arr);
-        console.log(newArr);
-
-
         return songList;
     }
 });
@@ -354,19 +333,6 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
     configurable: false,
     value: function (tableRows) {
 
-
-        //→しかし、これをcancel時にTableに代入した際、このarrayがreferrenceされてしまい、ややこしいことになるような気もしなくもない。
-        let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        let newArr = arr.map((item) => {
-            return item;
-        });
-        console.log(arr);
-        console.log(newArr);
-        arr[0] = 10;
-        console.log(arr);
-        console.log(newArr);
-
-
         // get contents in table
         originalRows = Array.prototype.slice.call(tableRows).map((row) => {
             return Array.prototype.slice.call(row.cells).map((cell) => {
@@ -375,7 +341,6 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
         });
         console.log(originalRows);
 
-        //originalRows = tableRowsMap;
     }
 });
 
