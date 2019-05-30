@@ -1,8 +1,14 @@
+/*
+ * author: Shuya Fuchigami, 554092 and Sebastian Braun, 549301
+ *
+ *
+ */
+
 body {
     height: 100vh;
     background: -webkit-radial-gradient(center ellipse, #564c84 0%, #0c0b17 100%);
     background: radial-gradient(ellipse at center, #564c84 0%, #0c0b17 100%);
-    color: #888;
+    color: #dbdbdb;
 }
 
 h1 {
@@ -13,12 +19,12 @@ h1 {
     position: absolute;
     top: 50%;
     left: 50%;
-    margin-top: 5%;
+    margin: 10% 0;
     padding: 0% 3% 3% 3%;
     -webkit-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
-    width: 45%;
-    height: 100%;
+    width: 60%;
+    height: auto;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
     background: radial-gradient(ellipse at center, #444 0%, #111 100%);
     box-shadow: 0 30px 20px -20px #000;
@@ -32,8 +38,16 @@ h1 {
     padding-bottom: 10px;
 }
 
+.space_top {
+	padding-top: 10px;
+}
+
 .padding {
     padding: 10px;
+}
+
+.margin {
+	margin: 10px;
 }
 /*================== COLORS ================================*/
 
@@ -42,17 +56,19 @@ h1 {
   }
 
 .skyblue {
-    background-Color: skyblue
+    background-Color: skyblue;
 }
 
 .white {
 	color: white;
 }
 
-/*=================== TABLE   =============================*/
+.green {
+	background-color: green;
+}
 
-#songSelectorTable {
-	padding: 10px;
+.greenYellow {
+	background-color: #44c767;
 }
 
 /*=================== BUTTONS =============================*/
@@ -118,7 +134,7 @@ h1 {
 	top:1px;
 }
 #editStartButton {
-	font-size:17pt;
+	font-size:17px;
 	padding:5px 31px;
 }
 
@@ -126,16 +142,20 @@ h1 {
 /*======================== UPLOAD AND DROP CONTAINER =================*/
 
 #uploaderContainer {
-    margin: 2% 0;
-    padding: 2%;
+    margin: 10px 0;
+    padding: 10px;
     border: 1px solid #ccc;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
 	border-radius: 5px;
 }
 
 #drop_zone_container {
-    margin: 4% 0;
-    padding: 2%;
+    margin: 20px 0;
+    padding: 10px;
     border: 1px solid #ccc;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
 	border-radius: 5px;
 }
 
@@ -144,10 +164,10 @@ h1 {
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     border-radius: 5px;
-    padding: 25px;
+    padding: 2%;
     text-align: center;
-    font-family: Verdana;
-	font-size: 20pt;
+    font-size: 20pt;
+	font-family: Verdana, serif;
     color: #bbb;
   }
 

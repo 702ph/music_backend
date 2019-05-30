@@ -51,7 +51,7 @@ async function handleFileDropped(evt) {
     //check number of files
     const maxFileNum = 1;
     if (files.length > maxFileNum) {
-        dropZoneMessage.innerHTML = "currently accepts only one file at this time";
+        dropZoneMessage.innerHTML = "currently accepts only one file at time";
         handleDragLeave();
         return;
     }
@@ -259,7 +259,7 @@ Object.defineProperty(this, 'editTable', {
             // make cells editable
             Array.prototype.slice.call(rows).forEach((value, index) => {
                 if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-                    value.classList.remove('skyblue'); //remove style sheet
+                    value.classList.remove('greenYellow'); //remove style sheet
 
                     Array.prototype.slice.call(value.cells).forEach((cell) => {
                         if (!(cell.cellIndex === 0 || cell.cellIndex === 6)) { //make cells editable except first and last one in the row.
@@ -445,11 +445,11 @@ document.addEventListener('click', function (e) {
     let t = e.target;
     if (t.nodeName == "TD") {
         Array.prototype.map.call(t.parentNode.parentNode.children, function (x) {
-            x.classList.remove('skyblue');
+            x.classList.remove('greenYellow');
 
             //TODO: avoid 0 row to be colored
             if (x == t.parentNode) {
-                x.classList.add('skyblue');
+                x.classList.add('greenYellow');
                 let ch = x.children;
                 clickedID = ch[0].textContent; //the first children for id
                 document.querySelector("#songIDInput").value = clickedID;
