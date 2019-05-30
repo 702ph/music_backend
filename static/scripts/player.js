@@ -51,7 +51,7 @@ async function handleFileDropped(evt) {
     //check number of files
     const maxFileNum = 1;
     if (files.length > maxFileNum) {
-        dropZoneMessage.innerHTML = "currently accepts only one file at time";
+        dropZoneMessage.innerHTML = "currently accepts only one file at this time";
         handleDragLeave();
         return;
     }
