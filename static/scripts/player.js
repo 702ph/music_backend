@@ -399,7 +399,6 @@ Object.defineProperty(this, 'setContentNonEditable', {
 
 
 let editCancelBtn = document.querySelector("#editCancelButton");
-editCancelBtn.style.visibility = "hidden";
 editCancelBtn.onclick = () => cancelEditTable();
 
 Object.defineProperty(this, 'cancelEditTable', {
