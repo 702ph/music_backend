@@ -2,6 +2,7 @@ import os
 import sqlite3
 import mimetypes
 import io
+import sqlalchemy
 
 from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
@@ -48,7 +49,7 @@ def db_test():
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song")  # without data & path
+    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song")
     fetch_all = db_cursor.fetchall()
     description = db_cursor.description  # have to be placed after SQL Query
 
@@ -85,7 +86,7 @@ def db_test():
         # dictionary for each row
         entry = {}
         for i_desc, val_desc in enumerate(description):
-            entry.update({val_desc[0]: row[i_desc]})  # update() adds new element to dictionary. name doesn't fit!
+            entry.update({val_desc[0]: row[i_desc]})  # update() adds new element to dictionary. name doesn't fit! <- what does this mean???
         entries.append(entry)
 
     db_cursor.close()
@@ -135,7 +136,7 @@ def save_to_local_filesysytem(file):
     file.save(absolute_filepath_name)
 
 
-def save_to_db(file):
+def save_to_db(file, file_name):
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
@@ -151,18 +152,20 @@ def save_to_db(file):
     # get mp3 tags
     mp3_infos = get_mp3_infos(binary)
 
-    print("save_to_db")
+    print("save_to_db():")
     print(mp3_infos)
 
-    ##TODO: dictionaryに値が存在しない時、デフォルト値を与えられるか？？
-
-    # insert
-    param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, "created_at",)
+    # insert to db
+    # at least one column should have value. if there are no tags in mp3, take file name for the title.
+    if mp3_infos.get("title") is None:
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary,"created_at",)
+    else:
+        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, "created_at",)
     db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     # update
-    #param = (binary, 28,)
-    #db_cursor.execute("update song set data=? where id=?;", param)
+    # param = (binary, 28,)
+    # db_cursor.execute("update song set data=? where id=?;", param)
 
     db_cursor.close()
     db_connection.commit()
@@ -197,9 +200,7 @@ def get_mp3_infos(file):
     return id3_tags
 
 
-@app.route("/songs", methods=["POST"])
-def save_song():
-
+def save_songs():
     # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
     # check if the post request has the file part
     if not ("inputFile" in request.files or "input_file" in request.files):
@@ -219,33 +220,44 @@ def save_song():
         return jsonify({"error": "has no filename"})
 
     if file and allowed_file(file.filename):
-        #save_file_to_local(file)
-        result = save_to_db(file)
+        # save_file_to_local(file)
+        result = save_to_db(file, file.filename)
 
-        #return redirect(url_for("uploaded_file", filename=filename))
+        # return redirect(url_for("uploaded_file", filename=filename))
         return jsonify(result)
 
 
-"""
+def update_db():
+    print("update_db")
+
+    # get json
+    song_list = request.json
+
+    # prepare db
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
+
+    # update db
+    for song in song_list:
+        # print(song)
+        param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"],)
+        db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE id=?;", param)
+
+    # close db
+    db_cursor.close()
+    db_connection.commit()
+    db_connection.close()
+
+    status = True # TODO: uebergebe result von try&catch
+    return jsonify({"update": status})
+
+
 @app.route("/songs", methods=["POST"])
-def post_song():
-    my_db = sqlite3.connect(app.config["DB_PATH"])
-    cursor = my_db.cursor()
-
-    # INSERT
-    param = ("title", "album", "year", "genre", "data", "created_at", "path",)
-    cursor.execute("insert into song(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
-
-    # get the last
-    cursor.execute("select * from song where id = (select max(id) from song);")
-
-    fetch_all = cursor.fetchall()
-    cursor.close()
-    my_db.commit() # changes will not be saved without commit
-    my_db.close()
-    return jsonify(fetch_all)
-"""
-
+def songs_post():
+    if request.is_json:
+        return update_db()
+    else:
+        return save_songs()
 
 
 def read_from_local_filesystem():

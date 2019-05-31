@@ -124,7 +124,6 @@ Object.defineProperty(this, 'editTable', {
     enumerable: false,
     configurable: false,
     value: async function () {  //TODO: have to be async??
-        console.log("hello from editTable()");
 
         //get table
         let songSelector = document.querySelector("#songSelectorTable");
@@ -137,69 +136,12 @@ Object.defineProperty(this, 'editTable', {
             setContentNonEditable(rows);
 
 
-            //send table contents to server
-            let songs = [];
-            let songsArray = [];
-            let jsons = [];
-            let jsonsString = "[";
-            Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+            // convert to Json
+            const json = convertToJson(rows);
 
-
-                    let trs = Array.prototype.slice.call(value.cells).map((value, index) => {
-                        return (value.innerText);
-                    });
-                    //console.log(trs);
-                    const t = trs;
-
-
-                    let song =
-                        {
-                            "id": -1,
-                            "title": "",
-                            "artist": "",
-                            "album": "",
-                            "year": "",
-                            "genre": "",
-                            "created_at": ""
-                        };
-
-                    let keys = ["id", "title", "artist", "album", "year", "genre"];
-                    let s = new Map();
-
-                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
-
-                        if (!(index === 6)) {
-
-                            //console.log(index +" and " + value.innerText);
-                            s.set(keys[index], value.innerText);
-                            //console.log(keys[index]);
-
-                            song[index] = value.innerText
-                        }
-                    });
-
-                    console.log(song); //false. can not reference property in object
-                    songsArray.push(song);
-
-                    //TODO: works fine!!
-                    console.log(s);
-                    songs.push(s);
-
-                    //way 2, convert to json string and push it to json array
-                    let j = JSON.stringify(Array.from(s).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
-                    console.log(j);
-                    jsons.push(j);
-
-                    //way 3, concatenate json string,
-                    jsonsString = jsonsString + j;
-                    jsonsString = jsonsString + ",";
-
-                    let p = JSON.parse(j);
-                    console.log(p);
-                }
-            });
-
+            //TODO: we need here try and catch
+            //send to server
+            postTableContents(json);
 
 
             //reset button value
@@ -227,127 +169,50 @@ Object.defineProperty(this, 'editTable', {
             //save current table contents
             saveCurrentTableRows(rows);
 
-
-            //TODO:
-            let songs = [];
-            let songsArray = [];
-            let jsons = [];
-            let jsonsString = "[";
-            Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-
-
-                    let trs = Array.prototype.slice.call(value.cells).map((value, index) => {
-                        return (value.innerText);
-                    });
-                    //console.log(trs);
-                    const t = trs;
-
-
-                    let song =
-                        {
-                            "id": -1,
-                            "title": "",
-                            "artist": "",
-                            "album": "",
-                            "year": "",
-                            "genre": "",
-                            "created_at": ""
-                        };
-
-                    let keys = ["id", "title", "artist", "album", "year", "genre"];
-                    let s = new Map();
-
-                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
-
-                        if (!(index === 6)) {
-
-                            //console.log(index +" and " + value.innerText);
-                            s.set(keys[index], value.innerText);
-                            //console.log(keys[index]);
-
-                            song[index] = value.innerText
-                        }
-                    });
-
-                    console.log(song); //false. can not reference property in object
-                    songsArray.push(song);
-
-                    //TODO: works fine!!
-                    console.log(s);
-                    songs.push(s);
-
-                    //way 2, convert to json string and push it to json array
-                    let j = JSON.stringify(Array.from(s).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
-                    console.log(j);
-                    jsons.push(j);
-
-                    //way 3, concatenate json string,
-                    jsonsString = jsonsString + j;
-                    jsonsString = jsonsString + ",";
-
-                    let p = JSON.parse(j);
-                    console.log(p);
-                }
-            });
-            console.log(songs);
-            console.log(songsArray);
-            console.log(jsons);
-
-            let jsonOfJsons = JSON.stringify(jsons);
-            console.log(jsonOfJsons);
-            console.log(JSON.parse(jsonOfJsons));
-
-            jsonsString = jsonsString + "]";
-            console.log(jsonsString);
-
-            let jsonsStringByJoin = jsons.join(",");
-            let jsonsStringByJoinToSend = "[" + jsonsStringByJoin + "]";
-            console.log(jsonsStringByJoinToSend);
-
-            console.log(JSON.parse(jsonsStringByJoinToSend)); //動く！！！
-            console.log(Array.from(JSON.parse(jsonsStringByJoinToSend))); //変化なし！mapに変換はできていない！
-
-
-            //test convertToJson
-            let testJson = convertToJson(songs);
-            convertFromJson(testJson);
-
             // make cells editable
-            Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-                    value.classList.remove('greenYellow'); //remove style sheet
-
-                    Array.prototype.slice.call(value.cells).forEach((cell) => {
-                        if (!(cell.cellIndex === 0 || cell.cellIndex === 6)) { //make cells editable except first and last one in the row.
-                            cell.setAttribute("contenteditable", "true");
-                        }
-                    });
-                }
-            });
+            setContentEditable(rows);
 
         }
     }
 });
 
 
+
 /*
-    accept song map in array and convert to json
+    accept song map in array and convert to json.
+    TODO: this method can be refactored.
  */
 Object.defineProperty(this, 'convertToJson', {
     enumerable: false,
     configurable: false,
-    value: function (songsInMap) {
-        console.log("convert: ", songsInMap);
+    value: function (rows) {
 
-        let jsonsInArray =
-            songsInMap.map((value) => {
-                //map to object and to json
-                let j = JSON.stringify(Array.from(value).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
-                console.log(j);
-                return j;
-            });
+       const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
 
+        // preparation
+        let songs = [];
+        Array.prototype.slice.call(rows).forEach((value, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
+
+                let song = new Map();
+                Array.prototype.slice.call(value.cells).forEach((value, index) => {
+                    if (!(index === 6)) {
+                        song.set(keyOrder[index], value.innerText);
+                    }
+                });
+                songs.push(song);
+            }
+        });
+        console.log(songs);
+
+
+        // convert to json
+        let jsonsInArray = songs.map((value) => {
+            //map to object and to json
+            let j = JSON.stringify(Array.from(value).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
+            console.log(j);
+            return j;
+        });
 
         let json = "[" + jsonsInArray.join(",") + "]";
         console.log(json);
@@ -364,8 +229,6 @@ Object.defineProperty(this, 'convertFromJson', {
     enumerable: false,
     configurable: false,
     value: function (json) {
-        //console.log("convertFromJson: ", json);
-
 
         //json to object
         const songList = JSON.parse(json);
@@ -373,7 +236,7 @@ Object.defineProperty(this, 'convertFromJson', {
 
 
         // this is for the "cancel button" -> not any more
-        // keys to garantierted reihenfolge der elementen extraktion from object
+        // keys for guaranteed extraction of elements orders in object
         const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
 
         //oh forEach works!?
@@ -425,6 +288,28 @@ Object.defineProperty(this, 'setContentNonEditable', {
 });
 
 
+Object.defineProperty(this, 'setContentEditable', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration to set editable
+
+        Array.prototype.slice.call(rows).forEach((row, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                row.classList.remove('greenYellow'); //remove style sheet
+
+                Array.prototype.slice.call(row.cells).forEach((cell) => {
+                    if (!(cell.cellIndex === 0 || cell.cellIndex === 6)) { //make cells editable except first and last one in the row.
+                        cell.setAttribute("contenteditable", "true");
+                    }
+                });
+            }
+        });
+
+    }
+});
+
+
 let editCancelBtn = document.querySelector("#editCancelButton");
 editCancelBtn.onclick = () => cancelEditTable();
 
@@ -467,13 +352,14 @@ document.addEventListener('click', function (e) {
 
     if (inTableEditMode) return; // if in table edit mode return;
 
-
     let t = e.target;
     if (t.nodeName == "TD") {
         Array.prototype.map.call(t.parentNode.parentNode.children, function (x) {
             x.classList.remove('greenYellow');
 
-            //TODO: avoid 0 row to be colored
+            // avoid 0 row to be colored
+            if (x.rowIndex === 0) return;
+
             if (x == t.parentNode) {
                 x.classList.add('greenYellow');
                 let ch = x.children;
@@ -706,13 +592,18 @@ Object.defineProperty(this, 'postSong', {
             body: formData,
         });
 
+        //TODO: this works?? shoulb be after (!response.ok) and with await?
         //show response json
+        /*
         const result = (response.json()).then(j => {
             return j
         });
+         */
 
-        //TODO: this should be over "show response json?"
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
 
         return result;
     }
@@ -756,3 +647,38 @@ Object.defineProperty(this, 'uploadSong', {
         displaySongList();
     }
 });
+
+
+//post table contents to server
+Object.defineProperty(this, 'postTableContents', {
+    enumerable: false,
+    configurable: false,
+    value: async function (json) {
+
+        const resource = "/songs"
+        let response = await fetch(resource, {
+            method: "POST",
+            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                'Accept': 'application/json',
+                "Content-Type": "application/json"
+            },
+            body: json,
+        });
+
+        //show response json
+        /*
+        const result = (response.json()).then(j => {
+            return j
+        });
+        */
+
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
+
+        return result;
+    }
+});
+
