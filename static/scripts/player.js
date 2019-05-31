@@ -124,7 +124,6 @@ Object.defineProperty(this, 'editTable', {
     enumerable: false,
     configurable: false,
     value: async function () {  //TODO: have to be async??
-        console.log("hello from editTable()");
 
         //get table
         let songSelector = document.querySelector("#songSelectorTable");
@@ -137,50 +136,12 @@ Object.defineProperty(this, 'editTable', {
             setContentNonEditable(rows);
 
 
-            const keys = ["id", "title", "artist", "album", "year", "genre"];
-
-            //send table contents to server
-            let songs = [];
-            Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
-
-                    let s = new Map();
-                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
-                        if (!(index === 6)) {
-                            s.set(keys[index], value.innerText);
-                        }
-                    });
-
-                    console.log(s);
-                    songs.push(s);
-                }
-            });
-
-
-            // experiment
-            let songsExperiment =
-            Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
-
-                    let s = new Map();
-                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
-                        if (!(index === 6)) {
-                            s.set(keys[index], value.innerText);
-                        }
-                    });
-
-                    console.log(s);
-                    //songsExperiment.push(s);
-                }
-            });
-
-
-
             // convert to Json
-            let testConvertSong = convertToJson(songs);
+            const json = convertToJson(rows);
 
-            //TODO:  we need here try and catch
+            //TODO: we need here try and catch
             //send to server
+            postTableContents(json);
 
 
             //reset button value
@@ -216,22 +177,42 @@ Object.defineProperty(this, 'editTable', {
 });
 
 
+
 /*
-    accept song map in array and convert to json
+    accept song map in array and convert to json.
+    TODO: this method can be refactored.
  */
 Object.defineProperty(this, 'convertToJson', {
     enumerable: false,
     configurable: false,
-    value: function (songsMapInArray) {
-        console.log("convertToJson(): ", songsMapInArray);
+    value: function (rows) {
 
-        let jsonsInArray = songsMapInArray.map((value) => {
-                //map to object and to json
-                let j = JSON.stringify(Array.from(value).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
-                console.log(j);
-                return j;
+       const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
+
+        // preparation
+        let songs = [];
+        Array.prototype.slice.call(rows).forEach((value, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
+
+                let song = new Map();
+                Array.prototype.slice.call(value.cells).forEach((value, index) => {
+                    if (!(index === 6)) {
+                        song.set(keyOrder[index], value.innerText);
+                    }
+                });
+                songs.push(song);
+            }
         });
+        console.log(songs);
 
+
+        // convert to json
+        let jsonsInArray = songs.map((value) => {
+            //map to object and to json
+            let j = JSON.stringify(Array.from(value).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
+            console.log(j);
+            return j;
+        });
 
         let json = "[" + jsonsInArray.join(",") + "]";
         console.log(json);
@@ -313,17 +294,17 @@ Object.defineProperty(this, 'setContentEditable', {
     value: function (rows) {
         //iteration to set editable
 
-                    Array.prototype.slice.call(rows).forEach((row, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-                    row.classList.remove('greenYellow'); //remove style sheet
+        Array.prototype.slice.call(rows).forEach((row, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                row.classList.remove('greenYellow'); //remove style sheet
 
-                    Array.prototype.slice.call(row.cells).forEach((cell) => {
-                        if (!(cell.cellIndex === 0 || cell.cellIndex === 6)) { //make cells editable except first and last one in the row.
-                            cell.setAttribute("contenteditable", "true");
-                        }
-                    });
-                }
-            });
+                Array.prototype.slice.call(row.cells).forEach((cell) => {
+                    if (!(cell.cellIndex === 0 || cell.cellIndex === 6)) { //make cells editable except first and last one in the row.
+                        cell.setAttribute("contenteditable", "true");
+                    }
+                });
+            }
+        });
 
     }
 });
@@ -610,13 +591,18 @@ Object.defineProperty(this, 'postSong', {
             body: formData,
         });
 
+        //TODO: this works?? shoulb be after (!response.ok) and with await?
         //show response json
+        /*
         const result = (response.json()).then(j => {
             return j
         });
+         */
 
-        //TODO: this should be over "show response json?"
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
 
         return result;
     }
@@ -660,3 +646,34 @@ Object.defineProperty(this, 'uploadSong', {
         displaySongList();
     }
 });
+
+
+//post table contents to server
+Object.defineProperty(this, 'postTableContents', {
+    enumerable: false,
+    configurable: false,
+    value: async function (json) {
+
+        const resource = "/songs"
+        let response = await fetch(resource, {
+            method: "POST",
+            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            body: json,
+        });
+
+        //show response json
+        /*
+        const result = (response.json()).then(j => {
+            return j
+        });
+        */
+
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
+
+        return result;
+    }
+});
+
