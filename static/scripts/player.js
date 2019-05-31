@@ -139,67 +139,23 @@ Object.defineProperty(this, 'editTable', {
 
             //send table contents to server
             let songs = [];
-            let songsArray = [];
-            let jsons = [];
-            let jsonsString = "[";
+            const keys = ["id", "title", "artist", "album", "year", "genre"];
             Array.prototype.slice.call(rows).forEach((value, index) => {
                 if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
 
-
-                    let trs = Array.prototype.slice.call(value.cells).map((value, index) => {
-                        return (value.innerText);
-                    });
-                    //console.log(trs);
-                    const t = trs;
-
-
-                    let song =
-                        {
-                            "id": -1,
-                            "title": "",
-                            "artist": "",
-                            "album": "",
-                            "year": "",
-                            "genre": "",
-                            "created_at": ""
-                        };
-
-                    let keys = ["id", "title", "artist", "album", "year", "genre"];
                     let s = new Map();
-
                     Array.prototype.slice.call(value.cells).forEach((value, index) => {
-
                         if (!(index === 6)) {
-
-                            //console.log(index +" and " + value.innerText);
                             s.set(keys[index], value.innerText);
-                            //console.log(keys[index]);
-
-                            song[index] = value.innerText
                         }
                     });
 
-                    console.log(song); //false. can not reference property in object
-                    songsArray.push(song);
-
-                    //TODO: works fine!!
                     console.log(s);
                     songs.push(s);
-
-                    //way 2, convert to json string and push it to json array
-                    let j = JSON.stringify(Array.from(s).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
-                    console.log(j);
-                    jsons.push(j);
-
-                    //way 3, concatenate json string,
-                    jsonsString = jsonsString + j;
-                    jsonsString = jsonsString + ",";
-
-                    let p = JSON.parse(j);
-                    console.log(p);
                 }
             });
 
+            let testConvertSong = convertToJson(songs);
 
 
             //reset button value
@@ -227,104 +183,8 @@ Object.defineProperty(this, 'editTable', {
             //save current table contents
             saveCurrentTableRows(rows);
 
-
-            //TODO:
-            let songs = [];
-            let songsArray = [];
-            let jsons = [];
-            let jsonsString = "[";
-            Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-
-
-                    let trs = Array.prototype.slice.call(value.cells).map((value, index) => {
-                        return (value.innerText);
-                    });
-                    //console.log(trs);
-                    const t = trs;
-
-
-                    let song =
-                        {
-                            "id": -1,
-                            "title": "",
-                            "artist": "",
-                            "album": "",
-                            "year": "",
-                            "genre": "",
-                            "created_at": ""
-                        };
-
-                    let keys = ["id", "title", "artist", "album", "year", "genre"];
-                    let s = new Map();
-
-                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
-
-                        if (!(index === 6)) {
-
-                            //console.log(index +" and " + value.innerText);
-                            s.set(keys[index], value.innerText);
-                            //console.log(keys[index]);
-
-                            song[index] = value.innerText
-                        }
-                    });
-
-                    console.log(song); //false. can not reference property in object
-                    songsArray.push(song);
-
-                    //TODO: works fine!!
-                    console.log(s);
-                    songs.push(s);
-
-                    //way 2, convert to json string and push it to json array
-                    let j = JSON.stringify(Array.from(s).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
-                    console.log(j);
-                    jsons.push(j);
-
-                    //way 3, concatenate json string,
-                    jsonsString = jsonsString + j;
-                    jsonsString = jsonsString + ",";
-
-                    let p = JSON.parse(j);
-                    console.log(p);
-                }
-            });
-            console.log(songs);
-            console.log(songsArray);
-            console.log(jsons);
-
-            let jsonOfJsons = JSON.stringify(jsons);
-            console.log(jsonOfJsons);
-            console.log(JSON.parse(jsonOfJsons));
-
-            jsonsString = jsonsString + "]";
-            console.log(jsonsString);
-
-            let jsonsStringByJoin = jsons.join(",");
-            let jsonsStringByJoinToSend = "[" + jsonsStringByJoin + "]";
-            console.log(jsonsStringByJoinToSend);
-
-            console.log(JSON.parse(jsonsStringByJoinToSend)); //動く！！！
-            console.log(Array.from(JSON.parse(jsonsStringByJoinToSend))); //変化なし！mapに変換はできていない！
-
-
-            //test convertToJson
-            let testJson = convertToJson(songs);
-            convertFromJson(testJson);
-
             // make cells editable
-            Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-                    value.classList.remove('greenYellow'); //remove style sheet
-
-                    Array.prototype.slice.call(value.cells).forEach((cell) => {
-                        if (!(cell.cellIndex === 0 || cell.cellIndex === 6)) { //make cells editable except first and last one in the row.
-                            cell.setAttribute("contenteditable", "true");
-                        }
-                    });
-                }
-            });
+            setContentEditable(rows);
 
         }
     }
@@ -421,6 +281,28 @@ Object.defineProperty(this, 'setContentNonEditable', {
             }
 
         });
+    }
+});
+
+
+Object.defineProperty(this, 'setContentEditable', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration to set editable
+
+                    Array.prototype.slice.call(rows).forEach((row, index) => {
+                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                    row.classList.remove('greenYellow'); //remove style sheet
+
+                    Array.prototype.slice.call(row.cells).forEach((cell) => {
+                        if (!(cell.cellIndex === 0 || cell.cellIndex === 6)) { //make cells editable except first and last one in the row.
+                            cell.setAttribute("contenteditable", "true");
+                        }
+                    });
+                }
+            });
+
     }
 });
 
