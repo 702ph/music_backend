@@ -200,7 +200,7 @@ def get_mp3_infos(file):
 
 
 @app.route("/songs", methods=["POST"])
-def save_song():
+def songs_post():
 
     # http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
     # check if the post request has the file part
