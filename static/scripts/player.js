@@ -137,11 +137,12 @@ Object.defineProperty(this, 'editTable', {
             setContentNonEditable(rows);
 
 
+            const keys = ["id", "title", "artist", "album", "year", "genre"];
+
             //send table contents to server
             let songs = [];
-            const keys = ["id", "title", "artist", "album", "year", "genre"];
             Array.prototype.slice.call(rows).forEach((value, index) => {
-                if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
 
                     let s = new Map();
                     Array.prototype.slice.call(value.cells).forEach((value, index) => {
@@ -155,7 +156,31 @@ Object.defineProperty(this, 'editTable', {
                 }
             });
 
+
+            // experiment
+            let songsExperiment =
+            Array.prototype.slice.call(rows).forEach((value, index) => {
+                if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
+
+                    let s = new Map();
+                    Array.prototype.slice.call(value.cells).forEach((value, index) => {
+                        if (!(index === 6)) {
+                            s.set(keys[index], value.innerText);
+                        }
+                    });
+
+                    console.log(s);
+                    songsExperiment.push(s);
+                }
+            });
+
+
+
+            // convert to Json
             let testConvertSong = convertToJson(songs);
+
+            //TODO:  we need here try and catch
+            //send to server
 
 
             //reset button value
@@ -197,16 +222,15 @@ Object.defineProperty(this, 'editTable', {
 Object.defineProperty(this, 'convertToJson', {
     enumerable: false,
     configurable: false,
-    value: function (songsInMap) {
-        console.log("convert: ", songsInMap);
+    value: function (songsMapInArray) {
+        console.log("convert: ", songsMapInArray);
 
-        let jsonsInArray =
-            songsInMap.map((value) => {
+        let jsonsInArray = songsMapInArray.map((value) => {
                 //map to object and to json
                 let j = JSON.stringify(Array.from(value).reduce((sum, [v, k]) => (sum[v] = k, sum), {}));
                 console.log(j);
                 return j;
-            });
+        });
 
 
         let json = "[" + jsonsInArray.join(",") + "]";
