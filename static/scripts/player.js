@@ -659,6 +659,10 @@ Object.defineProperty(this, 'postTableContents', {
         let response = await fetch(resource, {
             method: "POST",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                'Accept': 'application/json',
+                "Content-Type": "application/json"
+            },
             body: json,
         });
 

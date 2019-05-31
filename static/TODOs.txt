@@ -12,7 +12,7 @@
 before doing task, talk about it with some
 [] deleting song on browser
 [X] editing entry i.e.: title, artist, album... on browser
-[] save above changes on the server side
+[X] save above changes on the server side
 
 [X] serverside: extract mp3 tag information for db
 
@@ -22,6 +22,12 @@ before doing task, talk about it with some
 ---------------------------------
 
 backlog
+
+[] server side: implement create_at
+
+[] server side: try, catch
+
+[] SQLAlchemy integration?
 
 [] show error message when try to upload in offline
 
