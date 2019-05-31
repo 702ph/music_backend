@@ -352,13 +352,14 @@ document.addEventListener('click', function (e) {
 
     if (inTableEditMode) return; // if in table edit mode return;
 
-
     let t = e.target;
     if (t.nodeName == "TD") {
         Array.prototype.map.call(t.parentNode.parentNode.children, function (x) {
             x.classList.remove('greenYellow');
 
-            //TODO: avoid 0 row to be colored
+            // avoid 0 row to be colored
+            if (x.rowIndex === 0) return;
+
             if (x == t.parentNode) {
                 x.classList.add('greenYellow');
                 let ch = x.children;
