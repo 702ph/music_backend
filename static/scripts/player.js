@@ -233,7 +233,7 @@ Object.defineProperty(this, 'convertFromJson', {
 
 
         // this is for the "cancel button" -> not any more
-        // keys to garantierted reihenfolge der elementen extraktion from object
+        // keys for guaranteed extraction of elements orders in object
         const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
 
         //oh forEach works!?
