@@ -52,8 +52,8 @@ h1 {
 /*================== COLORS ================================*/
 
 .red {
-    background-Color: red;
-  }
+    color: red;
+}
 
 .skyblue {
     background-Color: skyblue;
@@ -61,10 +61,6 @@ h1 {
 
 .white {
 	color: white;
-}
-
-.green {
-	background-color: green;
 }
 
 .greenYellow {
