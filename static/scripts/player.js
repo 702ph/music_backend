@@ -170,7 +170,7 @@ Object.defineProperty(this, 'editTable', {
                     });
 
                     console.log(s);
-                    songsExperiment.push(s);
+                    //songsExperiment.push(s);
                 }
             });
 
@@ -223,7 +223,7 @@ Object.defineProperty(this, 'convertToJson', {
     enumerable: false,
     configurable: false,
     value: function (songsMapInArray) {
-        console.log("convert: ", songsMapInArray);
+        console.log("convertToJson(): ", songsMapInArray);
 
         let jsonsInArray = songsMapInArray.map((value) => {
                 //map to object and to json
@@ -248,8 +248,6 @@ Object.defineProperty(this, 'convertFromJson', {
     enumerable: false,
     configurable: false,
     value: function (json) {
-        //console.log("convertFromJson: ", json);
-
 
         //json to object
         const songList = JSON.parse(json);
