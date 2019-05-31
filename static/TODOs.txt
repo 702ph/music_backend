@@ -11,7 +11,8 @@
 
 before doing task, talk about it with some
 [] deleting song on browser
-[] editing entry i.e.: title, artist, album... on browser
+[X] editing entry i.e.: title, artist, album... on browser
+[] save above changes on the server side
 
 [X] serverside: extract mp3 tag information for db
 
@@ -21,6 +22,8 @@ before doing task, talk about it with some
 ---------------------------------
 
 backlog
+
+[] show error message when try to upload in offline
 
 [] pack originalRows in editStartButton() and give it over to editCancelButton() when it is called
 

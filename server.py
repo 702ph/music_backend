@@ -135,7 +135,7 @@ def save_to_local_filesysytem(file):
     file.save(absolute_filepath_name)
 
 
-def save_to_db(file):
+def save_to_db(file, file_name):
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
@@ -151,18 +151,20 @@ def save_to_db(file):
     # get mp3 tags
     mp3_infos = get_mp3_infos(binary)
 
-    print("save_to_db")
+    print("save_to_db():")
     print(mp3_infos)
 
-    ##TODO: dictionaryに値が存在しない時、デフォルト値を与えられるか？？
-
-    # insert
-    param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, "created_at",)
+    # insert to db
+    # at least one column should have value. if there are no tags in mp3, take file name for the title.
+    if mp3_infos.get("title") is None:
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary,"created_at",)
+    else:
+        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, "created_at",)
     db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     # update
-    #param = (binary, 28,)
-    #db_cursor.execute("update song set data=? where id=?;", param)
+    # param = (binary, 28,)
+    # db_cursor.execute("update song set data=? where id=?;", param)
 
     db_cursor.close()
     db_connection.commit()
@@ -220,7 +222,7 @@ def save_song():
 
     if file and allowed_file(file.filename):
         #save_file_to_local(file)
-        result = save_to_db(file)
+        result = save_to_db(file, file.filename)
 
         #return redirect(url_for("uploaded_file", filename=filename))
         return jsonify(result)
