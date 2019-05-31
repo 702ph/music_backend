@@ -226,29 +226,6 @@ def save_song():
         return jsonify(result)
 
 
-
-"""
-@app.route("/songs", methods=["POST"])
-def post_song():
-    my_db = sqlite3.connect(app.config["DB_PATH"])
-    cursor = my_db.cursor()
-
-    # INSERT
-    param = ("title", "album", "year", "genre", "data", "created_at", "path",)
-    cursor.execute("insert into song(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
-
-    # get the last
-    cursor.execute("select * from song where id = (select max(id) from song);")
-
-    fetch_all = cursor.fetchall()
-    cursor.close()
-    my_db.commit() # changes will not be saved without commit
-    my_db.close()
-    return jsonify(fetch_all)
-"""
-
-
-
 def read_from_local_filesystem():
     # create response from local filesystem
     filename = "Lied.mp3"
