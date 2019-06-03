@@ -161,7 +161,7 @@ Object.defineProperty(this, 'editTable', {
             editCancelBtn.style.visibility = "visible";
 
             //change button value
-            editStartBtn.value = "Finish";
+            editStartBtn.value = "edit finish";
 
 
             //save current table contents
@@ -708,7 +708,7 @@ Object.defineProperty(this, 'deleteSongFromTable', {
 
         //get checked item
         const selectedSongs = getSelectedItemsInTable(rows);
-        consle.log(selectedSongs);
+        console.log(selectedSongs);
     }
 });
 
@@ -719,22 +719,15 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
     value: function (rows) {
 
         //iteration through song table
-        return Array.prototype.slice.call(rows).map((row, index) => {
-            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-
+        return Array.prototype.slice.call(rows).map((row) => {
+            // 0. row is for title and it doesn't have to be processed.
+            // 7. cell is for checkbox
+            if (!(row.rowIndex === 0) && (row.cells[7].firstChild.checked)) {
                 return Array.prototype.slice.call(row.cells).map((cell) => {
-
-                    if (cell.cellIndex === 1) return cell.innerText;
-                    if (!((cell.cellIndex === 7) && (cell.firstChild.checked))) {
-                        return cell.innerText;
-                    } else {
-                        return true;
-                    }
-
+                    if (cell.cellIndex === 7) return true;
+                    return cell.innerText;
                 });
-
             }
-        });
-
+        }).filter(e => !(e === undefined)); //return only "not" undefined
     }
 });
