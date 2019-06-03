@@ -113,8 +113,6 @@ async function handleFileDropped(evt) {
 //edit table contents
 let inTableEditMode = false
 let originalRows;
-let originalTableContents;
-let originalSongSelector;
 let editStartBtn = document.querySelector("#editStartButton");
 //editStartBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
 editStartBtn.onclick = () => editTable();
@@ -177,7 +175,6 @@ Object.defineProperty(this, 'editTable', {
 });
 
 
-
 /*
     accept song map in array and convert to json.
     TODO: this method can be refactored.
@@ -187,7 +184,7 @@ Object.defineProperty(this, 'convertToJson', {
     configurable: false,
     value: function (rows) {
 
-       const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
+        const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
 
         // preparation
         let songs = [];
@@ -489,11 +486,6 @@ function displayTime() {
 displayTime();
 
 
-//upload song button
-var submitBtn = document.querySelector("#submit_button");
-submitBtn.onclick = () => uploadSong();
-
-
 //display song list on in table
 Object.defineProperty(this, 'displaySongList', {
     enumerable: false,
@@ -518,22 +510,36 @@ Object.defineProperty(this, 'displaySongList', {
         songSelector.appendChild(table);
 
         //insert title (table head)
-        const songTitle = songList[0]; // take one you want. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
+        const songTitle = songList[0]; // use any one for the title. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
         let tr = table.insertRow(-1);
         const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
         for (value of songMap.keys()) {
             tr.insertCell(-1).innerHTML = value;
         }
+        // for delete checkbox
+        tr.insertCell(-1).innerHTML = "✂";
 
         //insert cell for songs
-        for (song of songList) {
+        for (const song of songList) {
             let tr = table.insertRow(-1);
 
-            //convert Object to Map so that it's iteratable
+            //convert Object to Map so that it's iterable
             const songMap = new Map(Object.entries(song));  //https://www.sejuku.net/blog/21812#Map
             for (value of songMap.values()) {
                 tr.insertCell(-1).innerHTML = value;
             }
+
+            //create checkbox
+            let checkBox = document.createElement("input");
+            checkBox.type = "checkbox";
+            checkBox.id = "delete_checkbox";
+            //checkBox.name = "delete";
+            //checkBox.value = "true";
+
+
+            // add delete checkbox
+            //const innerhtml = ' <input type="checkbox" id="subscribeNews" name="subscribe" value="true">';
+            tr.insertCell(-1).appendChild(checkBox);
         }
     }
 });
@@ -610,6 +616,10 @@ Object.defineProperty(this, 'postSong', {
 });
 
 
+//upload song button
+var submitBtn = document.querySelector("#submit_button");
+submitBtn.onclick = () => uploadSong();
+
 //upload song to server
 Object.defineProperty(this, 'uploadSong', {
     enumerable: false,
@@ -682,3 +692,49 @@ Object.defineProperty(this, 'postTableContents', {
     }
 });
 
+
+let deleteBtn = document.querySelector("#deleteButton");
+deleteBtn.onclick = () => deleteSongFromTable();
+
+//delete song
+Object.defineProperty(this, 'deleteSongFromTable', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+
+        //get table
+        let songSelector = document.querySelector("#songSelectorTable");
+        let rows = songSelector.children[0].rows; //<tr> in <table>
+
+        //get checked item
+        const selectedSongs = getSelectedItemsInTable(rows);
+        consle.log(selectedSongs);
+    }
+});
+
+
+Object.defineProperty(this, 'getSelectedItemsInTable', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+
+        //iteration through song table
+        return Array.prototype.slice.call(rows).map((row, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+
+                return Array.prototype.slice.call(row.cells).map((cell) => {
+
+                    if (cell.cellIndex === 1) return cell.innerText;
+                    if (!((cell.cellIndex === 7) && (cell.firstChild.checked))) {
+                        return cell.innerText;
+                    } else {
+                        return true;
+                    }
+
+                });
+
+            }
+        });
+
+    }
+});

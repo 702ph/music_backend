@@ -14,9 +14,9 @@ before doing task, talk about it with some
 [X] editing entry i.e.: title, artist, album... on browser
 [X] save above changes on the server side
 
-[X] serverside: extract mp3 tag information for db
+[X] server side: extract mp3 tag information for db
 
-[] plevent from file being drag and dropped outside of drop area
+[] prevent from file being drag and dropped outside of drop area
 [] let upload button remain in the drop area for non-mouse environment
 
 ---------------------------------
