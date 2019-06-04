@@ -591,7 +591,7 @@ Object.defineProperty(this, 'postSong', {
     configurable: false,
     value: async function (formData) {
 
-        const resource = "/songs"
+        const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
@@ -665,7 +665,7 @@ Object.defineProperty(this, 'postTableContents', {
     configurable: false,
     value: async function (json) {
 
-        const resource = "/songs"
+        const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
@@ -697,18 +697,69 @@ let deleteBtn = document.querySelector("#deleteButton");
 deleteBtn.onclick = () => deleteSongFromTable();
 
 //delete song
+let inDeleteSongMode = false;
 Object.defineProperty(this, 'deleteSongFromTable', {
     enumerable: false,
     configurable: false,
     value: async function () {
 
-        //get table
-        let songSelector = document.querySelector("#songSelectorTable");
-        let rows = songSelector.children[0].rows; //<tr> in <table>
 
-        //get checked item
-        const selectedSongs = getSelectedItemsInTable(rows);
-        console.log(selectedSongs);
+        //get button
+        let deleteBtn = document.querySelector("#deleteButton");
+
+        //if it's not in delete song mode, change mode to it.
+        if (!inDeleteSongMode) {
+
+            //set mode and button text
+            inDeleteSongMode = true;
+            deleteBtn.value = "finish and submit deletion";
+
+
+        } else { //send request to server
+
+            //get table
+            let songSelector = document.querySelector("#songSelectorTable");
+            let rows = songSelector.children[0].rows; //<tr> in <table>
+
+            //get checked item
+            let selectedSongs = getSelectedItemsInTable(rows);
+            console.log(selectedSongs);
+
+            // if any songs are selected
+            if (!(selectedSongs.length === 0)){
+
+                //create confirmation message
+                let confirmationMessage = "The following songs will be deleted.\n";
+                selectedSongs.forEach((song) => {
+                    const id = song[0];
+                    const title = song[1];
+                    confirmationMessage += id + ": " + title + "\n";
+                });
+
+                //confirmation message
+                if (window.confirm(confirmationMessage)) {
+
+                    //communicate with server
+                    selectedSongs.forEach((song) => {
+                        const id = song[0];
+
+                        //TODO: promise implementation. promise all?
+                        deleteSong(id);
+                    });
+
+                    //re-disply song list
+                    displaySongList();
+                } else { //if cancel clicked
+                    return;
+                }
+            }
+
+            //reset button text
+            deleteBtn.value = "✂";
+
+            // set mode
+            inDeleteSongMode = false;
+        }
     }
 });
 
@@ -729,5 +780,28 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
                 });
             }
         }).filter(e => !(e === undefined)); //return only "not" undefined
+    }
+});
+
+
+//send delete request to server
+Object.defineProperty(this, 'deleteSong', {
+    enumerable: false,
+    configurable: false,
+    value: async function (id) {
+
+        const resource = "/songs" + "/" + id;
+        let response = await fetch(resource, {
+            method: "DELETE",
+            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+        });
+
+
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
+
+        return result;
     }
 });
