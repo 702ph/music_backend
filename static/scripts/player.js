@@ -11,7 +11,20 @@ window.addEventListener('load', function () {
 });
 
 
-//set event listner for drop zone
+
+//prevent drag and drop on document
+document.ondrop = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+};
+document.ondragover = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+};
+
+
+
+//set event listener for drop zone
 let dropZone = document.querySelector("#drop_zone");
 Object.entries({
     "dragover": handleDragOver,
@@ -743,11 +756,12 @@ Object.defineProperty(this, 'deleteSongFromTable', {
                     selectedSongs.forEach((song) => {
                         const id = song[0];
 
-                        //TODO: promise implementation. promise all?
+                        //TODO: need promise implementation? promise all?
                         deleteSong(id);
                     });
 
-                    //re-disply song list
+                    //TODO: yes we need promise. ansonsten wird hier sofort ausgefueht.
+                    //re-display song list
                     displaySongList();
                 } else { //if cancel clicked
                     return;
@@ -764,6 +778,7 @@ Object.defineProperty(this, 'deleteSongFromTable', {
 });
 
 
+// get items with checke markt
 Object.defineProperty(this, 'getSelectedItemsInTable', {
     enumerable: false,
     configurable: false,
