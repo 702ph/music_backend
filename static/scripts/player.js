@@ -11,7 +11,20 @@ window.addEventListener('load', function () {
 });
 
 
-//set event listner for drop zone
+
+//prevent drag and drop on document
+document.ondrop = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+};
+document.ondragover = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+};
+
+
+
+//set event listener for drop zone
 let dropZone = document.querySelector("#drop_zone");
 Object.entries({
     "dragover": handleDragOver,
@@ -113,8 +126,6 @@ async function handleFileDropped(evt) {
 //edit table contents
 let inTableEditMode = false
 let originalRows;
-let originalTableContents;
-let originalSongSelector;
 let editStartBtn = document.querySelector("#editStartButton");
 //editStartBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
 editStartBtn.onclick = () => editTable();
@@ -163,7 +174,7 @@ Object.defineProperty(this, 'editTable', {
             editCancelBtn.style.visibility = "visible";
 
             //change button value
-            editStartBtn.value = "Finish";
+            editStartBtn.value = "edit finish";
 
 
             //save current table contents
@@ -177,7 +188,6 @@ Object.defineProperty(this, 'editTable', {
 });
 
 
-
 /*
     accept song map in array and convert to json.
     TODO: this method can be refactored.
@@ -187,7 +197,7 @@ Object.defineProperty(this, 'convertToJson', {
     configurable: false,
     value: function (rows) {
 
-       const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
+        const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
 
         // preparation
         let songs = [];
@@ -489,11 +499,6 @@ function displayTime() {
 displayTime();
 
 
-//upload song button
-var submitBtn = document.querySelector("#submit_button");
-submitBtn.onclick = () => uploadSong();
-
-
 //display song list on in table
 Object.defineProperty(this, 'displaySongList', {
     enumerable: false,
@@ -518,22 +523,36 @@ Object.defineProperty(this, 'displaySongList', {
         songSelector.appendChild(table);
 
         //insert title (table head)
-        const songTitle = songList[0]; // take one you want. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
+        const songTitle = songList[0]; // use any one for the title. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
         let tr = table.insertRow(-1);
         const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
         for (value of songMap.keys()) {
             tr.insertCell(-1).innerHTML = value;
         }
+        // for delete checkbox
+        tr.insertCell(-1).innerHTML = "✂";
 
         //insert cell for songs
-        for (song of songList) {
+        for (const song of songList) {
             let tr = table.insertRow(-1);
 
-            //convert Object to Map so that it's iteratable
+            //convert Object to Map so that it's iterable
             const songMap = new Map(Object.entries(song));  //https://www.sejuku.net/blog/21812#Map
             for (value of songMap.values()) {
                 tr.insertCell(-1).innerHTML = value;
             }
+
+            //create checkbox
+            let checkBox = document.createElement("input");
+            checkBox.type = "checkbox";
+            checkBox.id = "delete_checkbox";
+            //checkBox.name = "delete";
+            //checkBox.value = "true";
+
+
+            // add delete checkbox
+            //const innerhtml = ' <input type="checkbox" id="subscribeNews" name="subscribe" value="true">';
+            tr.insertCell(-1).appendChild(checkBox);
         }
     }
 });
@@ -585,7 +604,7 @@ Object.defineProperty(this, 'postSong', {
     configurable: false,
     value: async function (formData) {
 
-        const resource = "/songs"
+        const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
@@ -609,6 +628,10 @@ Object.defineProperty(this, 'postSong', {
     }
 });
 
+
+//upload song button
+var submitBtn = document.querySelector("#submit_button");
+submitBtn.onclick = () => uploadSong();
 
 //upload song to server
 Object.defineProperty(this, 'uploadSong', {
@@ -655,7 +678,7 @@ Object.defineProperty(this, 'postTableContents', {
     configurable: false,
     value: async function (json) {
 
-        const resource = "/songs"
+        const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
@@ -682,3 +705,118 @@ Object.defineProperty(this, 'postTableContents', {
     }
 });
 
+
+let deleteBtn = document.querySelector("#deleteButton");
+deleteBtn.onclick = () => deleteSongFromTable();
+
+//delete song
+let inDeleteSongMode = false;
+Object.defineProperty(this, 'deleteSongFromTable', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+
+
+        //get button
+        let deleteBtn = document.querySelector("#deleteButton");
+
+        //if it's not in delete song mode, change mode to it.
+        if (!inDeleteSongMode) {
+
+            //set mode and button text
+            inDeleteSongMode = true;
+            deleteBtn.value = "finish and submit deletion";
+
+
+        } else { //send request to server
+
+            //get table
+            let songSelector = document.querySelector("#songSelectorTable");
+            let rows = songSelector.children[0].rows; //<tr> in <table>
+
+            //get checked item
+            let selectedSongs = getSelectedItemsInTable(rows);
+            console.log(selectedSongs);
+
+            // if any songs are selected
+            if (!(selectedSongs.length === 0)){
+
+                //create confirmation message
+                let confirmationMessage = "The following songs will be deleted.\n";
+                selectedSongs.forEach((song) => {
+                    const id = song[0];
+                    const title = song[1];
+                    confirmationMessage += id + ": " + title + "\n";
+                });
+
+                //confirmation message
+                if (window.confirm(confirmationMessage)) {
+
+                    //communicate with server
+                    selectedSongs.forEach((song) => {
+                        const id = song[0];
+
+                        //TODO: need promise implementation? promise all?
+                        deleteSong(id);
+                    });
+
+                    //TODO: yes we need promise. ansonsten wird hier sofort ausgefueht.
+                    //re-display song list
+                    displaySongList();
+                } else { //if cancel clicked
+                    return;
+                }
+            }
+
+            //reset button text
+            deleteBtn.value = "✂";
+
+            // set mode
+            inDeleteSongMode = false;
+        }
+    }
+});
+
+
+// get items with checke markt
+Object.defineProperty(this, 'getSelectedItemsInTable', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+
+        //iteration through song table
+        return Array.prototype.slice.call(rows).map((row) => {
+            // 0. row is for title and it doesn't have to be processed.
+            // 7. cell is for checkbox
+            if (!(row.rowIndex === 0) && (row.cells[7].firstChild.checked)) {
+                return Array.prototype.slice.call(row.cells).map((cell) => {
+                    if (cell.cellIndex === 7) return true;
+                    return cell.innerText;
+                });
+            }
+        }).filter(e => !(e === undefined)); //return only "not" undefined
+    }
+});
+
+
+//send delete request to server
+Object.defineProperty(this, 'deleteSong', {
+    enumerable: false,
+    configurable: false,
+    value: async function (id) {
+
+        const resource = "/songs" + "/" + id;
+        let response = await fetch(resource, {
+            method: "DELETE",
+            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+        });
+
+
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
+
+        return result;
+    }
+});
