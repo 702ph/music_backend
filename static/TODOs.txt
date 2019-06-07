@@ -17,22 +17,34 @@ before doing task, talk about it with some
 [X] server side: extract mp3 tag information for db
 
 [X] prevent from file being drag and dropped outside of drop area
+[X] pack originalRows in editStartButton() and give it over to editCancelButton() when it is called
+
+[X] avoid 0 row to be colored
 
 ---------------------------------
 
-backlog
+03_server_and_javascript
 
 [] let upload button remain in the drop area for non-mouse environment
+[] change the style of song deletion / and refactoring
+
+--------------------
+
+[] refactoring deletion with promise.all
+[] log-in function?
+[] error handling for drop are when no internet connection
 
 [] server side: implement create_at
-
 [] server side: try, catch
+
+-------------------
+
+backlog
 
 [] SQLAlchemy integration?
 
 [] show error message when try to upload in offline
 
-[] pack originalRows in editStartButton() and give it over to editCancelButton() when it is called
 
 [] automatic continuously playing by using array
 [] hide drop are by default or show in small size
@@ -40,25 +52,21 @@ backlog
 
 [] stop playing music when at the end of file
 
-
 [] implement multiple file upload
 
-[] define all functions with same  menner
+[] define all functions with same manner
 [] check if we need api = Api(app)
 [] understand the function of CORS(app)
 
-[] avoid 0 row to be colored
+
 [] refactoring table selection code
 
 [] remove /static/ from URL. it's not beautiful
 
 [] replace var by let &/ const
 
-[] log-in function?
+
 
 [] implement slider for player
 
 [] error handling for db when there's no data
-[] error handling for drop are when no internet connection
-
-[] implement create_at for db

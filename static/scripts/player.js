@@ -11,7 +11,6 @@ window.addEventListener('load', function () {
 });
 
 
-
 //prevent drag and drop on document
 document.ondrop = (event) => {
     event.stopPropagation();
@@ -21,7 +20,6 @@ document.ondragover = (event) => {
     event.stopPropagation();
     event.preventDefault();
 };
-
 
 
 //set event listener for drop zone
@@ -56,7 +54,7 @@ async function handleFileDropped(evt) {
     evt.preventDefault();
 
     let dropZoneMessage = document.querySelector("#drop_zone_message");
-    dropZoneMessage.innerHTML = "abc";
+    //dropZoneMessage.innerHTML = "abc";
 
     //dropped file list
     let files = evt.dataTransfer.files;
@@ -109,7 +107,7 @@ async function handleFileDropped(evt) {
     }
 
     //upload finish message
-    dropZoneMessage.innerHTML = "uploading finished: " + file.name;
+    dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
     //reset
     //file = null;
@@ -631,10 +629,10 @@ Object.defineProperty(this, 'postSong', {
 
 //upload song button
 var submitBtn = document.querySelector("#submit_button");
-submitBtn.onclick = () => uploadSong();
+submitBtn.onclick = () => uploadSongByFrom();
 
 //upload song to server
-Object.defineProperty(this, 'uploadSong', {
+Object.defineProperty(this, 'uploadSongByFrom', {
     enumerable: false,
     configurable: false,
     value: async function (data) {
@@ -739,7 +737,7 @@ Object.defineProperty(this, 'deleteSongFromTable', {
             console.log(selectedSongs);
 
             // if any songs are selected
-            if (!(selectedSongs.length === 0)){
+            if (!(selectedSongs.length === 0)) {
 
                 //create confirmation message
                 let confirmationMessage = "The following songs will be deleted.\n";
@@ -820,3 +818,69 @@ Object.defineProperty(this, 'deleteSong', {
         return result;
     }
 });
+
+
+const selectFileBtn = document.querySelector("#selectFileButton");
+const selectFileLabel = document.querySelector("#selectFileLabel");
+
+//selectFileBtn.onchange = () => uploadSongButton(); // not possible to carry parameters??
+selectFileBtn.addEventListener('change', uploadSongButton, false); //desn7t work with define property ??
+
+
+// upload file with button
+//TODO: partly overlapped with which for drag and drop
+async function uploadSongButton(evt) {
+
+    console.log("hello unloadSong02()");
+    console.log(selectFileLabel);
+
+
+    //assign file from dialog
+    //only first file
+    let file = evt.target.files[0];
+
+    //get dom
+    let dropZoneMessage = document.querySelector("#drop_zone_message");
+
+
+    if (file.size === 0) { //if file is empty, return false
+        dropZoneMessage.innerHTML = "file is empty";
+        return false;
+    }
+
+    console.log(file);
+
+
+    //prepare data to upload
+    let formData = new FormData();
+    formData.append("input_file", file); //data will be sent with this property name
+
+    //disable button while uploading to prevent from multiple click
+    selectFileBtn.disable = true;
+    selectFileLabel.innerText = "wait";
+
+    //uploading message
+    dropZoneMessage.innerHTML = "now uploading: " + file.name;
+
+    try {
+        const response = await postSong(formData);
+        console.log(response);
+    } catch (error) {
+        console.log(error);
+    }
+
+        //upload finish message
+    dropZoneMessage.innerHTML = "upload finished: " + file.name;
+
+    //enable button again
+    selectFileBtn.disabled = false;
+    selectFileLabel.innerText = "or click here";
+
+    //free memory....
+    file = null;
+    formData = new FormData();
+
+    //renew song list
+    displaySongList();
+}
+
