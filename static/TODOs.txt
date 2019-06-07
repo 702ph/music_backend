@@ -25,13 +25,14 @@ before doing task, talk about it with some
 
 03_server_and_javascript
 
-[] let upload button remain in the drop area for non-mouse environment
-[] change the style of song deletion / and refactoring
-
---------------------
+[X] let upload button remain in the drop area for non-mouse environment
 
 [] refactoring deletion with promise.all
 [] log-in function?
+
+--------------------
+
+[] change the style of song deletion / and refactoring
 [] error handling for drop are when no internet connection
 
 [] server side: implement create_at

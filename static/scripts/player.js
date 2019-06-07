@@ -627,48 +627,6 @@ Object.defineProperty(this, 'postSong', {
 });
 
 
-//upload song button
-var submitBtn = document.querySelector("#submit_button");
-submitBtn.onclick = () => uploadSongByFrom();
-
-//upload song to server
-Object.defineProperty(this, 'uploadSongByFrom', {
-    enumerable: false,
-    configurable: false,
-    value: async function (data) {
-
-        //assign file from form
-        const file = document.querySelector("#input_file");
-        if (!file.value) { //if file is empty, return false
-            return false;
-        }
-
-        //prepare data to upload
-        let formData = new FormData();
-        formData.append("input_file", file.files[0]);
-
-        //disable button while uploading
-        submitBtn.disable = true;
-        submitBtn.value = "uploading..."
-
-        try {
-            const response = await postSong(formData);
-            console.log(response);
-        } catch (error) {
-            console.log(error);
-        }
-
-        //enable button again
-        submitBtn.disabled = false;
-        submitBtn.value = "Submit";
-        file.value = null;
-        formData = new FormData();
-
-        //renew song list
-        displaySongList();
-    }
-});
-
 
 //post table contents to server
 Object.defineProperty(this, 'postTableContents', {
