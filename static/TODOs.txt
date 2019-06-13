@@ -29,7 +29,7 @@ before doing task, talk about it with some
 
 [] refactoring deletion with promise.all (problem with song list update)
 [] delete cancel button
-[] change the style of song deletion / and refactoring
+[X] change the style of song deletion / and refactoring
 
 [] audio context: change volume
 [] audio context: change position
@@ -45,6 +45,7 @@ before doing task, talk about it with some
 04_
 [] log-in function
 [] server side: try, catch
+[] clean up server code
 
 -------------------
 
