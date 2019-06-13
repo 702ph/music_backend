@@ -3,6 +3,7 @@ import sqlite3
 import mimetypes
 import io
 import sqlalchemy
+import datetime
 
 from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
@@ -155,17 +156,20 @@ def save_to_db(file, file_name):
     print("save_to_db():")
     print(mp3_infos)
 
+    # get current date time
+    date_now = datetime.datetime.now()
+
+    # get date from mp
+    date_mp = datetime.datetime.strptime(mp3_infos["date"], "%Y")
+    print(date_mp)
+
     # insert to db
     # at least one column should have value. if there are no tags in mp3, take file name for the title.
     if mp3_infos.get("title") is None:
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary,"created_at",)
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, date_now,)
     else:
-        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, "created_at",)
+        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, date_now,)
     db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
-
-    # update
-    # param = (binary, 28,)
-    # db_cursor.execute("update song set data=? where id=?;", param)
 
     db_cursor.close()
     db_connection.commit()

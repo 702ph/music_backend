@@ -125,7 +125,6 @@ async function handleFileDropped(evt) {
 let inTableEditMode = false
 let originalRows;
 let editStartBtn = document.querySelector("#editStartButton");
-//editStartBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
 editStartBtn.onclick = () => editTable();
 
 
@@ -142,8 +141,7 @@ Object.defineProperty(this, 'editTable', {
         if (inTableEditMode) {
 
             //set cells not editable
-            setContentNonEditable(rows);
-
+            setTableContentsNonEditable(rows);
 
             // convert to Json
             const json = convertToJson(rows);
@@ -179,7 +177,7 @@ Object.defineProperty(this, 'editTable', {
             saveCurrentTableRows(rows);
 
             // make cells editable
-            setContentEditable(rows);
+            setTableContentsEditable(rows);
 
         }
     }
@@ -278,7 +276,7 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
 });
 
 
-Object.defineProperty(this, 'setContentNonEditable', {
+Object.defineProperty(this, 'setTableContentsNonEditable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -296,7 +294,7 @@ Object.defineProperty(this, 'setContentNonEditable', {
 });
 
 
-Object.defineProperty(this, 'setContentEditable', {
+Object.defineProperty(this, 'setTableContentsEditable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -311,6 +309,22 @@ Object.defineProperty(this, 'setContentEditable', {
                         cell.setAttribute("contenteditable", "true");
                     }
                 });
+            }
+        });
+
+    }
+});
+
+
+Object.defineProperty(this, 'prepareTableContentsForDeletion', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration to set editable
+
+        Array.prototype.slice.call(rows).forEach((row, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                row.classList.remove('greenYellow'); //remove style sheet
             }
         });
 
@@ -341,7 +355,7 @@ Object.defineProperty(this, 'cancelEditTable', {
 
 
         //set to non editable
-        setContentNonEditable(rows);
+        setTableContentsNonEditable(rows);
 
         //reset button value
         editStartBtn.value = "🖋";
@@ -358,7 +372,7 @@ Object.defineProperty(this, 'cancelEditTable', {
 //get element in table
 document.addEventListener('click', function (e) {
 
-    if (inTableEditMode) return; // if in table edit mode return;
+    if (inTableEditMode | inDeleteSongMode) return; // if in table edit mode return;
 
     let t = e.target;
     if (t.nodeName == "TD") {
@@ -374,7 +388,9 @@ document.addEventListener('click', function (e) {
                 clickedID = ch[0].textContent; //the first children for id
                 document.querySelector("#songIDInput").value = clickedID;
 
-                // clear previous data
+                // for debug table
+                let tableDebug = document.querySelector('#tableDebug');
+                //clear previous data
                 while (tableDebug.lastChild) {
                     tableDebug.removeChild(tableDebug.lastChild);
                 }
@@ -383,14 +399,46 @@ document.addEventListener('click', function (e) {
                 let ch2 = Array.from(ch);
                 let ul = document.createElement("ul");
 
-                ch2.map((value, index) => {
+                ch2.forEach((value, index) => {
                     //console.log({index, value});
                     const li = document.createElement("li");
                     li.innerHTML = index + ": " + value.textContent;
                     ul.appendChild(li);
                 });
 
+                // show debug table
                 document.querySelector('#tableDebug').appendChild(ul);
+
+                // show in console
+                console.log(ch2);
+            }
+        });
+    }
+});
+
+
+// get element in table for delete mode (multiple choice)
+document.addEventListener('click', function (event) {
+
+    // only for delete mode
+    if (!inDeleteSongMode) return;
+
+    let target = event.target;
+    if (target.nodeName == "TD") {
+
+        Array.prototype.map.call(target.parentNode.parentNode.children, function (tr) {
+
+            // avoid 0 row to be selected
+            if (tr.rowIndex === 0) return;
+
+            if (tr == target.parentNode) {
+
+                // give color for selected
+                if (tr.classList.contains("greenYellow")) {
+                    tr.classList.remove('greenYellow');
+                } else {
+                    tr.classList.add('greenYellow');
+                }
             }
         });
     }
@@ -487,9 +535,9 @@ stopBtn.onclick = function () {
 
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
-        timeDisplay.textContent = 'Current context time: ' + audioCtx.currentTime.toFixed(3);
+        timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
     } else {
-        timeDisplay.textContent = 'Current context time: No context exists.'
+        timeDisplay.textContent = 'time: not playing. select song to play'
     }
     requestAnimationFrame(displayTime);
 }
@@ -518,17 +566,19 @@ Object.defineProperty(this, 'displaySongList', {
         let table = document.createElement("table")
         table.border = 1;
         table.style = "border: 1px solid #ccc; border-collapse: collapse;"
+        table.style = "padding: 10px"
         songSelector.appendChild(table);
 
-        //insert title (table head)
+        //insert table head ( the first row )
         const songTitle = songList[0]; // use any one for the title. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
         let tr = table.insertRow(-1);
+
+        //convert Object to Map so that it's iterable
         const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
         for (value of songMap.keys()) {
             tr.insertCell(-1).innerHTML = value;
         }
-        // for delete checkbox
-        tr.insertCell(-1).innerHTML = "✂";
+
 
         //insert cell for songs
         for (const song of songList) {
@@ -539,18 +589,6 @@ Object.defineProperty(this, 'displaySongList', {
             for (value of songMap.values()) {
                 tr.insertCell(-1).innerHTML = value;
             }
-
-            //create checkbox
-            let checkBox = document.createElement("input");
-            checkBox.type = "checkbox";
-            checkBox.id = "delete_checkbox";
-            //checkBox.name = "delete";
-            //checkBox.value = "true";
-
-
-            // add delete checkbox
-            //const innerhtml = ' <input type="checkbox" id="subscribeNews" name="subscribe" value="true">';
-            tr.insertCell(-1).appendChild(checkBox);
         }
     }
 });
@@ -574,7 +612,7 @@ Object.defineProperty(this, 'getSongList', {
 });
 
 
-//retrive song from server
+//retrieve song from server
 Object.defineProperty(this, 'getSong', {
     enumerable: false,
     configurable: false,
@@ -627,7 +665,6 @@ Object.defineProperty(this, 'postSong', {
 });
 
 
-
 //post table contents to server
 Object.defineProperty(this, 'postTableContents', {
     enumerable: false,
@@ -663,18 +700,22 @@ Object.defineProperty(this, 'postTableContents', {
 
 
 let deleteBtn = document.querySelector("#deleteButton");
-deleteBtn.onclick = () => deleteSongFromTable();
+deleteBtn.onclick = () => deleteSongs();
 
 //delete song
 let inDeleteSongMode = false;
-Object.defineProperty(this, 'deleteSongFromTable', {
+Object.defineProperty(this, 'deleteSongs', {
     enumerable: false,
     configurable: false,
     value: async function () {
 
-
         //get button
         let deleteBtn = document.querySelector("#deleteButton");
+
+        //get table
+        let songSelector = document.querySelector("#songSelectorTable");
+        let rows = songSelector.children[0].rows; //<tr> in <table>
+
 
         //if it's not in delete song mode, change mode to it.
         if (!inDeleteSongMode) {
@@ -683,12 +724,15 @@ Object.defineProperty(this, 'deleteSongFromTable', {
             inDeleteSongMode = true;
             deleteBtn.value = "finish and submit deletion";
 
+            //remove color
+            prepareTableContentsForDeletion(rows);
+
 
         } else { //send request to server
 
             //get table
-            let songSelector = document.querySelector("#songSelectorTable");
-            let rows = songSelector.children[0].rows; //<tr> in <table>
+            //let songSelector = document.querySelector("#songSelectorTable");
+            //let rows = songSelector.children[0].rows; //<tr> in <table>
 
             //get checked item
             let selectedSongs = getSelectedItemsInTable(rows);
@@ -716,7 +760,7 @@ Object.defineProperty(this, 'deleteSongFromTable', {
                         deleteSong(id);
                     });
 
-                    //TODO: yes we need promise. ansonsten wird hier sofort ausgefueht.
+                    //TODO: yes we need promise. sonst wird hier sofort ausgefueht.
                     //re-display song list
                     displaySongList();
                 } else { //if cancel clicked
@@ -734,7 +778,7 @@ Object.defineProperty(this, 'deleteSongFromTable', {
 });
 
 
-// get items with checke markt
+// get selected items
 Object.defineProperty(this, 'getSelectedItemsInTable', {
     enumerable: false,
     configurable: false,
@@ -742,11 +786,11 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
 
         //iteration through song table
         return Array.prototype.slice.call(rows).map((row) => {
+
             // 0. row is for title and it doesn't have to be processed.
             // 7. cell is for checkbox
-            if (!(row.rowIndex === 0) && (row.cells[7].firstChild.checked)) {
+            if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
                 return Array.prototype.slice.call(row.cells).map((cell) => {
-                    if (cell.cellIndex === 7) return true;
                     return cell.innerText;
                 });
             }
@@ -780,10 +824,8 @@ Object.defineProperty(this, 'deleteSong', {
 
 const selectFileBtn = document.querySelector("#selectFileButton");
 const selectFileLabel = document.querySelector("#selectFileLabel");
-
 //selectFileBtn.onchange = () => uploadSongButton(); // not possible to carry parameters??
-selectFileBtn.addEventListener('change', uploadSongButton, false); //desn7t work with define property ??
-
+selectFileBtn.addEventListener('change', uploadSongButton, false); //doesn't work with define property ??
 
 // upload file with button
 //TODO: partly overlapped with which for drag and drop
@@ -827,7 +869,7 @@ async function uploadSongButton(evt) {
         console.log(error);
     }
 
-        //upload finish message
+    //upload finish message
     dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
     //enable button again
