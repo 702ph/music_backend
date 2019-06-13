@@ -240,7 +240,6 @@ Object.defineProperty(this, 'convertFromJson', {
         const songList = JSON.parse(json);
         //console.log(songList);
 
-
         // this is for the "cancel button" -> not any more
         // keys for guaranteed extraction of elements orders in object
         const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
@@ -253,7 +252,6 @@ Object.defineProperty(this, 'convertFromJson', {
                 console.log(item[key]);
             }
         });
-
         return songList;
     }
 });
@@ -271,7 +269,6 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
             });
         });
         console.log(originalRows);
-
     }
 });
 
@@ -282,7 +279,6 @@ Object.defineProperty(this, 'setTableContentsNonEditable', {
     value: function (rows) {
         //iteration to set Non-editable
         Array.prototype.slice.call(rows).forEach((value, index) => {
-
             if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
                 Array.prototype.slice.call(value.cells).forEach((item) => {
                     item.setAttribute("contenteditable", "false");
@@ -321,13 +317,11 @@ Object.defineProperty(this, 'removeColorFromTable', {
     configurable: false,
     value: function (rows) {
         //iteration to set editable
-
         Array.prototype.slice.call(rows).forEach((row, index) => {
             if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
                 row.classList.remove('greenYellow'); //remove style sheet
             }
         });
-
     }
 });
 
