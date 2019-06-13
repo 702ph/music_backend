@@ -141,7 +141,7 @@ Object.defineProperty(this, 'editTable', {
         if (inTableEditMode) {
 
             //set cells not editable
-            setContentNonEditable(rows);
+            setTableContentsNonEditable(rows);
 
             // convert to Json
             const json = convertToJson(rows);
@@ -177,7 +177,7 @@ Object.defineProperty(this, 'editTable', {
             saveCurrentTableRows(rows);
 
             // make cells editable
-            setContentEditable(rows);
+            setTableContentsEditable(rows);
 
         }
     }
@@ -276,7 +276,7 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
 });
 
 
-Object.defineProperty(this, 'setContentNonEditable', {
+Object.defineProperty(this, 'setTableContentsNonEditable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -294,7 +294,7 @@ Object.defineProperty(this, 'setContentNonEditable', {
 });
 
 
-Object.defineProperty(this, 'setContentEditable', {
+Object.defineProperty(this, 'setTableContentsEditable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -309,6 +309,22 @@ Object.defineProperty(this, 'setContentEditable', {
                         cell.setAttribute("contenteditable", "true");
                     }
                 });
+            }
+        });
+
+    }
+});
+
+
+Object.defineProperty(this, 'prepareTableContentsForDeletion', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration to set editable
+
+        Array.prototype.slice.call(rows).forEach((row, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                row.classList.remove('greenYellow'); //remove style sheet
             }
         });
 
@@ -339,7 +355,7 @@ Object.defineProperty(this, 'cancelEditTable', {
 
 
         //set to non editable
-        setContentNonEditable(rows);
+        setTableContentsNonEditable(rows);
 
         //reset button value
         editStartBtn.value = "🖋";
@@ -402,69 +418,31 @@ document.addEventListener('click', function (e) {
 
 
 // get element in table for delete mode (multiple choice)
-let toBeDeletedSongs;
-document.addEventListener('click', function (e) {
-
-    // initialize
-    toBeDeletedSongs = [];
+document.addEventListener('click', function (event) {
 
     // only for delete mode
     if (!inDeleteSongMode) return;
 
-    let target = e.target;
+    let target = event.target;
     if (target.nodeName == "TD") {
 
         Array.prototype.map.call(target.parentNode.parentNode.children, function (tr) {
 
-            // avoid 0 row to be colored
+            // avoid 0 row to be selected
             if (tr.rowIndex === 0) return;
 
-            // if it's colored, remove
-            tr.classList.remove('greenYellow');
-
-            console.log(tr.classList.contains("greenYellow"));
-
-
             if (tr == target.parentNode) {
-                tr.classList.add('greenYellow');
 
-                console.log(tr.classList.contains("greenYellow"));
-
-
-                let ch = tr.children;
-                clickedID = ch[0].textContent; //the first children for id
-                document.querySelector("#songIDInput").value = clickedID;
-
-                // for debug table
-                let tableDebug = document.querySelector('#tableDebug');
-                //clear previous data
-                while (tableDebug.lastChild) {
-                    tableDebug.removeChild(tableDebug.lastChild);
+                // give color for selected
+                if (tr.classList.contains("greenYellow")) {
+                    tr.classList.remove('greenYellow');
+                } else {
+                    tr.classList.add('greenYellow');
                 }
-
-
-                //convert HTMLCollection to array
-                let ch2 = Array.from(ch);
-                let ul = document.createElement("ul");
-
-                ch2.map((value, index) => {
-                    //console.log({index, value});
-                    const li = document.createElement("li");
-                    li.innerHTML = index + ": " + value.textContent;
-                    ul.appendChild(li);
-                });
-
-                // show debug table
-                document.querySelector('#tableDebug').appendChild(ul);
-
-                // show in console
-                console.log(ch2);
-
             }
         });
     }
 });
-
 
 
 var audioCtx;
@@ -733,18 +711,22 @@ Object.defineProperty(this, 'postTableContents', {
 
 
 let deleteBtn = document.querySelector("#deleteButton");
-deleteBtn.onclick = () => deleteSongFromTable();
+deleteBtn.onclick = () => deleteSongs();
 
 //delete song
 let inDeleteSongMode = false;
-Object.defineProperty(this, 'deleteSongFromTable', {
+Object.defineProperty(this, 'deleteSongs', {
     enumerable: false,
     configurable: false,
     value: async function () {
 
-
         //get button
         let deleteBtn = document.querySelector("#deleteButton");
+
+        //get table
+        let songSelector = document.querySelector("#songSelectorTable");
+        let rows = songSelector.children[0].rows; //<tr> in <table>
+
 
         //if it's not in delete song mode, change mode to it.
         if (!inDeleteSongMode) {
@@ -753,12 +735,15 @@ Object.defineProperty(this, 'deleteSongFromTable', {
             inDeleteSongMode = true;
             deleteBtn.value = "finish and submit deletion";
 
+            //remove color
+            prepareTableContentsForDeletion(rows);
+
 
         } else { //send request to server
 
             //get table
-            let songSelector = document.querySelector("#songSelectorTable");
-            let rows = songSelector.children[0].rows; //<tr> in <table>
+            //let songSelector = document.querySelector("#songSelectorTable");
+            //let rows = songSelector.children[0].rows; //<tr> in <table>
 
             //get checked item
             let selectedSongs = getSelectedItemsInTable(rows);
@@ -786,7 +771,7 @@ Object.defineProperty(this, 'deleteSongFromTable', {
                         deleteSong(id);
                     });
 
-                    //TODO: yes we need promise. ansonsten wird hier sofort ausgefueht.
+                    //TODO: yes we need promise. sonst wird hier sofort ausgefueht.
                     //re-display song list
                     displaySongList();
                 } else { //if cancel clicked
@@ -804,8 +789,8 @@ Object.defineProperty(this, 'deleteSongFromTable', {
 });
 
 
-// get items with checke markt
-Object.defineProperty(this, 'getSelectedItemsInTable', {
+// get items with check mark
+Object.defineProperty(this, 'getMarkedItemsInTable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -823,6 +808,28 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
         }).filter(e => !(e === undefined)); //return only "not" undefined
     }
 });
+
+
+// get selected items
+Object.defineProperty(this, 'getSelectedItemsInTable', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+
+        //iteration through song table
+        return Array.prototype.slice.call(rows).map((row) => {
+            // 0. row is for title and it doesn't have to be processed.
+            // 7. cell is for checkbox
+            if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
+                return Array.prototype.slice.call(row.cells).map((cell) => {
+                    if (cell.cellIndex === 7) return true;
+                    return cell.innerText;
+                });
+            }
+        }).filter(e => !(e === undefined)); //return only "not" undefined
+    }
+});
+
 
 
 //send delete request to server
