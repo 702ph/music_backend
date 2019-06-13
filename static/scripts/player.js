@@ -569,15 +569,16 @@ Object.defineProperty(this, 'displaySongList', {
         table.style = "padding: 10px"
         songSelector.appendChild(table);
 
-        //insert title (table head)
+        //insert table head ( the first row )
         const songTitle = songList[0]; // use any one for the title. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
         let tr = table.insertRow(-1);
+
+        //convert Object to Map so that it's iterable
         const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
         for (value of songMap.keys()) {
             tr.insertCell(-1).innerHTML = value;
         }
-        // for delete checkbox
-        tr.insertCell(-1).innerHTML = "✂";
+
 
         //insert cell for songs
         for (const song of songList) {
@@ -588,18 +589,6 @@ Object.defineProperty(this, 'displaySongList', {
             for (value of songMap.values()) {
                 tr.insertCell(-1).innerHTML = value;
             }
-
-            //create checkbox
-            let checkBox = document.createElement("input");
-            checkBox.type = "checkbox";
-            checkBox.id = "delete_checkbox";
-            //checkBox.name = "delete";
-            //checkBox.value = "true";
-
-
-            // add delete checkbox
-            //const innerhtml = ' <input type="checkbox" id="subscribeNews" name="subscribe" value="true">';
-            tr.insertCell(-1).appendChild(checkBox);
         }
     }
 });
@@ -789,27 +778,6 @@ Object.defineProperty(this, 'deleteSongs', {
 });
 
 
-// get items with check mark
-Object.defineProperty(this, 'getMarkedItemsInTable', {
-    enumerable: false,
-    configurable: false,
-    value: function (rows) {
-
-        //iteration through song table
-        return Array.prototype.slice.call(rows).map((row) => {
-            // 0. row is for title and it doesn't have to be processed.
-            // 7. cell is for checkbox
-            if (!(row.rowIndex === 0) && (row.cells[7].firstChild.checked)) {
-                return Array.prototype.slice.call(row.cells).map((cell) => {
-                    if (cell.cellIndex === 7) return true;
-                    return cell.innerText;
-                });
-            }
-        }).filter(e => !(e === undefined)); //return only "not" undefined
-    }
-});
-
-
 // get selected items
 Object.defineProperty(this, 'getSelectedItemsInTable', {
     enumerable: false,
@@ -818,18 +786,17 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
 
         //iteration through song table
         return Array.prototype.slice.call(rows).map((row) => {
+
             // 0. row is for title and it doesn't have to be processed.
             // 7. cell is for checkbox
             if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
                 return Array.prototype.slice.call(row.cells).map((cell) => {
-                    if (cell.cellIndex === 7) return true;
                     return cell.innerText;
                 });
             }
         }).filter(e => !(e === undefined)); //return only "not" undefined
     }
 });
-
 
 
 //send delete request to server
