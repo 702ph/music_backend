@@ -316,7 +316,7 @@ Object.defineProperty(this, 'setTableContentsEditable', {
 });
 
 
-Object.defineProperty(this, 'prepareTableContentsForDeletion', {
+Object.defineProperty(this, 'removeColorFromTable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -332,9 +332,33 @@ Object.defineProperty(this, 'prepareTableContentsForDeletion', {
 });
 
 
+//cancel delete songs
+let deleteCancelBtn = document.querySelector("#deleteCancelButton");
+deleteCancelBtn.onclick = () => cancelDeleteSongs();
+Object.defineProperty(this, 'cancelDeleteSongs', {
+    enumerable: false,
+    configurable: false,
+    value: function () {
+
+        //remove color
+        let songSelector = document.querySelector("#songSelectorTable");
+        let rows = songSelector.children[0].rows; //<tr> in <table>
+        removeColorFromTable(rows);
+
+        //reset visibility
+        deleteCancelBtn.style.visibility = "hidden";
+
+        //reset button text
+        deleteBtn.value = "✂";
+
+        // set mode
+        inDeleteSongMode = false;
+    }
+});
+
+
 let editCancelBtn = document.querySelector("#editCancelButton");
 editCancelBtn.onclick = () => cancelEditTable();
-
 Object.defineProperty(this, 'cancelEditTable', {
     enumerable: false,
     configurable: false,
@@ -699,10 +723,9 @@ Object.defineProperty(this, 'postTableContents', {
 });
 
 
+//delete song
 let deleteBtn = document.querySelector("#deleteButton");
 deleteBtn.onclick = () => deleteSongs();
-
-//delete song
 let inDeleteSongMode = false;
 Object.defineProperty(this, 'deleteSongs', {
     enumerable: false,
@@ -724,8 +747,11 @@ Object.defineProperty(this, 'deleteSongs', {
             inDeleteSongMode = true;
             deleteBtn.value = "finish and submit deletion";
 
+            //change visibility
+            deleteCancelBtn.style.visibility = "visible";
+
             //remove color
-            prepareTableContentsForDeletion(rows);
+            removeColorFromTable(rows);
 
 
         } else { //send request to server
@@ -767,6 +793,10 @@ Object.defineProperty(this, 'deleteSongs', {
                     return;
                 }
             }
+
+            //change visibility
+            deleteCancelBtn.style.visibility = "hidden";
+
 
             //reset button text
             deleteBtn.value = "✂";

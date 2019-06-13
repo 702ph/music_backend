@@ -183,5 +183,8 @@ h1 {
 	visibility: hidden;
   }
 
-
+#deleteCancelButton
+  {
+	visibility: hidden;
+  }
 
