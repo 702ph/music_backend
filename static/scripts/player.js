@@ -125,7 +125,6 @@ async function handleFileDropped(evt) {
 let inTableEditMode = false
 let originalRows;
 let editStartBtn = document.querySelector("#editStartButton");
-//editStartBtn.addEventListener("onclick", editTable, false); // what are diferrencies??
 editStartBtn.onclick = () => editTable();
 
 
@@ -143,7 +142,6 @@ Object.defineProperty(this, 'editTable', {
 
             //set cells not editable
             setContentNonEditable(rows);
-
 
             // convert to Json
             const json = convertToJson(rows);
@@ -358,7 +356,7 @@ Object.defineProperty(this, 'cancelEditTable', {
 //get element in table
 document.addEventListener('click', function (e) {
 
-    if (inTableEditMode) return; // if in table edit mode return;
+    if (inTableEditMode | inDeleteSongMode) return; // if in table edit mode return;
 
     let t = e.target;
     if (t.nodeName == "TD") {
@@ -374,10 +372,76 @@ document.addEventListener('click', function (e) {
                 clickedID = ch[0].textContent; //the first children for id
                 document.querySelector("#songIDInput").value = clickedID;
 
-                // clear previous data
+                // for debug table
+                let tableDebug = document.querySelector('#tableDebug');
+                //clear previous data
                 while (tableDebug.lastChild) {
                     tableDebug.removeChild(tableDebug.lastChild);
                 }
+
+                //convert HTMLCollection to array
+                let ch2 = Array.from(ch);
+                let ul = document.createElement("ul");
+
+                ch2.forEach((value, index) => {
+                    //console.log({index, value});
+                    const li = document.createElement("li");
+                    li.innerHTML = index + ": " + value.textContent;
+                    ul.appendChild(li);
+                });
+
+                // show debug table
+                document.querySelector('#tableDebug').appendChild(ul);
+
+                // show in console
+                console.log(ch2);
+            }
+        });
+    }
+});
+
+
+// get element in table for delete mode (multiple choice)
+let toBeDeletedSongs;
+document.addEventListener('click', function (e) {
+
+    // initialize
+    toBeDeletedSongs = [];
+
+    // only for delete mode
+    if (!inDeleteSongMode) return;
+
+    let target = e.target;
+    if (target.nodeName == "TD") {
+
+        Array.prototype.map.call(target.parentNode.parentNode.children, function (tr) {
+
+            // avoid 0 row to be colored
+            if (tr.rowIndex === 0) return;
+
+            // if it's colored, remove
+            tr.classList.remove('greenYellow');
+
+            console.log(tr.classList.contains("greenYellow"));
+
+
+            if (tr == target.parentNode) {
+                tr.classList.add('greenYellow');
+
+                console.log(tr.classList.contains("greenYellow"));
+
+
+                let ch = tr.children;
+                clickedID = ch[0].textContent; //the first children for id
+                document.querySelector("#songIDInput").value = clickedID;
+
+                // for debug table
+                let tableDebug = document.querySelector('#tableDebug');
+                //clear previous data
+                while (tableDebug.lastChild) {
+                    tableDebug.removeChild(tableDebug.lastChild);
+                }
+
 
                 //convert HTMLCollection to array
                 let ch2 = Array.from(ch);
@@ -390,11 +454,17 @@ document.addEventListener('click', function (e) {
                     ul.appendChild(li);
                 });
 
+                // show debug table
                 document.querySelector('#tableDebug').appendChild(ul);
+
+                // show in console
+                console.log(ch2);
+
             }
         });
     }
 });
+
 
 
 var audioCtx;
@@ -487,9 +557,9 @@ stopBtn.onclick = function () {
 
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
-        timeDisplay.textContent = 'Current context time: ' + audioCtx.currentTime.toFixed(3);
+        timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
     } else {
-        timeDisplay.textContent = 'Current context time: No context exists.'
+        timeDisplay.textContent = 'time: not playing. select song to play'
     }
     requestAnimationFrame(displayTime);
 }
@@ -518,6 +588,7 @@ Object.defineProperty(this, 'displaySongList', {
         let table = document.createElement("table")
         table.border = 1;
         table.style = "border: 1px solid #ccc; border-collapse: collapse;"
+        table.style = "padding: 10px"
         songSelector.appendChild(table);
 
         //insert title (table head)
@@ -574,7 +645,7 @@ Object.defineProperty(this, 'getSongList', {
 });
 
 
-//retrive song from server
+//retrieve song from server
 Object.defineProperty(this, 'getSong', {
     enumerable: false,
     configurable: false,
@@ -625,7 +696,6 @@ Object.defineProperty(this, 'postSong', {
         return result;
     }
 });
-
 
 
 //post table contents to server
@@ -780,10 +850,8 @@ Object.defineProperty(this, 'deleteSong', {
 
 const selectFileBtn = document.querySelector("#selectFileButton");
 const selectFileLabel = document.querySelector("#selectFileLabel");
-
 //selectFileBtn.onchange = () => uploadSongButton(); // not possible to carry parameters??
-selectFileBtn.addEventListener('change', uploadSongButton, false); //desn7t work with define property ??
-
+selectFileBtn.addEventListener('change', uploadSongButton, false); //doesn't work with define property ??
 
 // upload file with button
 //TODO: partly overlapped with which for drag and drop
@@ -827,7 +895,7 @@ async function uploadSongButton(evt) {
         console.log(error);
     }
 
-        //upload finish message
+    //upload finish message
     dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
     //enable button again
