@@ -148,7 +148,7 @@ h1 {
 }
 
 #drop_zone_container {
-    margin: 20px 0;
+    margin: 20px;
     padding: 10px;
     border: 1px solid #ccc;
 	-webkit-border-radius: 5px;
