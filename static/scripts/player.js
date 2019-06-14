@@ -67,20 +67,12 @@ async function handleFileDropped(evt) {
         return;
     }
 
-    //reading file
-    //let reader = new FileReader();
-
-    //process only the first file
-    //reader.readAsArrayBuffer(files[0]);
-
-
-    //assign file from form
+    //assign file from files
     //process only the first file
     const file = files[0];
 
     console.log(file.type);
 
-    //TODO: implement here type check (audio/mpeg)!!
     if (!file.type.match("audio/mp3")) {
         dropZoneMessage.innerHTML = "only accepts mp3 audio!";
         return false;
@@ -109,11 +101,7 @@ async function handleFileDropped(evt) {
     //upload finish message
     dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
-    //reset
-    //file = null;
-    //formData = new FormData();
-
-    //initialaize style
+    //reset style
     handleDragLeave();
 
     //reload song list
