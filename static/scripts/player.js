@@ -5,6 +5,11 @@
  */
 
 
+// for future implementation
+function Controller () {
+}
+
+
 // update contents once at page load
 window.addEventListener('load', function () {
     displaySongList();
