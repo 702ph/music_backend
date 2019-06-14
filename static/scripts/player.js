@@ -559,7 +559,6 @@ function displayTime() {
     }
     requestAnimationFrame(displayTime);
 }
-
 displayTime();
 
 
@@ -766,17 +765,12 @@ Object.defineProperty(this, 'deleteSongs', {
 
                 //confirmation message
                 if (window.confirm(confirmationMessage)) {
-
                     //communicate with server
-                    selectedSongs.forEach((song) => {
+                    for (const song of selectedSongs){
                         const id = song[0];
-
-                        //TODO: need promise implementation? promise all?
-                        deleteSong(id);
-                    });
-
-                    //TODO: yes we need promise. sonst wird hier sofort ausgefueht.
-                    //re-display song list
+                        await deleteSong(id);
+                    }
+                    // reload song list
                     displaySongList();
                 } else { //if cancel clicked
                     return;
@@ -785,7 +779,6 @@ Object.defineProperty(this, 'deleteSongs', {
 
             //change visibility
             deleteCancelBtn.style.visibility = "hidden";
-
 
             //reset button text
             deleteBtn.value = "✂";
@@ -829,7 +822,6 @@ Object.defineProperty(this, 'deleteSong', {
             method: "DELETE",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
         });
-
 
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
