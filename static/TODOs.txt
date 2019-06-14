@@ -39,7 +39,7 @@ before doing task, talk about it with some
 [X] front end : remove create_at
 [X] sever side: fix date extraction from mp3 file
 
-[] show error message when try to upload in offline
+[X] show error message when try to upload in offline
 
 
 --------------------

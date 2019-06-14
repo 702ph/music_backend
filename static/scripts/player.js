@@ -107,7 +107,7 @@ async function handleFileDropped(evt) {
         displaySongList();
     } catch (error) {
         console.log(error);
-        dropZoneMessage.innerHTML = "Error: " + error ;
+        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error ;
     }
 
     //reset style
