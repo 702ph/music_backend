@@ -67,6 +67,7 @@ h1 {
 	background-color: #44c767;
 }
 
+
 /*=================== BUTTONS =============================*/
 
 .playerButtons {
@@ -173,6 +174,8 @@ h1 {
       border-color: black 
   }
 
+/*======================== DELETION, EDITING =================*/
+
 #selectFileButton
 {
 	display: none;
@@ -187,4 +190,15 @@ h1 {
   {
 	visibility: hidden;
   }
+
+#deleteConfirmButton
+  {
+	visibility: hidden;
+  }
+
+.toBeDeletedSong
+{
+    color: lightskyblue;
+    font-weight: bold;
+}
 

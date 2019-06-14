@@ -1,0 +1,10 @@
+#!/Users/shuyafuchigami/Dropbox/2016-10-01_HTW/doc_rsync/2019SS/Entwicklung_moderner_Web-Anwendungen/music_server/env/bin/python
+# -*- coding: utf-8 -*-
+import re
+import sys
+
+from timestring import main
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
