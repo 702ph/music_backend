@@ -5,6 +5,11 @@
  */
 
 
+// for future implementation
+function Controller () {
+}
+
+
 // update contents once at page load
 window.addEventListener('load', function () {
     displaySongList();
@@ -94,19 +99,39 @@ async function handleFileDropped(evt) {
     try {
         const response = await postSong(formData);
         console.log(response);
+
+        //upload finish message
+        dropZoneMessage.innerHTML = "upload finished: " + file.name;
+
+        //reload song list
+        displaySongList();
     } catch (error) {
         console.log(error);
+        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error ;
     }
-
-    //upload finish message
-    dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
     //reset style
     handleDragLeave();
-
-    //reload song list
-    displaySongList();
 }
+
+
+let audioPositionControlSlider =document.querySelector("#audioPositionControlSlider");
+let slideDebugButton = document.querySelector("#slideDebugButton");
+slideDebugButton.onclick = () => {
+
+    audioPositionControlSlider.value = 50;
+
+    // set position
+    if (audioCtx && audioCtx.state !== 'closed') {
+        //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
+        audioCtx.currentTime = audioPositionControlSlider.value;
+        audioCtx.currentTime = 50;
+    } else {
+        //timeDisplay.textContent = 'time: not playing. select song'
+    }
+
+};
+
 
 
 //edit table contents
@@ -554,7 +579,6 @@ function displayTime() {
     }
     requestAnimationFrame(displayTime);
 }
-
 displayTime();
 
 
