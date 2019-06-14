@@ -34,6 +34,7 @@ before doing task, talk about it with some
 
 [] audio context: change volume
 [] audio context: change position
+[] audio context: replace start/stop button
 
 [X] server side: implement create_at
 [X] front end : remove create_at

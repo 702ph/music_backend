@@ -503,7 +503,7 @@ async function start() {
     stopBtn.removeAttribute('disabled');
 
     //let songID = document.querySelector("#songIDInput").value;
-    songID = clickedID;
+    const songID = clickedID;
     //document.querySelector("#songIDInput").value = clickedID;
     console.log(songID);
 
