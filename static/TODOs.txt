@@ -27,15 +27,16 @@ before doing task, talk about it with some
 
 [X] let upload button remain in the drop area for non-mouse environment
 
-[] refactoring deletion with promise.all (problem with song list update)
+[X] refactoring deletion with promise.all (problem with song list update)
 [X] delete cancel button
 [X] change the style of song deletion / and refactoring
+[X] highlight to be deleted songs
 
 [] audio context: change volume
 [] audio context: change position
 
 [X] server side: implement create_at
-[] front end : remove create_at
+[X] front end : remove create_at
 [X] sever side: fix date extraction from mp3 file
 
 [] show error message when try to upload in offline
@@ -51,6 +52,8 @@ before doing task, talk about it with some
 -------------------
 
 backlog
+
+[] documentation (nach Vorlage)
 
 [] refactor two document.addEventListener('click',) for table
 

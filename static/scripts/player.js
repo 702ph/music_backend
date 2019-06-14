@@ -67,20 +67,12 @@ async function handleFileDropped(evt) {
         return;
     }
 
-    //reading file
-    //let reader = new FileReader();
-
-    //process only the first file
-    //reader.readAsArrayBuffer(files[0]);
-
-
-    //assign file from form
+    //assign file from files
     //process only the first file
     const file = files[0];
 
     console.log(file.type);
 
-    //TODO: implement here type check (audio/mpeg)!!
     if (!file.type.match("audio/mp3")) {
         dropZoneMessage.innerHTML = "only accepts mp3 audio!";
         return false;
@@ -109,11 +101,7 @@ async function handleFileDropped(evt) {
     //upload finish message
     dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
-    //reset
-    //file = null;
-    //formData = new FormData();
-
-    //initialaize style
+    //reset style
     handleDragLeave();
 
     //reload song list
@@ -126,8 +114,6 @@ let inTableEditMode = false
 let originalRows;
 let editStartBtn = document.querySelector("#editStartButton");
 editStartBtn.onclick = () => editTable();
-
-
 Object.defineProperty(this, 'editTable', {
     enumerable: false,
     configurable: false,
@@ -312,14 +298,19 @@ Object.defineProperty(this, 'setTableContentsEditable', {
 });
 
 
-Object.defineProperty(this, 'removeColorFromTable', {
+Object.defineProperty(this, 'removeHighlightsFromTable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
         //iteration to set editable
         Array.prototype.slice.call(rows).forEach((row, index) => {
             if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-                row.classList.remove('greenYellow'); //remove style sheet
+                //old fashion
+                //row.classList.remove('greenYellow'); //remove style sheet
+                //row.classList.remove("toBeDeleted");
+
+                // clear everything in Classlist
+                row.classList.remove(...row.classList);
             }
         });
     }
@@ -337,10 +328,11 @@ Object.defineProperty(this, 'cancelDeleteSongs', {
         //remove color
         let songSelector = document.querySelector("#songSelectorTable");
         let rows = songSelector.children[0].rows; //<tr> in <table>
-        removeColorFromTable(rows);
+        removeHighlightsFromTable(rows);
 
         //reset visibility
         deleteCancelBtn.style.visibility = "hidden";
+        deleteConfirmBtn.style.visibility = "hidden";
 
         //reset button text
         deleteBtn.value = "✂";
@@ -440,6 +432,9 @@ document.addEventListener('click', function (event) {
 
     // only for delete mode
     if (!inDeleteSongMode) return;
+
+    // no more selection allowed in delete confirmed state
+    if (inDeleteConfirmedState) return;
 
     let target = event.target;
     if (target.nodeName == "TD") {
@@ -555,7 +550,7 @@ function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
         timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
     } else {
-        timeDisplay.textContent = 'time: not playing. select song to play'
+        timeDisplay.textContent = 'time: not playing. select song'
     }
     requestAnimationFrame(displayTime);
 }
@@ -591,15 +586,15 @@ Object.defineProperty(this, 'displaySongList', {
         let tr = table.insertRow(-1);
 
         for (const key of Object.keys(songTitle)) {  // with Object.keys() to get iterable keys. https://www.sejuku.net/blog/27965
-            if (key==="created_at") continue; //continue: stop executing code below and continue to next loop;  break: stop executing rest of the loop
+            if (key === "created_at") continue; //continue: stop executing code below and continue to next loop;  break: stop executing rest of the loop
             tr.insertCell(-1).innerHTML = key;
         }
 
         //cell for each song
         for (const song of songList) {
             let tr = table.insertRow(-1);
-            for (const [key,value] of Object.entries(song)) {
-                if (key==="created_at") continue;
+            for (const [key, value] of Object.entries(song)) {
+                if (key === "created_at") continue;
                 tr.insertCell(-1).innerHTML = value;
             }
         }
@@ -712,6 +707,38 @@ Object.defineProperty(this, 'postTableContents', {
 });
 
 
+// delete confirm
+// TODO: we also need unconfirm
+let inDeleteConfirmedState = false;
+let deleteConfirmBtn = document.querySelector("#deleteConfirmButton");
+deleteConfirmBtn.onclick = () => {
+    //get table
+    let songSelector = document.querySelector("#songSelectorTable");
+    let rows = songSelector.children[0].rows; //<tr> in <table>
+
+    if (inDeleteConfirmedState) {
+        // remove highlights
+        removeHighlightsFromTable(rows);
+
+        // change mode
+        inDeleteConfirmedState = false;
+
+        // change button
+        deleteConfirmBtn.value = "Confirm";
+
+    } else {
+        // confirm
+        highlightSelectedItemsInTable02(rows);
+
+        // change mode
+        inDeleteConfirmedState = true;
+
+        // change button
+        deleteConfirmBtn.value = "Unconfirm";
+    }
+};
+
+
 //delete song
 let deleteBtn = document.querySelector("#deleteButton");
 deleteBtn.onclick = () => deleteSongs();
@@ -721,7 +748,7 @@ Object.defineProperty(this, 'deleteSongs', {
     configurable: false,
     value: async function () {
 
-        //get button
+        //get buttons
         let deleteBtn = document.querySelector("#deleteButton");
 
         //get table
@@ -734,58 +761,35 @@ Object.defineProperty(this, 'deleteSongs', {
 
             //set mode and button text
             inDeleteSongMode = true;
-            deleteBtn.value = "finish and submit deletion";
+            deleteBtn.value = "Finish";
 
             //change visibility
             deleteCancelBtn.style.visibility = "visible";
+            deleteConfirmBtn.style.visibility = "visible";
 
             //remove color
-            removeColorFromTable(rows);
-
+            removeHighlightsFromTable(rows);
 
         } else { //send request to server
 
-            //get table
-            //let songSelector = document.querySelector("#songSelectorTable");
-            //let rows = songSelector.children[0].rows; //<tr> in <table>
-
             //get checked item
-            let selectedSongs = getSelectedItemsInTable(rows);
-            console.log(selectedSongs);
+            let confirmedSongs = getConfirmedItemsInTable(rows);
+            console.log(confirmedSongs);
 
             // if any songs are selected
-            if (!(selectedSongs.length === 0)) {
-
-                //create confirmation message
-                let confirmationMessage = "The following songs will be deleted.\n";
-                selectedSongs.forEach((song) => {
+            if (!(confirmedSongs.length === 0)) {
+                // send delete request to server
+                for (const song of confirmedSongs) {
                     const id = song[0];
-                    const title = song[1];
-                    confirmationMessage += id + ": " + title + "\n";
-                });
-
-                //confirmation message
-                if (window.confirm(confirmationMessage)) {
-
-                    //communicate with server
-                    selectedSongs.forEach((song) => {
-                        const id = song[0];
-
-                        //TODO: need promise implementation? promise all?
-                        deleteSong(id);
-                    });
-
-                    //TODO: yes we need promise. sonst wird hier sofort ausgefueht.
-                    //re-display song list
-                    displaySongList();
-                } else { //if cancel clicked
-                    return;
+                    await deleteSong(id);
                 }
+                // reload song list
+                displaySongList();
             }
 
             //change visibility
             deleteCancelBtn.style.visibility = "hidden";
-
+            deleteConfirmBtn.style.visibility = "hidden";
 
             //reset button text
             deleteBtn.value = "✂";
@@ -798,7 +802,7 @@ Object.defineProperty(this, 'deleteSongs', {
 
 
 // get selected items
-Object.defineProperty(this, 'getSelectedItemsInTable', {
+Object.defineProperty(this, 'getConfirmedItemsInTable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -808,12 +812,44 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
 
             // 0. row is for title and it doesn't have to be processed.
             // 7. cell is for checkbox
-            if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
+            if (!(row.rowIndex === 0) && (row.classList.contains("toBeDeletedSong"))) {
                 return Array.prototype.slice.call(row.cells).map((cell) => {
                     return cell.innerText;
                 });
             }
         }).filter(e => !(e === undefined)); //return only "not" undefined
+    }
+});
+
+
+// highlight
+Object.defineProperty(this, 'highlightSelectedItemsInTable', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration to highlight
+        Array.prototype.slice.call(rows).forEach((row, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                row.classList.remove('greenYellow'); //remove style sheet
+            }
+        });
+    }
+});
+
+
+// get selected items
+Object.defineProperty(this, 'highlightSelectedItemsInTable02', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration through song table
+        Array.prototype.slice.call(rows).map((row) => {
+            // 0. row is for title and it doesn't have to be processed.
+            // 7. cell is for checkbox
+            if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
+                row.classList.add("toBeDeletedSong");
+            }
+        });
     }
 });
 
@@ -829,7 +865,6 @@ Object.defineProperty(this, 'deleteSong', {
             method: "DELETE",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
         });
-
 
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
