@@ -555,7 +555,7 @@ function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
         timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
     } else {
-        timeDisplay.textContent = 'time: not playing. select song to play'
+        timeDisplay.textContent = 'time: not playing. select song'
     }
     requestAnimationFrame(displayTime);
 }
