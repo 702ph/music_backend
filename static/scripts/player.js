@@ -715,6 +715,7 @@ Object.defineProperty(this, 'postTableContents', {
 let deleteBtn = document.querySelector("#deleteButton");
 deleteBtn.onclick = () => deleteSongs();
 let inDeleteSongMode = false;
+let areYouSure = false;
 Object.defineProperty(this, 'deleteSongs', {
     enumerable: false,
     configurable: false,
@@ -741,7 +742,6 @@ Object.defineProperty(this, 'deleteSongs', {
             //remove color
             removeColorFromTable(rows);
 
-
         } else { //send request to server
 
             //get table
@@ -751,6 +751,8 @@ Object.defineProperty(this, 'deleteSongs', {
             //get checked item
             let selectedSongs = getSelectedItemsInTable(rows);
             console.log(selectedSongs);
+
+            highlightSelectedItemsInTable02(rows);
 
             // if any songs are selected
             if (!(selectedSongs.length === 0)) {
@@ -809,6 +811,38 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
         }).filter(e => !(e === undefined)); //return only "not" undefined
     }
 });
+
+
+Object.defineProperty(this, 'highlightSelectedItemsInTable', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration to highlight
+        Array.prototype.slice.call(rows).forEach((row, index) => {
+            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+                row.classList.remove('greenYellow'); //remove style sheet
+            }
+        });
+    }
+});
+
+
+// get selected items
+Object.defineProperty(this, 'highlightSelectedItemsInTable02', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        //iteration through song table
+        Array.prototype.slice.call(rows).map((row) => {
+            // 0. row is for title and it doesn't have to be processed.
+            // 7. cell is for checkbox
+            if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
+                    row.classList.add("red");
+            }
+        });
+    }
+});
+
 
 
 //send delete request to server
