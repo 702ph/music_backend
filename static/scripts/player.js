@@ -115,6 +115,25 @@ async function handleFileDropped(evt) {
 }
 
 
+let audioPositionControlSlider =document.querySelector("#audioPositionControlSlider");
+let slideDebugButton = document.querySelector("#slideDebugButton");
+slideDebugButton.onclick = () => {
+
+    audioPositionControlSlider.value = 50;
+
+    // set position
+    if (audioCtx && audioCtx.state !== 'closed') {
+        //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
+        audioCtx.currentTime = audioPositionControlSlider.value;
+        audioCtx.currentTime = 50;
+    } else {
+        //timeDisplay.textContent = 'time: not playing. select song'
+    }
+
+};
+
+
+
 //edit table contents
 let inTableEditMode = false
 let originalRows;
@@ -560,7 +579,6 @@ function displayTime() {
     }
     requestAnimationFrame(displayTime);
 }
-
 displayTime();
 
 

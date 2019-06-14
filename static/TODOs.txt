@@ -49,9 +49,12 @@ before doing task, talk about it with some
 [] server side: try, catch
 [] clean up server code
 
+
 -------------------
 
 backlog
+
+[] replace ie. .onclick = () => { };  with  .onclick = ({ });  ==> no! sometime it doesn't work!
 
 [] documentation (nach Vorlage)
 
