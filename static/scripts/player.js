@@ -94,18 +94,19 @@ async function handleFileDropped(evt) {
     try {
         const response = await postSong(formData);
         console.log(response);
+
+        //upload finish message
+        dropZoneMessage.innerHTML = "upload finished: " + file.name;
+
+        //reload song list
+        displaySongList();
     } catch (error) {
         console.log(error);
+        dropZoneMessage.innerHTML = "Error: " + error ;
     }
-
-    //upload finish message
-    dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
     //reset style
     handleDragLeave();
-
-    //reload song list
-    displaySongList();
 }
 
 
