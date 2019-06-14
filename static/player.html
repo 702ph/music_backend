@@ -15,17 +15,19 @@
 </head>
 
 <body>
-    <div id="audioController">
-        <Label> audio position (prototype implementation) </Label>
-        <br>
-        <input class="range"  type="range" id="audioPositionControlSlider" min="0" max="100" step="1" value="0">
-        Position: <output id="audioPosition"></output>
-        <br>
-        <input type="button" id="slideDebugButton" value="slideDebugButton">
-    </div>
+<div id="audioController">
+    <Label> audio position (prototype implementation) </Label>
+    <br>
+    <input class="range" type="range" id="audioPositionControlSlider" min="0" max="100" step="1" value="0">
+    Position:
+    <output id="audioPosition"></output>
+    <br>
+    <input type="button" id="slideDebugButton" value="slideDebugButton">
+</div>
 
-    <div id="audioDropPanel">
-        <h1>Music Drop</h1>
+<div id="audioDropPanel">
+    <h1>Music Drop</h1>
+</div>
 
 
 <div class="mediaplayer">
@@ -56,16 +58,54 @@
         <div class="title">Arctic Monkeys - The view from the afternoon</div>
         <div class="time-tracker">
             <div class="timer">
-                <div class="bg"> </div>
+                <div class="bg"></div>
             </div>
             <div class="time">1:02</div>
         </div>
     </footer>
 
+
     <div id="drop_zone_container">
         <div id="drop_zone">Drop file here!</div>
         <span class="space_top" id="drop_zone_message"></span>
     </div>
+
+
+    <div class="space">
+        <label for="selectFileButton" id="selectFileLabel">
+            or click here
+            <input type="file" name="inputFile" id="selectFileButton" accept="audio/mpeg">
+        </label>
+    </div>
+
+
+    <div>
+        <button class="playerButtons" id="startAudioContext">Play</button>
+        <button class="playerButtons" id="suspendAudioContext">Pause</button>
+        <button class="playerButtons" id="stopAudioContext">Stop</button>
+        <div class="space"></div>
+        <p id="counter">Current context time: No context exists.</p>
+    </div>
+
+    <div class="padding">
+        <input type="number" , id="songIDInput" , value="">
+    </div>
+
+    <div id="edit_buttons">
+        <input type="button" id="editStartButton" value="🖋">
+        <input type="button" id="editCancelButton" value="Cancel">
+    </div>
+
+    <div id="delete_buttons">
+        <input type="button" id="deleteButton" value="✂">
+        <input type="button" id="deleteConfirmButton" value="Confirm">
+        <input type="button" id="deleteCancelButton" value="Cancel">
+    </div>
+
+
+    <div class="padding" id="songSelectorTable"></div>
+    <div class="margin" id="tableDebug"></div>
+
 
 </div>
 

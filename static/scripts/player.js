@@ -361,9 +361,11 @@ Object.defineProperty(this, 'cancelDeleteSongs', {
 
         //reset button text
         deleteBtn.value = "✂";
+        deleteConfirmBtn.value = "Confirm";
 
         // set mode
         inDeleteSongMode = false;
+        inDeleteConfirmedState = false;
     }
 });
 
@@ -752,7 +754,10 @@ deleteConfirmBtn.onclick = () => {
 
     } else {
         // confirm
-        highlightSelectedItemsInTable02(rows);
+        confirmSelectedItemsInTable02(rows);
+
+        // if there are no confirmed items, return
+        if (getConfirmedItemsInTable(rows).length === 0 ) return;
 
         // change mode
         inDeleteConfirmedState = true;
@@ -820,6 +825,8 @@ Object.defineProperty(this, 'deleteSongs', {
 
             // set mode
             inDeleteSongMode = false;
+            inDeleteConfirmedState = false;
+
         }
     }
 });
@@ -862,7 +869,7 @@ Object.defineProperty(this, 'highlightSelectedItemsInTable', {
 
 
 // get selected items
-Object.defineProperty(this, 'highlightSelectedItemsInTable02', {
+Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
