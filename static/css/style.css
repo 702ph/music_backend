@@ -1,3 +1,9 @@
+/*
+ *
+ * author: Sebastian Braun, 549301
+ *
+ */
+
 body {
     height: 100vh;
     background: -webkit-radial-gradient(center ellipse, #564c84 0%, #0c0b17 100%);
@@ -70,6 +76,7 @@ main .album-art img {
 
 main .player {
     position: relative;
+    margin-right: 3%;
     float: right;
     width: 176px;
     height: 176px;
