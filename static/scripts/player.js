@@ -240,7 +240,6 @@ Object.defineProperty(this, 'convertFromJson', {
         const songList = JSON.parse(json);
         //console.log(songList);
 
-
         // this is for the "cancel button" -> not any more
         // keys for guaranteed extraction of elements orders in object
         const keyOrder = ["id", "title", "artist", "album", "year", "genre"];
@@ -253,7 +252,6 @@ Object.defineProperty(this, 'convertFromJson', {
                 console.log(item[key]);
             }
         });
-
         return songList;
     }
 });
@@ -271,7 +269,6 @@ Object.defineProperty(this, 'saveCurrentTableRows', {
             });
         });
         console.log(originalRows);
-
     }
 });
 
@@ -282,7 +279,6 @@ Object.defineProperty(this, 'setTableContentsNonEditable', {
     value: function (rows) {
         //iteration to set Non-editable
         Array.prototype.slice.call(rows).forEach((value, index) => {
-
             if (!(index === 0)) { // 0. row is for title and it doesn't have to be processed.
                 Array.prototype.slice.call(value.cells).forEach((item) => {
                     item.setAttribute("contenteditable", "false");
@@ -321,13 +317,11 @@ Object.defineProperty(this, 'removeColorFromTable', {
     configurable: false,
     value: function (rows) {
         //iteration to set editable
-
         Array.prototype.slice.call(rows).forEach((row, index) => {
             if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
                 row.classList.remove('greenYellow'); //remove style sheet
             }
         });
-
     }
 });
 
@@ -574,7 +568,6 @@ Object.defineProperty(this, 'displaySongList', {
     enumerable: false,
     configurable: false,
     value: async function () {
-
         let songList = await getSongList();
         console.log(songList);
 
@@ -587,30 +580,26 @@ Object.defineProperty(this, 'displaySongList', {
         }
 
         //create table
-        let table = document.createElement("table")
+        let table = document.createElement("table");
         table.border = 1;
-        table.style = "border: 1px solid #ccc; border-collapse: collapse;"
-        table.style = "padding: 10px"
+        table.style = "border: 1px solid #ccc; border-collapse: collapse;";
+        table.style = "padding: 10px";
         songSelector.appendChild(table);
 
         //insert table head ( the first row )
         const songTitle = songList[0]; // use any one for the title. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
         let tr = table.insertRow(-1);
 
-        //convert Object to Map so that it's iterable
-        const songMap = new Map(Object.entries(songTitle));  //https://www.sejuku.net/blog/21812#Map
-        for (value of songMap.keys()) {
-            tr.insertCell(-1).innerHTML = value;
+        for (const key of Object.keys(songTitle)) {  // with Object.keys() to get iterable keys. https://www.sejuku.net/blog/27965
+            if (key==="created_at") continue; //continue: stop executing code below and continue to next loop;  break: stop executing rest of the loop
+            tr.insertCell(-1).innerHTML = key;
         }
 
-
-        //insert cell for songs
+        //cell for each song
         for (const song of songList) {
             let tr = table.insertRow(-1);
-
-            //convert Object to Map so that it's iterable
-            const songMap = new Map(Object.entries(song));  //https://www.sejuku.net/blog/21812#Map
-            for (value of songMap.values()) {
+            for (const [key,value] of Object.entries(song)) {
+                if (key==="created_at") continue;
                 tr.insertCell(-1).innerHTML = value;
             }
         }

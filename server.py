@@ -4,6 +4,7 @@ import mimetypes
 import io
 import sqlalchemy
 import datetime
+import timestring
 
 from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
@@ -160,15 +161,14 @@ def save_to_db(file, file_name):
     date_now = datetime.datetime.now()
 
     # get date from mp
-    date_mp = datetime.datetime.strptime(mp3_infos["date"], "%Y")
-    print(date_mp)
+    year_mp3 = timestring.Date(mp3_infos["date"]).year
 
     # insert to db
     # at least one column should have value. if there are no tags in mp3, take file name for the title.
     if mp3_infos.get("title") is None:
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, date_now,)
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
     else:
-        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], mp3_infos["date"], mp3_infos["genre"], binary, date_now,)
+        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
     db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
 
     db_cursor.close()
