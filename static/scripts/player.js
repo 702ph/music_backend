@@ -126,8 +126,6 @@ let inTableEditMode = false
 let originalRows;
 let editStartBtn = document.querySelector("#editStartButton");
 editStartBtn.onclick = () => editTable();
-
-
 Object.defineProperty(this, 'editTable', {
     enumerable: false,
     configurable: false,
@@ -312,14 +310,19 @@ Object.defineProperty(this, 'setTableContentsEditable', {
 });
 
 
-Object.defineProperty(this, 'removeColorFromTable', {
+Object.defineProperty(this, 'removeHighlightsFromTable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
         //iteration to set editable
         Array.prototype.slice.call(rows).forEach((row, index) => {
             if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-                row.classList.remove('greenYellow'); //remove style sheet
+                //old fashion
+                //row.classList.remove('greenYellow'); //remove style sheet
+                //row.classList.remove("toBeDeleted");
+
+                // clear everything in Classlist
+                row.classList.remove(...row.classList);
             }
         });
     }
@@ -337,10 +340,11 @@ Object.defineProperty(this, 'cancelDeleteSongs', {
         //remove color
         let songSelector = document.querySelector("#songSelectorTable");
         let rows = songSelector.children[0].rows; //<tr> in <table>
-        removeColorFromTable(rows);
+        removeHighlightsFromTable(rows);
 
         //reset visibility
         deleteCancelBtn.style.visibility = "hidden";
+        deleteConfirmBtn.style.visibility = "hidden";
 
         //reset button text
         deleteBtn.value = "✂";
@@ -440,6 +444,9 @@ document.addEventListener('click', function (event) {
 
     // only for delete mode
     if (!inDeleteSongMode) return;
+
+    // no more selection allowed in delete confirmed state
+    if (inDeleteConfirmedState) return;
 
     let target = event.target;
     if (target.nodeName == "TD") {
@@ -559,6 +566,7 @@ function displayTime() {
     }
     requestAnimationFrame(displayTime);
 }
+
 displayTime();
 
 
@@ -590,15 +598,15 @@ Object.defineProperty(this, 'displaySongList', {
         let tr = table.insertRow(-1);
 
         for (const key of Object.keys(songTitle)) {  // with Object.keys() to get iterable keys. https://www.sejuku.net/blog/27965
-            if (key==="created_at") continue; //continue: stop executing code below and continue to next loop;  break: stop executing rest of the loop
+            if (key === "created_at") continue; //continue: stop executing code below and continue to next loop;  break: stop executing rest of the loop
             tr.insertCell(-1).innerHTML = key;
         }
 
         //cell for each song
         for (const song of songList) {
             let tr = table.insertRow(-1);
-            for (const [key,value] of Object.entries(song)) {
-                if (key==="created_at") continue;
+            for (const [key, value] of Object.entries(song)) {
+                if (key === "created_at") continue;
                 tr.insertCell(-1).innerHTML = value;
             }
         }
@@ -711,17 +719,48 @@ Object.defineProperty(this, 'postTableContents', {
 });
 
 
+// delete confirm
+// TODO: we also need unconfirm
+let inDeleteConfirmedState = false;
+let deleteConfirmBtn = document.querySelector("#deleteConfirmButton");
+deleteConfirmBtn.onclick = () => {
+    //get table
+    let songSelector = document.querySelector("#songSelectorTable");
+    let rows = songSelector.children[0].rows; //<tr> in <table>
+
+    if (inDeleteConfirmedState) {
+        // remove highlights
+        removeHighlightsFromTable(rows);
+
+        // change mode
+        inDeleteConfirmedState = false;
+
+        // change button
+        deleteConfirmBtn.value = "Confirm";
+
+    } else {
+        // confirm
+        highlightSelectedItemsInTable02(rows);
+
+        // change mode
+        inDeleteConfirmedState = true;
+
+        // change button
+        deleteConfirmBtn.value = "Unconfirm";
+    }
+};
+
+
 //delete song
 let deleteBtn = document.querySelector("#deleteButton");
 deleteBtn.onclick = () => deleteSongs();
 let inDeleteSongMode = false;
-let areYouSure = false;
 Object.defineProperty(this, 'deleteSongs', {
     enumerable: false,
     configurable: false,
     value: async function () {
 
-        //get button
+        //get buttons
         let deleteBtn = document.querySelector("#deleteButton");
 
         //get table
@@ -734,32 +773,27 @@ Object.defineProperty(this, 'deleteSongs', {
 
             //set mode and button text
             inDeleteSongMode = true;
-            deleteBtn.value = "finish and submit deletion";
+            deleteBtn.value = "Finish";
 
             //change visibility
             deleteCancelBtn.style.visibility = "visible";
+            deleteConfirmBtn.style.visibility = "visible";
 
             //remove color
-            removeColorFromTable(rows);
+            removeHighlightsFromTable(rows);
 
         } else { //send request to server
 
-            //get table
-            //let songSelector = document.querySelector("#songSelectorTable");
-            //let rows = songSelector.children[0].rows; //<tr> in <table>
-
             //get checked item
-            let selectedSongs = getSelectedItemsInTable(rows);
-            console.log(selectedSongs);
-
-            highlightSelectedItemsInTable02(rows);
+            let confirmedSongs = getConfirmedItemsInTable(rows);
+            console.log(confirmedSongs);
 
             // if any songs are selected
-            if (!(selectedSongs.length === 0)) {
+            if (!(confirmedSongs.length === 0)) {
 
                 //create confirmation message
                 let confirmationMessage = "The following songs will be deleted.\n";
-                selectedSongs.forEach((song) => {
+                confirmedSongs.forEach((song) => {
                     const id = song[0];
                     const title = song[1];
                     confirmationMessage += id + ": " + title + "\n";
@@ -768,7 +802,7 @@ Object.defineProperty(this, 'deleteSongs', {
                 //confirmation message
                 if (window.confirm(confirmationMessage)) {
                     //communicate with server
-                    for (const song of selectedSongs){
+                    for (const song of confirmedSongs) {
                         const id = song[0];
                         await deleteSong(id);
                     }
@@ -781,6 +815,7 @@ Object.defineProperty(this, 'deleteSongs', {
 
             //change visibility
             deleteCancelBtn.style.visibility = "hidden";
+            deleteConfirmBtn.style.visibility = "hidden";
 
             //reset button text
             deleteBtn.value = "✂";
@@ -793,7 +828,7 @@ Object.defineProperty(this, 'deleteSongs', {
 
 
 // get selected items
-Object.defineProperty(this, 'getSelectedItemsInTable', {
+Object.defineProperty(this, 'getConfirmedItemsInTable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -803,7 +838,7 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
 
             // 0. row is for title and it doesn't have to be processed.
             // 7. cell is for checkbox
-            if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
+            if (!(row.rowIndex === 0) && (row.classList.contains("toBeDeletedSong"))) {
                 return Array.prototype.slice.call(row.cells).map((cell) => {
                     return cell.innerText;
                 });
@@ -813,6 +848,7 @@ Object.defineProperty(this, 'getSelectedItemsInTable', {
 });
 
 
+// highlight
 Object.defineProperty(this, 'highlightSelectedItemsInTable', {
     enumerable: false,
     configurable: false,
@@ -837,12 +873,11 @@ Object.defineProperty(this, 'highlightSelectedItemsInTable02', {
             // 0. row is for title and it doesn't have to be processed.
             // 7. cell is for checkbox
             if (!(row.rowIndex === 0) && (row.classList.contains("greenYellow"))) {
-                    row.classList.add("red");
+                row.classList.add("toBeDeletedSong");
             }
         });
     }
 });
-
 
 
 //send delete request to server
