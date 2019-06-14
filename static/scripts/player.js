@@ -903,3 +903,6 @@ async function uploadSongButton(evt) {
     displaySongList();
 }
 
+/************************* BUTTONS ********************/
+
+
