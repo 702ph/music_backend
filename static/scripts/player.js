@@ -790,27 +790,13 @@ Object.defineProperty(this, 'deleteSongs', {
 
             // if any songs are selected
             if (!(confirmedSongs.length === 0)) {
-
-                //create confirmation message
-                let confirmationMessage = "The following songs will be deleted.\n";
-                confirmedSongs.forEach((song) => {
+                // send delete request to server
+                for (const song of confirmedSongs) {
                     const id = song[0];
-                    const title = song[1];
-                    confirmationMessage += id + ": " + title + "\n";
-                });
-
-                //confirmation message
-                if (window.confirm(confirmationMessage)) {
-                    //communicate with server
-                    for (const song of confirmedSongs) {
-                        const id = song[0];
-                        await deleteSong(id);
-                    }
-                    // reload song list
-                    displaySongList();
-                } else { //if cancel clicked
-                    return;
+                    await deleteSong(id);
                 }
+                // reload song list
+                displaySongList();
             }
 
             //change visibility
