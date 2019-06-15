@@ -42,7 +42,7 @@ before doing task, talk about it with some
 
 [X] show error message when try to upload in offline
 
-[] set default song id on load
+[x] set default song id on load
 
 --------------------
 
