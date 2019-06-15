@@ -6,13 +6,22 @@
 
 
 // for future implementation
-function Controller () {
+function Controller() {
 }
 
 
 // update contents once at page load
-window.addEventListener('load', function () {
-    displaySongList();
+window.addEventListener('load', async function () {
+
+    //display song list
+    await displaySongList();
+
+    //set songID
+    let songSelector = document.querySelector("#songSelectorTable");
+    let rows = songSelector.children[0].rows; //<tr> in <table>
+    document.querySelector("#songIDInput").value = getFirstSongID(rows);
+
+    //prepareAudioContext();
 });
 
 
@@ -47,6 +56,7 @@ function handleDragOver(evt) {
     dropZone.classList.add("is-dragover");
     //console.log("dragover");
 }
+
 
 //initialize style
 function handleDragLeave(evt) {
@@ -107,7 +117,7 @@ async function handleFileDropped(evt) {
         displaySongList();
     } catch (error) {
         console.log(error);
-        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error ;
+        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error;
     }
 
     //reset style
@@ -115,23 +125,34 @@ async function handleFileDropped(evt) {
 }
 
 
-let audioPositionControlSlider =document.querySelector("#audioPositionControlSlider");
+let audioPositionControlSlider = document.querySelector("#audioPositionControlSlider");
 let slideDebugButton = document.querySelector("#slideDebugButton");
 slideDebugButton.onclick = () => {
 
     audioPositionControlSlider.value = 50;
 
+    //todo: もしかしたら、stopさせて、時間をセットして、再度startさせなければならないかも。
+
     // set position
-    if (audioCtx && audioCtx.state !== 'closed') {
-        //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
-        audioCtx.currentTime = audioPositionControlSlider.value;
+    // if (audioCtx && audioCtx.state !== 'closed') {
+    //     //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
+    //     //audioCtx.currentTime = audioPositionControlSlider.value;
+    //     audioCtx.currentTime = 50;
+    //
+    // } else {
+    //     //timeDisplay.textContent = 'time: not playing. select song'
+    // }
+
+    if (audioCtx.state === 'running') {
+        audioCtx.suspend().then(function () {
+            audioCtx.currentTime = 50;
+            audioCtx.start();
+        });
+    } else if (audioCtx.state === 'suspended') {
         audioCtx.currentTime = 50;
-    } else {
-        //timeDisplay.textContent = 'time: not playing. select song'
+        audioCtx.start();
     }
-
 };
-
 
 
 //edit table contents
@@ -161,7 +182,6 @@ Object.defineProperty(this, 'editTable', {
             //send to server
             postTableContents(json);
 
-
             //reset button value
             editStartBtn.value = "🖋";
 
@@ -170,7 +190,6 @@ Object.defineProperty(this, 'editTable', {
 
             //set mode
             inTableEditMode = false;
-
 
         } else { // if not in edit mode, change to edit mode
 
@@ -189,7 +208,6 @@ Object.defineProperty(this, 'editTable', {
 
             // make cells editable
             setTableContentsEditable(rows);
-
         }
     }
 });
@@ -485,42 +503,44 @@ document.addEventListener('click', function (event) {
 });
 
 
-var audioCtx;
-var startBtn = document.querySelector('#startAudioContext');
-var susresBtn = document.querySelector('#suspendAudioContext');
-var stopBtn = document.querySelector('#stopAudioContext');
-var timeDisplay = document.querySelector('#counter');
-var clickedID;
+let audioCtx;
+let startBtn = document.querySelector('#startAudioContext');
+let susresBtn = document.querySelector('#suspendAudioContext');
+let stopBtn = document.querySelector('#stopAudioContext');
+let timeDisplay = document.querySelector('#counter');
+//let clickedID;
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
+let nowPlaying = false; //TODO: can be replaced by audioContext.state
+
+let gainNode;
+let audioSource;
 startBtn.onclick = () => start();
-
-
 async function start() {
     startBtn.setAttribute('disabled', 'disabled');
     susresBtn.removeAttribute('disabled');
     stopBtn.removeAttribute('disabled');
 
-    //let songID = document.querySelector("#songIDInput").value;
-    const songID = clickedID;
-    //document.querySelector("#songIDInput").value = clickedID;
+    // set songID
+    const songID = document.querySelector("#songIDInput").value;
     console.log(songID);
+
+    //prepareAudioContext();
 
     try {
         // create web audio api context
         AudioContext = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContext();
-        let gainNode = audioCtx.createGain();
-        let audioSource = audioCtx.createBufferSource();
-
+        /*let*/ gainNode = audioCtx.createGain();
+        /*let*/ audioSource = audioCtx.createBufferSource();
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
         let buffer = await getSong(songID);
         console.log(buffer.byteLength);
 
-        //because buffer is a Promise Object, you have to wait till it's set to settled.
+        //because buffer is a Promise Object, you have to wait till it's set to resolved.
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
         audioCtx.decodeAudioData(buffer).then((decodedAudio) => { //(decodedAudio)=>{} means function(decodedAudio){}
             audioSource.buffer = decodedAudio;
@@ -546,18 +566,46 @@ async function start() {
 }
 
 
-// suspend/resume the audiocontext
+//prepare audio context on load
+Object.defineProperty(this, 'prepareAudioContext', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+        // if it already exists, return.
+        if (!audioCtx === undefined) return;
+
+        try {
+            // create web audio api context
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            let gainNode = audioCtx.createGain();
+            let audioSource = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+});
+
+
+// suspend/resume the audioContext
 susresBtn.onclick = function () {
+    let audioCtxstate = audioCtx.state;
+    console.log("this is susresBtn()");
+
     if (audioCtx.state === 'running') {
         audioCtx.suspend().then(function () {
             susresBtn.textContent = 'Resume context';
+            //TODO: change here play icon to pause.
         });
     } else if (audioCtx.state === 'suspended') {
         audioCtx.resume().then(function () {
             susresBtn.textContent = 'Suspend context';
+            //TODO: change here pause icon to play.
         });
     }
-}
+};
+
 
 // close the audiocontext
 stopBtn.onclick = function () {
@@ -566,6 +614,53 @@ stopBtn.onclick = function () {
         susresBtn.setAttribute('disabled', 'disabled');
         stopBtn.setAttribute('disabled', 'disabled');
     });
+};
+
+
+async function playAndPause() {
+    startBtn.setAttribute('disabled', 'disabled');
+    susresBtn.removeAttribute('disabled');
+    stopBtn.removeAttribute('disabled');
+
+    // set songID
+    const songID = document.querySelector("#songIDInput").value;
+    console.log(songID);
+
+    try {
+        // create web audio api context
+        AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        let gainNode = audioCtx.createGain();
+        let audioSource = audioCtx.createBufferSource();
+
+        //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
+        //await Promise to be solved
+        let buffer = await getSong(songID);
+        console.log(buffer.byteLength);
+
+        //because buffer is a Promise Object, you have to wait till it's set to resolved.
+        //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
+        audioCtx.decodeAudioData(buffer).then((decodedAudio) => { //(decodedAudio)=>{} means function(decodedAudio){}
+            audioSource.buffer = decodedAudio;
+            console.log(decodedAudio);
+        }).catch((error) => console.log(error));
+
+        //preparation
+        audioSource.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        //play
+        audioSource.start(0);
+
+    } catch (error) {
+        console.log(error);
+    }
+
+    // report the state of the audio context to the
+    // console, when it changes
+    audioCtx.onstatechange = function () {
+        console.log(audioCtx.state);
+    }
 }
 
 
@@ -581,6 +676,7 @@ function displayTime() {
     }
     requestAnimationFrame(displayTime);
 }
+
 displayTime();
 
 
@@ -757,7 +853,7 @@ deleteConfirmBtn.onclick = () => {
         confirmSelectedItemsInTable02(rows);
 
         // if there are no confirmed items, return
-        if (getConfirmedItemsInTable(rows).length === 0 ) return;
+        if (getConfirmedItemsInTable(rows).length === 0) return;
 
         // change mode
         inDeleteConfirmedState = true;
@@ -854,18 +950,19 @@ Object.defineProperty(this, 'getConfirmedItemsInTable', {
 
 
 // highlight
-Object.defineProperty(this, 'highlightSelectedItemsInTable', {
-    enumerable: false,
-    configurable: false,
-    value: function (rows) {
-        //iteration to highlight
-        Array.prototype.slice.call(rows).forEach((row, index) => {
-            if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-                row.classList.remove('greenYellow'); //remove style sheet
-            }
-        });
-    }
-});
+//
+// Object.defineProperty(this, 'highlightSelectedItemsInTable', {
+//     enumerable: false,
+//     configurable: false,
+//     value: function (rows) {
+//         //iteration to highlight
+//         Array.prototype.slice.call(rows).forEach((row, index) => {
+//             if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
+//                 row.classList.remove('greenYellow'); //remove style sheet
+//             }
+//         });
+//     }
+// });
 
 
 // get selected items
@@ -881,6 +978,16 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
                 row.classList.add("toBeDeletedSong");
             }
         });
+    }
+});
+
+
+// get id for the first item
+Object.defineProperty(this, 'getFirstSongID', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        return rows[1].cells[0].innerText;
     }
 });
 
@@ -969,6 +1076,6 @@ async function uploadSongButton(evt) {
     displaySongList();
 }
 
-/************************* BUTTONS ********************/
+
 
 
