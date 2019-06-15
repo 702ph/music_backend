@@ -6,7 +6,7 @@
 
 
 // for future implementation
-function Controller () {
+function Controller() {
 }
 
 
@@ -56,6 +56,7 @@ function handleDragOver(evt) {
     dropZone.classList.add("is-dragover");
     //console.log("dragover");
 }
+
 
 //initialize style
 function handleDragLeave(evt) {
@@ -116,7 +117,7 @@ async function handleFileDropped(evt) {
         displaySongList();
     } catch (error) {
         console.log(error);
-        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error ;
+        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error;
     }
 
     //reset style
@@ -124,23 +125,34 @@ async function handleFileDropped(evt) {
 }
 
 
-let audioPositionControlSlider =document.querySelector("#audioPositionControlSlider");
+let audioPositionControlSlider = document.querySelector("#audioPositionControlSlider");
 let slideDebugButton = document.querySelector("#slideDebugButton");
 slideDebugButton.onclick = () => {
 
     audioPositionControlSlider.value = 50;
 
+    //todo: もしかしたら、stopさせて、時間をセットして、再度startさせなければならないかも。
+
     // set position
-    if (audioCtx && audioCtx.state !== 'closed') {
-        //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
-        audioCtx.currentTime = audioPositionControlSlider.value;
+    // if (audioCtx && audioCtx.state !== 'closed') {
+    //     //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
+    //     //audioCtx.currentTime = audioPositionControlSlider.value;
+    //     audioCtx.currentTime = 50;
+    //
+    // } else {
+    //     //timeDisplay.textContent = 'time: not playing. select song'
+    // }
+
+    if (audioCtx.state === 'running') {
+        audioCtx.suspend().then(function () {
+            audioCtx.currentTime = 50;
+            audioCtx.start();
+        });
+    } else if (audioCtx.state === 'suspended') {
         audioCtx.currentTime = 50;
-    } else {
-        //timeDisplay.textContent = 'time: not playing. select song'
+        audioCtx.start();
     }
-
 };
-
 
 
 //edit table contents
@@ -170,7 +182,6 @@ Object.defineProperty(this, 'editTable', {
             //send to server
             postTableContents(json);
 
-
             //reset button value
             editStartBtn.value = "🖋";
 
@@ -179,7 +190,6 @@ Object.defineProperty(this, 'editTable', {
 
             //set mode
             inTableEditMode = false;
-
 
         } else { // if not in edit mode, change to edit mode
 
@@ -198,7 +208,6 @@ Object.defineProperty(this, 'editTable', {
 
             // make cells editable
             setTableContentsEditable(rows);
-
         }
     }
 });
@@ -503,29 +512,28 @@ let timeDisplay = document.querySelector('#counter');
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
-let nowPlaying = false;
+let nowPlaying = false; //TODO: can be replaced by audioContext.state
 
+let gainNode;
+let audioSource;
 startBtn.onclick = () => start();
 async function start() {
     startBtn.setAttribute('disabled', 'disabled');
     susresBtn.removeAttribute('disabled');
     stopBtn.removeAttribute('disabled');
 
-    //let songID = document.querySelector("#songIDInput").value;
-    //const songID = clickedID;
-    //document.querySelector("#songIDInput").value = clickedID;
-
     // set songID
     const songID = document.querySelector("#songIDInput").value;
     console.log(songID);
+
+    //prepareAudioContext();
 
     try {
         // create web audio api context
         AudioContext = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContext();
-        let gainNode = audioCtx.createGain();
-        let audioSource = audioCtx.createBufferSource();
-
+        /*let*/ gainNode = audioCtx.createGain();
+        /*let*/ audioSource = audioCtx.createBufferSource();
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
@@ -558,15 +566,42 @@ async function start() {
 }
 
 
+//prepare audio context on load
+Object.defineProperty(this, 'prepareAudioContext', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+        // if it already exists, return.
+        if (!audioCtx === undefined) return;
+
+        try {
+            // create web audio api context
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            let gainNode = audioCtx.createGain();
+            let audioSource = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+});
+
+
 // suspend/resume the audioContext
 susresBtn.onclick = function () {
+    let audioCtxstate = audioCtx.state;
+    console.log("this is susresBtn()");
+
     if (audioCtx.state === 'running') {
         audioCtx.suspend().then(function () {
             susresBtn.textContent = 'Resume context';
+            //TODO: change here play icon to pause.
         });
     } else if (audioCtx.state === 'suspended') {
         audioCtx.resume().then(function () {
             susresBtn.textContent = 'Suspend context';
+            //TODO: change here pause icon to play.
         });
     }
 };
@@ -582,6 +617,53 @@ stopBtn.onclick = function () {
 };
 
 
+async function playAndPause() {
+    startBtn.setAttribute('disabled', 'disabled');
+    susresBtn.removeAttribute('disabled');
+    stopBtn.removeAttribute('disabled');
+
+    // set songID
+    const songID = document.querySelector("#songIDInput").value;
+    console.log(songID);
+
+    try {
+        // create web audio api context
+        AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        let gainNode = audioCtx.createGain();
+        let audioSource = audioCtx.createBufferSource();
+
+        //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
+        //await Promise to be solved
+        let buffer = await getSong(songID);
+        console.log(buffer.byteLength);
+
+        //because buffer is a Promise Object, you have to wait till it's set to resolved.
+        //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
+        audioCtx.decodeAudioData(buffer).then((decodedAudio) => { //(decodedAudio)=>{} means function(decodedAudio){}
+            audioSource.buffer = decodedAudio;
+            console.log(decodedAudio);
+        }).catch((error) => console.log(error));
+
+        //preparation
+        audioSource.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        //play
+        audioSource.start(0);
+
+    } catch (error) {
+        console.log(error);
+    }
+
+    // report the state of the audio context to the
+    // console, when it changes
+    audioCtx.onstatechange = function () {
+        console.log(audioCtx.state);
+    }
+}
+
+
 //TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。
 //have to implement process during pause
 //https://www.tcmobile.jp/dev_blog/programming/web-audio-api%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E7%B0%A1%E5%8D%98%E3%81%AA%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B%EF%BC%883%EF%BC%89/
@@ -594,6 +676,7 @@ function displayTime() {
     }
     requestAnimationFrame(displayTime);
 }
+
 displayTime();
 
 
@@ -770,7 +853,7 @@ deleteConfirmBtn.onclick = () => {
         confirmSelectedItemsInTable02(rows);
 
         // if there are no confirmed items, return
-        if (getConfirmedItemsInTable(rows).length === 0 ) return;
+        if (getConfirmedItemsInTable(rows).length === 0) return;
 
         // change mode
         inDeleteConfirmedState = true;
