@@ -971,4 +971,13 @@ async function uploadSongButton(evt) {
 
 /************************* BUTTONS ********************/
 
-
+function showHideListFunction() {
+  var x = document.getElementById("showList");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+  var y = document.getElementById("showList");
+  y.slideToggle(400)
+}
