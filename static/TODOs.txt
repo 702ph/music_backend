@@ -42,6 +42,7 @@ before doing task, talk about it with some
 
 [X] show error message when try to upload in offline
 
+[] set default song id on load
 
 --------------------
 
@@ -50,6 +51,8 @@ before doing task, talk about it with some
 [] server side: try, catch
 [] clean up server code
 
+[] take this out of all functions: let songSelector = document.querySelector("#songSelectorTable");
+let rows = songSelector.children[0].rows; //<tr> in <table>
 
 -------------------
 
