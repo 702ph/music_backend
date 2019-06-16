@@ -564,30 +564,23 @@ function initAudioSource() {
 // Audio
 function Audio() {}
 
+
 //play back position
 let audioPlaybackPosition;
 let playbackStartTimeStamp;
 let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
+let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
 
-// let slideDebugButton = document.querySelector("#slideDebugButton");
-// slideDebugButton.addEventListener("click", slideDebug, false);
-//
-// function slideDebug() {
-//     audioPlaybackPositionControlSlider.value = 50;
-//     audioPlaybackPosition = audioPlaybackPositionControlSlider.value;
-//
-//     if (audioCtx.state === "running") {
-//         audioSource.stop(0);
-//         initAudioSource();
-//         audioSource.start(0, audioPlaybackPosition);
-//     }
-//
-// }
+// set default
+audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
 
 
 audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
 function changeAudioPlaybackPosition(){
+
     audioPlaybackPosition = audioPlaybackPositionControlSlider.value;
+    audioPlaybackPositionDisplay.innerText = audioPlaybackPosition;
+
     if (audioCtx.state === "running") {
         audioSource.stop(0);
         initAudioSource();
@@ -599,11 +592,8 @@ function changeAudioPlaybackPosition(){
 }
 
 
-
 // suspend/resume the audioContext
 susresBtn.onclick = function () {
-    let audioCtxstate = audioCtx.state;
-    console.log("this is susresBtn()");
 
     if (audioCtx.state === 'running') {
         audioCtx.suspend().then(function () {
@@ -625,7 +615,6 @@ stopBtn.onclick = function () {
         stopBtn.setAttribute('disabled', 'disabled');
     });
 };
-
 
 
 //init audio context on load
@@ -652,7 +641,8 @@ Object.defineProperty(this, 'initAudioContext', {
 
 // change gain volume
 let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
-//audioVolumeControlSlider.addEventListener("change", this.changeGainVolume, false);
+let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
+audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
 
 Object.defineProperty(this, 'changeGainVolume', {
     enumerable: false,
@@ -661,21 +651,15 @@ Object.defineProperty(this, 'changeGainVolume', {
         // if gainNode is not initialized, return.
         if (gainNode === undefined) return;
 
+        //change display
+        audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
+
         //change volume
         gainNode.gain.value = audioVolumeControlSlider.value;
         console.log(audioVolumeControlSlider.value);
     }
 });
 audioVolumeControlSlider.onchange = () => changeGainVolume();
-
-// function changeGainVolume () {
-//         // if gainNode is not initialized, return.
-//         if (gainNode === undefined) return;
-//
-//         //change volume
-//         gainNode.gain.value = audioVolumeControlSlider.value;
-//         console.log(audioVolumeControlSlider.value);
-//     }
 
 
 
@@ -685,9 +669,9 @@ audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
-        timeDisplay.textContent = 'CONTEXT time (not audioSource): ' + audioCtx.currentTime.toFixed(3);
+        timeDisplay.textContent = 'Current CONTEXT time (not audioSource): ' + audioCtx.currentTime.toFixed(3);
     } else {
-        timeDisplay.textContent = 'CONTEXT time (not audioSource): not playing. select song'
+        timeDisplay.textContent = 'Current CONTEXT time (not audioSource): not playing. select song'
     }
     requestAnimationFrame(displayTime);
 }
