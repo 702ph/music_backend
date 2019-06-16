@@ -18,12 +18,19 @@
 <div id="audioController">
     <Label> audio position (prototype implementation) </Label>
     <br>
-    <input class="range" type="range" id="audioPositionControlSlider" min="0" max="100" step="1" value="0">
+    <input class="range" type="range" id="audioPlaybackPositionControlSlider" min="0" max="100" step="1" value="0">
     Position:
     <output id="audioPosition"></output>
     <br>
-    <input type="button" id="slideDebugButton" value="slideDebugButton">
+
+    <Label> audio volume (prototype implementation) </Label>
+    <br>
+    <input class="range" type="range" id="audioVolumeControlSlider" min="0.0" max="3.0" step="0.05" value="1.5">
+    Position:
+    <output id="audioVolume"></output>
+
 </div>
+
 
 <div id="audioDropPanel">
     <h1>Music Drop</h1>
@@ -84,10 +91,10 @@
         <!--
         <button class="playerButtons" id="startAudioContext">Play</button>
         -->
-        <button class="playerButtons" id="suspendAudioContext">Pause</button>
-        <button class="playerButtons" id="stopAudioContext">Stop</button>
+        <button class="playerButtons" id="suspendAudioContext">Pause(DO NOT CLICK!)</button>
+        <button class="playerButtons" id="stopAudioContext">Stop(DO NOT CLICK!)</button>
         <div class="space"></div>
-        <p id="counter">Current context time: No context exists.</p>
+        <p id="counter">Current "CONTEXT" time: No context exists.</p>
     </div>
 
     <div class="padding">
