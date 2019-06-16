@@ -513,7 +513,7 @@ async function start() {
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
         /*let*/
-        audioArrayBuffer = await getSong(songID);
+        audioArrayBuffer = await loadSongFromURL(songID);
         console.log(audioArrayBuffer.byteLength);
 
         //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
@@ -558,23 +558,35 @@ function initAudioSource() {
 function Audio() {
 }
 
-let playbackPosition;
+let audioPlaybackPosition;
 let playbackStartTimeStamp;
-let audioPositionControlSlider = document.querySelector("#audioPositionControlSlider");
+let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
 let slideDebugButton = document.querySelector("#slideDebugButton");
 slideDebugButton.addEventListener("click", slideDebug, false);
 
 function slideDebug() {
-    audioPositionControlSlider.value = 50;
-    playbackPosition = audioPositionControlSlider.value;
+    audioPlaybackPositionControlSlider.value = 50;
+    audioPlaybackPosition = audioPlaybackPositionControlSlider.value;
 
     if (audioCtx.state === "running") {
         audioSource.stop(0);
         initAudioSource();
-        audioSource.start(0, playbackPosition);
+        audioSource.start(0, audioPlaybackPosition);
     }
 
-};
+}
+
+
+audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
+function changeAudioPlaybackPosition(){
+    audioPlaybackPosition = audioPlaybackPositionControlSlider.value;
+    if (audioCtx.state === "running") {
+        audioSource.stop(0);
+        initAudioSource();
+        audioSource.start(0, audioPlaybackPosition);
+    }
+}
+
 
 
 // suspend/resume the audioContext
@@ -624,7 +636,7 @@ async function playAndPause() {
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
-        let buffer = await getSong(songID);
+        let buffer = await loadSongFromURL(songID);
         console.log(buffer.byteLength);
 
         //because buffer is a Promise Object, you have to wait till it's set to resolved.
@@ -754,7 +766,7 @@ Object.defineProperty(this, 'getSongList', {
 
 
 //retrieve song from server
-Object.defineProperty(this, 'getSong', {
+Object.defineProperty(this, 'loadSongFromURL', {
     enumerable: false,
     configurable: false,
     value: async function (songID) {
