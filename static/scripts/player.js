@@ -125,36 +125,6 @@ async function handleFileDropped(evt) {
 }
 
 
-let audioPositionControlSlider = document.querySelector("#audioPositionControlSlider");
-let slideDebugButton = document.querySelector("#slideDebugButton");
-slideDebugButton.onclick = () => {
-
-    audioPositionControlSlider.value = 50;
-
-    //todo: もしかしたら、stopさせて、時間をセットして、再度startさせなければならないかも。
-
-    // set position
-    // if (audioCtx && audioCtx.state !== 'closed') {
-    //     //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
-    //     //audioCtx.currentTime = audioPositionControlSlider.value;
-    //     audioCtx.currentTime = 50;
-    //
-    // } else {
-    //     //timeDisplay.textContent = 'time: not playing. select song'
-    // }
-
-    if (audioCtx.state === 'running') {
-        audioCtx.suspend().then(function () {
-            audioCtx.currentTime = 50;
-            audioCtx.start();
-        });
-    } else if (audioCtx.state === 'suspended') {
-        audioCtx.currentTime = 50;
-        audioCtx.start();
-    }
-};
-
-
 //edit table contents
 let inTableEditMode = false
 let originalRows;
@@ -516,7 +486,10 @@ let nowPlaying = false; //TODO: can be replaced by audioContext.state
 
 let gainNode;
 let audioSource;
+let audioArrayBuffer;
+let decodedAudioBuffer;
 startBtn.onclick = () => start();
+
 async function start() {
     startBtn.setAttribute('disabled', 'disabled');
     susresBtn.removeAttribute('disabled');
@@ -532,20 +505,26 @@ async function start() {
         // create web audio api context
         AudioContext = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContext();
-        /*let*/ gainNode = audioCtx.createGain();
-        /*let*/ audioSource = audioCtx.createBufferSource();
+        /*let*/
+        gainNode = audioCtx.createGain();
+        /*let*/
+        audioSource = audioCtx.createBufferSource();
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
-        let buffer = await getSong(songID);
-        console.log(buffer.byteLength);
+        /*let*/
+        audioArrayBuffer = await getSong(songID);
+        console.log(audioArrayBuffer.byteLength);
 
-        //because buffer is a Promise Object, you have to wait till it's set to resolved.
+        //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
-        audioCtx.decodeAudioData(buffer).then((decodedAudio) => { //(decodedAudio)=>{} means function(decodedAudio){}
-            audioSource.buffer = decodedAudio;
-            console.log(decodedAudio);
-        }).catch((error) => console.log(error));
+        // audioCtx.decodeAudioData(audioArrayBuffer).then((decodedAudioBuffer) => { //(decodedAudioBuffer)=>{} means function(decodedAudioBuffer){}
+        //     audioSource.buffer = decodedAudioBuffer;
+        //     console.log(decodedAudioBuffer);
+        // }).catch((error) => console.log(error));
+
+        decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
+        audioSource.buffer = decodedAudioBuffer;
 
         //preparation
         audioSource.connect(gainNode);
@@ -565,27 +544,37 @@ async function start() {
     }
 }
 
+function initAudioSource() {
+    //create buffer source once again
+    audioSource = audioCtx.createBufferSource();
+    audioSource.buffer = decodedAudioBuffer;
 
-//prepare audio context on load
-Object.defineProperty(this, 'prepareAudioContext', {
-    enumerable: false,
-    configurable: false,
-    value: async function () {
-        // if it already exists, return.
-        if (!audioCtx === undefined) return;
+    // connet audio source with gain node
+    audioSource.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+}
 
-        try {
-            // create web audio api context
-            AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            let gainNode = audioCtx.createGain();
-            let audioSource = audioCtx.createBufferSource();
-        } catch (error) {
-            console.log(error);
-        }
 
+function Audio() {
+}
+
+let playbackPosition;
+let playbackStartTimeStamp;
+let audioPositionControlSlider = document.querySelector("#audioPositionControlSlider");
+let slideDebugButton = document.querySelector("#slideDebugButton");
+slideDebugButton.addEventListener("click", slideDebug, false);
+
+function slideDebug() {
+    audioPositionControlSlider.value = 50;
+    playbackPosition = audioPositionControlSlider.value;
+
+    if (audioCtx.state === "running") {
+        audioSource.stop(0);
+        initAudioSource();
+        audioSource.start(0, playbackPosition);
     }
-});
+
+};
 
 
 // suspend/resume the audioContext
@@ -662,6 +651,28 @@ async function playAndPause() {
         console.log(audioCtx.state);
     }
 }
+
+
+//prepare audio context on load
+Object.defineProperty(this, 'prepareAudioContext', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+        // if it already exists, return.
+        if (!audioCtx === undefined) return;
+
+        try {
+            // create web audio api context
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            let gainNode = audioCtx.createGain();
+            let audioSource = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+});
 
 
 //TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。
