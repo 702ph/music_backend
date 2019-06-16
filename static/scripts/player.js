@@ -486,7 +486,7 @@ let isPlaying = false; //TODO: can be replaced by audioContext.state -> no.
 let nowPlayingSongID;
 
 let gainNode;
-let audioSource;
+let audioBufferSourceNode;
 let audioArrayBuffer;
 let decodedAudioBuffer;
 startBtn.onclick = () => start();
@@ -514,7 +514,7 @@ async function start() {
         // AudioContext = window.AudioContext || window.webkitAudioContext;
         // audioCtx = new AudioContext();
         // gainNode = audioCtx.createGain()
-        // audioSource = audioCtx.createBufferSource();
+        // audioBufferSourceNode = audioCtx.createBufferSource();
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
@@ -526,15 +526,15 @@ async function start() {
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
 
         decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
-        audioSource.buffer = decodedAudioBuffer;
+        audioBufferSourceNode.buffer = decodedAudioBuffer;
 
         //preparation
-        audioSource.connect(gainNode);
+        audioBufferSourceNode.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
         //play
         playbackStartTimeStamp = Date.now();
-        audioSource.start(0);
+        audioBufferSourceNode.start(0);
         isPlaying = true;
         nowPlayingSongID = songID;
 
@@ -553,11 +553,11 @@ async function start() {
 
 function initAudioSource() {
     //create buffer source once again
-    audioSource = audioCtx.createBufferSource();
-    audioSource.buffer = decodedAudioBuffer;
+    audioBufferSourceNode = audioCtx.createBufferSource();
+    audioBufferSourceNode.buffer = decodedAudioBuffer;
 
     // connect audio source with gain node
-    audioSource.connect(gainNode);
+    audioBufferSourceNode.connect(gainNode);
     gainNode.connect(audioCtx.destination);
 }
 
@@ -571,9 +571,8 @@ let playbackStartTimeStamp;
 let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
 let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
 
-// set default
+// initial setup
 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
-
 
 audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
 function changeAudioPlaybackPosition(){
@@ -582,12 +581,12 @@ function changeAudioPlaybackPosition(){
     audioPlaybackPositionDisplay.innerText = audioPlaybackPosition;
 
     if (audioCtx.state === "running") {
-        audioSource.stop(0);
+        audioBufferSourceNode.stop(0);
         initAudioSource();
-        audioSource.start(0, audioPlaybackPosition);
+        audioBufferSourceNode.start(0, audioPlaybackPosition);
     } else if (audioCtx.state === "suspended"){
         initAudioSource();
-        audioSource.start(0, audioPlaybackPosition);
+        audioBufferSourceNode.start(0, audioPlaybackPosition);
     }
 }
 
@@ -630,7 +629,7 @@ Object.defineProperty(this, 'initAudioContext', {
             AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
             gainNode = audioCtx.createGain();
-            audioSource = audioCtx.createBufferSource();
+            audioBufferSourceNode = audioCtx.createBufferSource();
         } catch (error) {
             console.log(error);
         }
@@ -669,9 +668,9 @@ audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
-        timeDisplay.textContent = 'Current CONTEXT time (not audioSource): ' + audioCtx.currentTime.toFixed(3);
+        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
     } else {
-        timeDisplay.textContent = 'Current CONTEXT time (not audioSource): not playing. select song'
+        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
     }
     requestAnimationFrame(displayTime);
 }
