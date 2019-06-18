@@ -18,10 +18,17 @@
 <div id="audioController">
     <Label> audio position (prototype implementation) </Label>
     <br>
-    <input class="range" type="range" id="audioPlaybackPositionControlSlider" min="0.0" max="1.0" step="0.05" value="0.0">
+    <input class="range" type="range" id="audioPlaybackPositionControlSlider" min="0.0" max="1.0" step="0.01" value="0.0">
     <br>
+    <!--
+    <meter id="timeBar" min=0.0 max=1.0 value=0.5></meter>
+    <br>
+    -->
     Position:
     <output id="audioPlaybackPositionDisplay"></output>
+    <br>
+    Position(Decimal):
+    <output id="audioPlaybackPositionDisplayDecimal"></output>
     <br>
     <br>
 

@@ -10,7 +10,7 @@ function Controller() {
 }
 
 
-// update contents once at page load
+// initial processes at page load
 window.addEventListener('load', async function () {
 
     //display song list
@@ -21,7 +21,7 @@ window.addEventListener('load', async function () {
     let rows = songSelector.children[0].rows; //<tr> in <table>
     document.querySelector("#songIDInput").value = getFirstSongID(rows);
 
-    initAudioContext();
+    //initAudioContext();
 });
 
 
@@ -484,11 +484,17 @@ susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
 let isPlaying = false; //TODO: can be replaced by audioContext.state -> no.
 let nowPlayingSongID;
+let hasAudioContextInitialized = false;
 
 let gainNode;
 let audioBufferSourceNode;
 let audioArrayBuffer;
 let decodedAudioBuffer;
+let audioBufferSourceDuration;
+let audioPlaybackPosition = 0;
+let audioPausedAt = 0;
+let audioStartAt = 0;
+
 startBtn.onclick = () => start();
 
 async function start() {
@@ -499,22 +505,66 @@ async function start() {
     // set songID
     const songID = document.querySelector("#songIDInput").value;
     console.log(songID);
+    console.log(nowPlayingSongID);
+    console.log(hasAudioContextInitialized);
 
+    //TODO :stop & pause
+    if (nowPlayingSongID === songID) {
+        if (isPlaying) {
 
-    if (isPlaying){
-        // change state
-        isPlaying = false;
+            //pause(stop)
+            audioBufferSourceNode.stop(0);
 
-        //TODO: stop playing
+            // audioPlaybackPosition for re-start
+            audioPlaybackPosition = audioCtx.currentTime - playbackStartAudioContextTimeStamp;
+            console.log("audioPlaybackPosition: " + audioPlaybackPosition);
+
+            audioPausedAt = Date.now - audioStartAt;
+            console.log("audioPausedAt: " + audioPausedAt);
+
+            isPlaying = false;
+            return;
+        } else {
+
+            //re-init audio source
+            initAudioSource();
+
+            if (0 < audioPausedAt){
+                audioStartAt = Date.now() - audioPausedAt;
+                //audioBufferSourceNode.start(0, audioStartAt/1000);
+            } else {
+                /for the very first time
+                audioStartAt = Date.now();
+                //audioBufferSourceNode.start(0, audioPlaybackPosition);
+            }
+            console.log("audioStartAt:" + audioStartAt);
+
+            audioBufferSourceNode.start(0, audioPlaybackPosition);
+
+            playbackStartAudioContextTimeStamp = audioCtx.currentTime;
+            console.log("playbackStartAudioContextTimeStamp: " + playbackStartAudioContextTimeStamp);
+
+            isPlaying = true;
+            return;
+        }
     }
+
+
+    // if there is already a audio context, close it.
+    if (hasAudioContextInitialized) {
+        await audioCtx.close();
+    }
+
 
     try {
         // refactored to initAudioContext()
         // create web audio api context
-        // AudioContext = window.AudioContext || window.webkitAudioContext;
-        // audioCtx = new AudioContext();
-        // gainNode = audioCtx.createGain()
-        // audioBufferSourceNode = audioCtx.createBufferSource();
+        AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        hasAudioContextInitialized = true;
+
+        gainNode = audioCtx.createGain()
+        audioBufferSourceNode = audioCtx.createBufferSource();
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
@@ -522,19 +572,23 @@ async function start() {
         audioArrayBuffer = await loadSongFromURL(songID);
         console.log(audioArrayBuffer.byteLength);
 
+        // set audio buffer
         //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
-
         decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
+        //audioBufferSourceNode.buffer = null;
         audioBufferSourceNode.buffer = decodedAudioBuffer;
+        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
 
         //preparation
         audioBufferSourceNode.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
         //play
-        playbackStartTimeStamp = Date.now();
+        //playbackStartAudioContextTimeStamp = Date.now();
+        playbackStartAudioContextTimeStamp = audioCtx.currentTime; //preciser than Date.now()
         audioBufferSourceNode.start(0);
+
         isPlaying = true;
         nowPlayingSongID = songID;
 
@@ -548,26 +602,30 @@ async function start() {
         console.log(audioCtx.state);
     }
 
-
 }
 
 function initAudioSource() {
-    //create buffer source once again
-    audioBufferSourceNode = audioCtx.createBufferSource();
-    audioBufferSourceNode.buffer = decodedAudioBuffer;
+    try {
+        //create buffer source once again
+        audioBufferSourceNode = audioCtx.createBufferSource();
+        audioBufferSourceNode.buffer = decodedAudioBuffer;
 
-    // connect audio source with gain node
-    audioBufferSourceNode.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+        // connect audio source with gain node
+        audioBufferSourceNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+    } catch (e) {
+        console.log(e);
+    }
 }
 
 // Audio
-function Audio() {}
+function Audio() {
+}
 
 
 //play back position
-let audioPlaybackPosition;
-let playbackStartTimeStamp;
+let audioPlaybackPositionRatio;
+let playbackStartAudioContextTimeStamp;
 let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
 let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
 
@@ -575,16 +633,27 @@ let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositio
 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
 
 audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
-function changeAudioPlaybackPosition(){
 
-    audioPlaybackPosition = audioPlaybackPositionControlSlider.value;
-    audioPlaybackPositionDisplay.innerText = audioPlaybackPosition;
+function changeAudioPlaybackPosition() {
 
+    //TODO: おそらくonmouseDownのときはここで何らかの処理をしないこと！
+
+    // get ratio
+    audioPlaybackPositionRatio = parseFloat(audioPlaybackPositionControlSlider.value);
+
+    // set ratio to display
+    audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
+
+    //calculate exact position in audio source
+    audioPlaybackPosition = audioBufferSourceDuration * audioPlaybackPositionRatio;
+    console.log(audioPlaybackPosition);
+
+    // start & stop audio source
     if (audioCtx.state === "running") {
         audioBufferSourceNode.stop(0);
         initAudioSource();
         audioBufferSourceNode.start(0, audioPlaybackPosition);
-    } else if (audioCtx.state === "suspended"){
+    } else if (audioCtx.state === "suspended") {
         initAudioSource();
         audioBufferSourceNode.start(0, audioPlaybackPosition);
     }
@@ -661,21 +730,56 @@ Object.defineProperty(this, 'changeGainVolume', {
 audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 
-
-//TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。
-//have to implement process during pause
-//https://www.tcmobile.jp/dev_blog/programming/web-audio-api%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E7%B0%A1%E5%8D%98%E3%81%AA%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B%EF%BC%883%EF%BC%89/
-
+let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
+let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
         timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
+
+        //TODO: new playback time display
+        //TODO calculate audioPlayBackPositionRatio by playbackTime
+        //TODO: prevent from being update while slider bar is being changed by user.
+
+        // TODO: slide bar のinputまたはonfocus中に下記の操作を許さないようにすればいいと思う。
+        //todo: もしくはこれらをsetInterval()に移す必要があるか？→単純に移してみるか？？
+        //TODO: setInterval()は、ブラウザが非アクディブでも動き続けるのでメモリを食うので良くないらしい。
+
+        //console.log(document.activeElement);
+
+        if (isPlaying) {
+            if (!onMouseDown) {
+                //let audioPlaybackPositionRatioAutoUpdate = (playbackStartAudioContextTimeStamp + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)) / audioBufferSourceDuration;
+                //let audioPlaybackPositionRatioAutoUpdate = (audioPlaybackPosition + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)) / audioBufferSourceDuration;
+                //console.log((playbackStartAudioContextTimeStamp + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)));
+
+                let audioPlaybackPositionAutoUpdate = (audioPlaybackPosition + (audioCtx.currentTime - playbackStartAudioContextTimeStamp));
+                audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate;
+                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate/audioBufferSourceDuration;
+
+                audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
+                audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
+            }
+        }
+
     } else {
         timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
     }
     requestAnimationFrame(displayTime);
 }
-
 displayTime();
+
+
+// detect mousedown & up
+let onMouseDown = false;
+window.addEventListener("mousedown", () => {
+    onMouseDown = true;
+    console.log("mouseDown");
+}, false);
+
+window.addEventListener("mouseup", () => {
+    onMouseDown = false;
+    console.log("mouseup");
+}, false);
 
 
 //display song list on in table
