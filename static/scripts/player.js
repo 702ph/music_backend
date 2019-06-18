@@ -496,7 +496,6 @@ let audioPausedAt = 0;
 let audioStartAt = 0;
 
 startBtn.onclick = () => start();
-
 async function start() {
     startBtn.setAttribute('disabled', 'disabled');
     susresBtn.removeAttribute('disabled');
@@ -509,53 +508,62 @@ async function start() {
     console.log(hasAudioContextInitialized);
 
     //TODO :stop & pause
+    // if nowPlayingSongID = songID is the same, which means the same audio is being played.
     if (nowPlayingSongID === songID) {
-        if (isPlaying) {
 
-            //pause(stop)
+        // pause  for when audio is being played.  -> stop playing audio
+        if (isPlaying) {
+            // pause(stop)
             audioBufferSourceNode.stop(0);
 
             // audioPlaybackPosition for re-start
-            audioPlaybackPosition = audioCtx.currentTime - playbackStartAudioContextTimeStamp;
-            console.log("audioPlaybackPosition: " + audioPlaybackPosition);
+            //audioPlaybackPosition = audioCtx.currentTime - playbackStartAudioContextTimeStamp;
+            //console.log("audioPlaybackPosition: " + audioPlaybackPosition);
 
-            audioPausedAt = Date.now - audioStartAt;
-            console.log("audioPausedAt: " + audioPausedAt);
+            audioPausedAt = Date.now() - audioStartAt;
+            console.log("audioPausedAt/1000: " + (audioPausedAt/1000));
 
             isPlaying = false;
             return;
-        } else {
 
-            //re-init audio source
+        } else { // start for when audio is NOT being played. => start playing audio
+
+            // re-init audio source
             initAudioSource();
 
             if (0 < audioPausedAt){
                 audioStartAt = Date.now() - audioPausedAt;
-                //audioBufferSourceNode.start(0, audioStartAt/1000);
+                audioBufferSourceNode.start(0, audioPausedAt/1000);
             } else {
-                /for the very first time
+                // for the very(? really?) first time -> because audioPauseAt is 0, it works?
+                // i mean it also should be Date.now() - audioPausedAt
                 audioStartAt = Date.now();
-                //audioBufferSourceNode.start(0, audioPlaybackPosition);
+                audioBufferSourceNode.start(0); //this should be .start(0, audioPausedAt/1000)? no if requered?
             }
-            console.log("audioStartAt:" + audioStartAt);
+            console.log("audioStartAt/1000: " + (audioStartAt/1000));
 
-            audioBufferSourceNode.start(0, audioPlaybackPosition);
-
-            playbackStartAudioContextTimeStamp = audioCtx.currentTime;
-            console.log("playbackStartAudioContextTimeStamp: " + playbackStartAudioContextTimeStamp);
+            //audioBufferSourceNode.start(0, audioPlaybackPosition);
+            //playbackStartAudioContextTimeStamp = audioCtx.currentTime;
+            //console.log("playbackStartAudioContextTimeStamp: " + playbackStartAudioContextTimeStamp);
 
             isPlaying = true;
             return;
         }
     }
+    //TODO: extract above method like:
+    // const control = () = {
+    //    if (!isPlaying) start();
+    //    else stop();
+    // };
 
 
-    // if there is already a audio context, close it.
+    //comes here means it is for the first time to play audio
+    // If a new audio file is selected to play, the old audio context must be closed.
     if (hasAudioContextInitialized) {
         await audioCtx.close();
     }
 
-
+    // comes here means it is for the very first time to play audio or a new audio file is selected to play.
     try {
         // refactored to initAudioContext()
         // create web audio api context
@@ -579,14 +587,15 @@ async function start() {
         //audioBufferSourceNode.buffer = null;
         audioBufferSourceNode.buffer = decodedAudioBuffer;
         audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
+        console.log("audioBufferSourceDuration: "+ audioBufferSourceDuration);
 
         //preparation
         audioBufferSourceNode.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
         //play
-        //playbackStartAudioContextTimeStamp = Date.now();
-        playbackStartAudioContextTimeStamp = audioCtx.currentTime; //preciser than Date.now()
+        audioStartAt = Date.now();
+        //playbackStartAudioContextTimeStamp = audioCtx.currentTime; //preciser than Date.now()
         audioBufferSourceNode.start(0);
 
         isPlaying = true;
@@ -633,10 +642,7 @@ let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositio
 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
 
 audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
-
 function changeAudioPlaybackPosition() {
-
-    //TODO: おそらくonmouseDownのときはここで何らかの処理をしないこと！
 
     // get ratio
     audioPlaybackPositionRatio = parseFloat(audioPlaybackPositionControlSlider.value);
@@ -645,17 +651,22 @@ function changeAudioPlaybackPosition() {
     audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
 
     //calculate exact position in audio source
-    audioPlaybackPosition = audioBufferSourceDuration * audioPlaybackPositionRatio;
-    console.log(audioPlaybackPosition);
+    //audioPlaybackPosition = audioBufferSourceDuration * audioPlaybackPositionRatio;
+    //console.log(audioPlaybackPosition);
+    audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) *1000;
+    //audioPausedAt = audioPausedAt * 1000;
+    console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
 
     // start & stop audio source
     if (audioCtx.state === "running") {
         audioBufferSourceNode.stop(0);
         initAudioSource();
-        audioBufferSourceNode.start(0, audioPlaybackPosition);
-    } else if (audioCtx.state === "suspended") {
+        //audioBufferSourceNode.start(0, audioPlaybackPosition);
+        audioStartAt = Date.now() - audioPausedAt;
+        audioBufferSourceNode.start(0, audioPausedAt/1000);
+    } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
         initAudioSource();
-        audioBufferSourceNode.start(0, audioPlaybackPosition);
+        audioBufferSourceNode.start(0, audioPausedAt/1000);
     }
 }
 
@@ -747,15 +758,39 @@ function displayTime() {
         //console.log(document.activeElement);
 
         if (isPlaying) {
-            if (!onMouseDown) {
+            if (onMouseDown) {
+
+
+            } else {
                 //let audioPlaybackPositionRatioAutoUpdate = (playbackStartAudioContextTimeStamp + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)) / audioBufferSourceDuration;
                 //let audioPlaybackPositionRatioAutoUpdate = (audioPlaybackPosition + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)) / audioBufferSourceDuration;
                 //console.log((playbackStartAudioContextTimeStamp + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)));
 
+                //version mit audio context.currentTime.
+                /*
                 let audioPlaybackPositionAutoUpdate = (audioPlaybackPosition + (audioCtx.currentTime - playbackStartAudioContextTimeStamp));
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate;
                 let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate/audioBufferSourceDuration;
+                audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
+                audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
+                */
 
+
+                //let audioPlaybackPositionAutoUpdate = (audioPausedAt/1000) + ((Date.now() - audioStartAt)/1000);
+
+                // divide into parts
+                //let audioPlaybackPositionAutoUpdate = (audioPausedAt/1000) + ((Date.now() - audioStartAt)/1000);
+                //let audioPausedAt1000 = audioPausedAt/1000;
+                //let dateNowMinusAudioStartAt1000 = ((Date.now() - audioStartAt)/1000);
+                //let audioPlaybackPositionAutoUpdate = audioPausedAt1000 + dateNowMinusAudioStartAt1000;
+
+                let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt)/1000);
+
+                audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
+
+                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate/audioBufferSourceDuration;
+
+                // for debug, disable
                 audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
                 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
             }
