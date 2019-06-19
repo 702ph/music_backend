@@ -9,6 +9,7 @@ body {
     background: -webkit-radial-gradient(center ellipse, #564c84 0%, #0c0b17 100%);
     background: radial-gradient(ellipse at center, #564c84 0%, #0c0b17 100%);
     color: #888;
+    overflow-y:scroll;
 }
 
 .mediaplayer {
@@ -17,8 +18,8 @@ body {
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    width: 40%;
-    height: auto;
+    width: 500px;
+    height: 450px;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
     background: radial-gradient(ellipse at center, #444 0%, #111 100%);
     box-shadow: 0 30px 20px -20px #000;
@@ -26,9 +27,28 @@ body {
     border-radius: 10px;
 }
 
+.musicList {
+    position: absolute;
+    top: 121%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: auto;
+    padding: 2%;
+    margin-bottom: 5%;
+    background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
+    background: radial-gradient(ellipse at center, #444 0%, #111 100%);
+    box-shadow: 0 30px 20px -20px #000;
+    box-sizing: border-box;
+    border-radius: 0px 0px 10px 10px;
+    transition: height 200ms;
+}
+
 header {
     width: 100%;
-    height: auto;
+    height: 2rem;
+    line-height: 2rem;
     font-size: 1.2rem;
     padding: 1rem 2rem;
     clear: both;
@@ -40,10 +60,9 @@ header .playlist {
     cursor: pointer;
 }
 
-
 header .playlist:hover {
     color: white;
-    transition: color 0.5s ease;
+    transition: color 1s ease;
 }
 
 header .setting {
@@ -53,7 +72,7 @@ header .setting {
 
 header .setting:hover {
     color: white;
-    transition: color 0.5s ease;
+    transition: color 1s ease;
 }
 
 main {
@@ -76,7 +95,6 @@ main .album-art img {
 
 main .player {
     position: relative;
-    margin-right: 3%;
     float: right;
     width: 176px;
     height: 176px;

@@ -4,17 +4,6 @@
  *
  */
 
-body {
-    height: 100vh;
-    background: -webkit-radial-gradient(center ellipse, #564c84 0%, #0c0b17 100%);
-    background: radial-gradient(ellipse at center, #564c84 0%, #0c0b17 100%);
-    color: #dbdbdb;
-}
-
-h1 {
-    text-align: center;
-}
-
 #audioDropPanel {
     position: absolute;
     top: 50%;
@@ -49,6 +38,11 @@ h1 {
 .margin {
 	margin: 10px;
 }
+
+.hidden {
+	display: none;
+}
+
 /*================== COLORS ================================*/
 
 .red {
@@ -84,7 +78,7 @@ h1 {
 	padding:5px 30px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #2f6627;
-    margin-right: 10px;
+    margin: 10px;
 }
 .playerButtons:hover {
 	background-color:#5cbf2a;
@@ -115,6 +109,7 @@ h1 {
 	padding:5px 31px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #2f6627;
+	margin-top: 7%;
 }
 .submitButton:hover, #selectFileLabel:hover {
 	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #28dbd2), color-stop(1, #459ec7));
@@ -148,6 +143,8 @@ h1 {
 }
 
 #drop_zone_container {
+	width: 45%;
+	float: left;
     margin: 20px;
     padding: 10px;
     border: 1px solid #ccc;
@@ -201,4 +198,34 @@ h1 {
     color: lightskyblue;
     font-weight: bold;
 }
+
+    /*======================== TOOLTIP =================*/
+
+[tooltip]:before {
+
+    content: attr(tooltip);
+    position: absolute;
+    opacity: 0;
+
+    /* customizable */
+    transition: all 0.15s ease;
+    padding: 10px;
+    color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 2px 2px 1px silver;
+}
+
+[tooltip]:hover:before {
+    opacity: 1;
+
+    /* customizable */
+    background: #3f3f3f;
+    margin-top: -50px;
+    margin-left: 20px;
+}
+
+[tooltip]:not([tooltip-persistent]):before {
+    pointer-events: none;
+}
+
 
