@@ -106,7 +106,6 @@ main .player {
 }
 
 main .player .fa {
-    font-size: 1.2rem;
     position: absolute;
     cursor: pointer;
     -webkit-transition: all 0.2s ease;
@@ -116,6 +115,7 @@ main .player .fa {
 main .player .fa:hover {
     color: #a900ff;
     text-shadow: 0 0 4px #a900ff;
+    z-index: 1;
 }
 
 main .player .fa.fa-play {
@@ -163,6 +163,21 @@ main .player .fa.fa-random {
     transform: translateX(-50%);
 }
 
+main .player .fa.random {
+    top: 74%;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    width: 50px;
+    height: 50px;
+    opacity: 0.7;
+}
+
+main .player .fa.random:hover {
+    opacity: 1;
+
+}
+
 footer {
     clear: both;
     padding: 2rem 2rem;
@@ -170,6 +185,7 @@ footer {
     text-shadow: 2px 2px #111;
     font-family: 'Roboto', sans-serif;
     box-sizing: border-box;
+
 }
 
 footer .title {
@@ -207,7 +223,7 @@ footer .time-tracker .timer .bg {
     box-sizing: border-box;
 }
 
-footer .time-tracker .timer .bg:before {
+footer .time-tracker .timer .bgStart {
     content: "";
     top: 50%;
     -webkit-transform: translateY(-50%);
@@ -215,7 +231,7 @@ footer .time-tracker .timer .bg:before {
     position: absolute;
     height: 0.2rem;
     border-radius: 10px;
-    width: 10%;
+    width: 50%;
     background: #a900ff;
     box-shadow: 0 0 2px 2px #a900ff;
 }
