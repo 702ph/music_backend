@@ -1078,4 +1078,13 @@ async function uploadSongButton(evt) {
 
 
 
-
+function showHideListFunction() {
+  var x = document.getElementById("showList");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
+  var y = document.getElementById("showList");
+  y.slideToggle(400)
+}
