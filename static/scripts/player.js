@@ -651,17 +651,15 @@ function changeAudioPlaybackPosition() {
     audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
 
     //calculate exact position in audio source
-    //audioPlaybackPosition = audioBufferSourceDuration * audioPlaybackPositionRatio;
-    //console.log(audioPlaybackPosition);
     audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) *1000;
-    //audioPausedAt = audioPausedAt * 1000;
     console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
 
     // start & stop audio source
+
+    //TODO: be refactored by (isPlayign) variable.
     if (audioCtx.state === "running") {
         audioBufferSourceNode.stop(0);
         initAudioSource();
-        //audioBufferSourceNode.start(0, audioPlaybackPosition);
         audioStartAt = Date.now() - audioPausedAt;
         audioBufferSourceNode.start(0, audioPausedAt/1000);
     } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
@@ -747,36 +745,11 @@ function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
         timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
 
-        //TODO: new playback time display
-        //TODO calculate audioPlayBackPositionRatio by playbackTime
-        //TODO: prevent from being update while slider bar is being changed by user.
-
-        // TODO: slide bar のinputまたはonfocus中に下記の操作を許さないようにすればいいと思う。
-        //todo: もしくはこれらをsetInterval()に移す必要があるか？→単純に移してみるか？？
-        //TODO: setInterval()は、ブラウザが非アクディブでも動き続けるのでメモリを食うので良くないらしい。
-
-        //console.log(document.activeElement);
-
         if (isPlaying) {
             if (onMouseDown) {
 
 
             } else {
-                //let audioPlaybackPositionRatioAutoUpdate = (playbackStartAudioContextTimeStamp + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)) / audioBufferSourceDuration;
-                //let audioPlaybackPositionRatioAutoUpdate = (audioPlaybackPosition + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)) / audioBufferSourceDuration;
-                //console.log((playbackStartAudioContextTimeStamp + (audioCtx.currentTime - playbackStartAudioContextTimeStamp)));
-
-                //version mit audio context.currentTime.
-                /*
-                let audioPlaybackPositionAutoUpdate = (audioPlaybackPosition + (audioCtx.currentTime - playbackStartAudioContextTimeStamp));
-                audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate;
-                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate/audioBufferSourceDuration;
-                audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
-                audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
-                */
-
-
-                //let audioPlaybackPositionAutoUpdate = (audioPausedAt/1000) + ((Date.now() - audioStartAt)/1000);
 
                 // divide into parts
                 //let audioPlaybackPositionAutoUpdate = (audioPausedAt/1000) + ((Date.now() - audioStartAt)/1000);
@@ -785,12 +758,9 @@ function displayTime() {
                 //let audioPlaybackPositionAutoUpdate = audioPausedAt1000 + dateNowMinusAudioStartAt1000;
 
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt)/1000);
-
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
 
                 let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate/audioBufferSourceDuration;
-
-                // for debug, disable
                 audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
                 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
             }
