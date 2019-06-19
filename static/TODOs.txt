@@ -56,6 +56,8 @@ testing issues...4
 [] take this out of all functions: let songSelector = document.querySelector("#songSelectorTable");
 let rows = songSelector.children[0].rows; //<tr> in <table>
 
+[] prevent from several music being played at one time. introducing : nowPlaying:boolean
+
 -------------------
 
 backlog

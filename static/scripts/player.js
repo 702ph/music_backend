@@ -10,7 +10,7 @@ function Controller() {
 }
 
 
-// update contents once at page load
+// initial processes at page load
 window.addEventListener('load', async function () {
 
     //display song list
@@ -21,7 +21,7 @@ window.addEventListener('load', async function () {
     let rows = songSelector.children[0].rows; //<tr> in <table>
     document.querySelector("#songIDInput").value = getFirstSongID(rows);
 
-    //prepareAudioContext();
+    //initAudioContext();
 });
 
 
@@ -123,36 +123,6 @@ async function handleFileDropped(evt) {
     //reset style
     handleDragLeave();
 }
-
-
-let audioPositionControlSlider = document.querySelector("#audioPositionControlSlider");
-let slideDebugButton = document.querySelector("#slideDebugButton");
-slideDebugButton.onclick = () => {
-
-    audioPositionControlSlider.value = 50;
-
-    //todo: もしかしたら、stopさせて、時間をセットして、再度startさせなければならないかも。
-
-    // set position
-    // if (audioCtx && audioCtx.state !== 'closed') {
-    //     //timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
-    //     //audioCtx.currentTime = audioPositionControlSlider.value;
-    //     audioCtx.currentTime = 50;
-    //
-    // } else {
-    //     //timeDisplay.textContent = 'time: not playing. select song'
-    // }
-
-    if (audioCtx.state === 'running') {
-        audioCtx.suspend().then(function () {
-            audioCtx.currentTime = 50;
-            audioCtx.start();
-        });
-    } else if (audioCtx.state === 'suspended') {
-        audioCtx.currentTime = 50;
-        audioCtx.start();
-    }
-};
 
 
 //edit table contents
@@ -512,10 +482,19 @@ let timeDisplay = document.querySelector('#counter');
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
-let nowPlaying = false; //TODO: can be replaced by audioContext.state
+let isPlaying = false; //TODO: can be replaced by audioContext.state -> no.
+let nowPlayingSongID;
+let hasAudioContextInitialized = false;
 
 let gainNode;
-let audioSource;
+let audioBufferSourceNode;
+let audioArrayBuffer;
+let decodedAudioBuffer;
+let audioBufferSourceDuration;
+let audioPlaybackPosition = 0;
+let audioPausedAt = 0;
+let audioStartAt = 0;
+
 startBtn.onclick = () => start();
 async function start() {
     startBtn.setAttribute('disabled', 'disabled');
@@ -525,34 +504,102 @@ async function start() {
     // set songID
     const songID = document.querySelector("#songIDInput").value;
     console.log(songID);
+    console.log(nowPlayingSongID);
+    console.log(hasAudioContextInitialized);
 
-    //prepareAudioContext();
+    //TODO :stop & pause
+    // if nowPlayingSongID = songID is the same, which means the same audio is being played.
+    if (nowPlayingSongID === songID) {
 
+        // pause  for when audio is being played.  -> stop playing audio
+        if (isPlaying) {
+            // pause(stop)
+            audioBufferSourceNode.stop(0);
+
+            // audioPlaybackPosition for re-start
+            //audioPlaybackPosition = audioCtx.currentTime - playbackStartAudioContextTimeStamp;
+            //console.log("audioPlaybackPosition: " + audioPlaybackPosition);
+
+            audioPausedAt = Date.now() - audioStartAt;
+            console.log("audioPausedAt/1000: " + (audioPausedAt/1000));
+
+            isPlaying = false;
+            return;
+
+        } else { // start for when audio is NOT being played. => start playing audio
+
+            // re-init audio source
+            initAudioSource();
+
+            if (0 < audioPausedAt){
+                audioStartAt = Date.now() - audioPausedAt;
+                audioBufferSourceNode.start(0, audioPausedAt/1000);
+            } else {
+                // for the very(? really?) first time -> because audioPauseAt is 0, it works?
+                // i mean it also should be Date.now() - audioPausedAt
+                audioStartAt = Date.now();
+                audioBufferSourceNode.start(0); //this should be .start(0, audioPausedAt/1000)? no if requered?
+            }
+            console.log("audioStartAt/1000: " + (audioStartAt/1000));
+
+            //audioBufferSourceNode.start(0, audioPlaybackPosition);
+            //playbackStartAudioContextTimeStamp = audioCtx.currentTime;
+            //console.log("playbackStartAudioContextTimeStamp: " + playbackStartAudioContextTimeStamp);
+
+            isPlaying = true;
+            return;
+        }
+    }
+    //TODO: extract above method like:
+    // const control = () = {
+    //    if (!isPlaying) start();
+    //    else stop();
+    // };
+
+
+    //comes here means it is for the first time to play audio
+    // If a new audio file is selected to play, the old audio context must be closed.
+    if (hasAudioContextInitialized) {
+        await audioCtx.close();
+    }
+
+    // comes here means it is for the very first time to play audio or a new audio file is selected to play.
     try {
+        // refactored to initAudioContext()
         // create web audio api context
         AudioContext = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContext();
-        /*let*/ gainNode = audioCtx.createGain();
-        /*let*/ audioSource = audioCtx.createBufferSource();
+        hasAudioContextInitialized = true;
+
+        gainNode = audioCtx.createGain()
+        audioBufferSourceNode = audioCtx.createBufferSource();
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
-        let buffer = await getSong(songID);
-        console.log(buffer.byteLength);
+        /*let*/
+        audioArrayBuffer = await loadSongFromURL(songID);
+        console.log(audioArrayBuffer.byteLength);
 
-        //because buffer is a Promise Object, you have to wait till it's set to resolved.
+        // set audio buffer
+        //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
-        audioCtx.decodeAudioData(buffer).then((decodedAudio) => { //(decodedAudio)=>{} means function(decodedAudio){}
-            audioSource.buffer = decodedAudio;
-            console.log(decodedAudio);
-        }).catch((error) => console.log(error));
+        decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
+        //audioBufferSourceNode.buffer = null;
+        audioBufferSourceNode.buffer = decodedAudioBuffer;
+        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
+        console.log("audioBufferSourceDuration: "+ audioBufferSourceDuration);
 
         //preparation
-        audioSource.connect(gainNode);
+        audioBufferSourceNode.connect(gainNode);
         gainNode.connect(audioCtx.destination);
 
         //play
-        audioSource.start(0);
+        audioStartAt = Date.now();
+        //playbackStartAudioContextTimeStamp = audioCtx.currentTime; //preciser than Date.now()
+        audioBufferSourceNode.start(0);
+
+        isPlaying = true;
+        nowPlayingSongID = songID;
 
     } catch (error) {
         console.log(error);
@@ -563,11 +610,92 @@ async function start() {
     audioCtx.onstatechange = function () {
         console.log(audioCtx.state);
     }
+
+}
+
+function initAudioSource() {
+    try {
+        //create buffer source once again
+        audioBufferSourceNode = audioCtx.createBufferSource();
+        audioBufferSourceNode.buffer = decodedAudioBuffer;
+
+        // connect audio source with gain node
+        audioBufferSourceNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+// Audio
+function Audio() {
 }
 
 
-//prepare audio context on load
-Object.defineProperty(this, 'prepareAudioContext', {
+//play back position
+let audioPlaybackPositionRatio;
+let playbackStartAudioContextTimeStamp;
+let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
+let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
+
+// initial setup
+audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
+
+audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
+function changeAudioPlaybackPosition() {
+
+    // get ratio
+    audioPlaybackPositionRatio = parseFloat(audioPlaybackPositionControlSlider.value);
+
+    // set ratio to display
+    audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
+
+    //calculate exact position in audio source
+    audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) *1000;
+    console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
+
+    // start & stop audio source
+
+    //TODO: be refactored by (isPlayign) variable.
+    if (audioCtx.state === "running") {
+        audioBufferSourceNode.stop(0);
+        initAudioSource();
+        audioStartAt = Date.now() - audioPausedAt;
+        audioBufferSourceNode.start(0, audioPausedAt/1000);
+    } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
+        initAudioSource();
+        audioBufferSourceNode.start(0, audioPausedAt/1000);
+    }
+}
+
+
+// suspend/resume the audioContext
+susresBtn.onclick = function () {
+
+    if (audioCtx.state === 'running') {
+        audioCtx.suspend().then(function () {
+            susresBtn.textContent = 'Resume context';
+        });
+    } else if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(function () {
+            susresBtn.textContent = 'Suspend context';
+        });
+    }
+};
+
+
+// close the audio context
+stopBtn.onclick = function () {
+    audioCtx.close().then(function () {
+        startBtn.removeAttribute('disabled');
+        susresBtn.setAttribute('disabled', 'disabled');
+        stopBtn.setAttribute('disabled', 'disabled');
+    });
+};
+
+
+//init audio context on load
+Object.defineProperty(this, 'initAudioContext', {
     enumerable: false,
     configurable: false,
     value: async function () {
@@ -578,8 +706,8 @@ Object.defineProperty(this, 'prepareAudioContext', {
             // create web audio api context
             AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
-            let gainNode = audioCtx.createGain();
-            let audioSource = audioCtx.createBufferSource();
+            gainNode = audioCtx.createGain();
+            audioBufferSourceNode = audioCtx.createBufferSource();
         } catch (error) {
             console.log(error);
         }
@@ -588,96 +716,75 @@ Object.defineProperty(this, 'prepareAudioContext', {
 });
 
 
-// suspend/resume the audioContext
-susresBtn.onclick = function () {
-    let audioCtxstate = audioCtx.state;
-    console.log("this is susresBtn()");
+// change gain volume
+let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
+let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
+audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
 
-    if (audioCtx.state === 'running') {
-        audioCtx.suspend().then(function () {
-            susresBtn.textContent = 'Resume context';
-            //TODO: change here play icon to pause.
-        });
-    } else if (audioCtx.state === 'suspended') {
-        audioCtx.resume().then(function () {
-            susresBtn.textContent = 'Suspend context';
-            //TODO: change here pause icon to play.
-        });
+Object.defineProperty(this, 'changeGainVolume', {
+    enumerable: false,
+    configurable: false,
+    value: function () {
+        // if gainNode is not initialized, return.
+        if (gainNode === undefined) return;
+
+        //change display
+        audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
+
+        //change volume
+        gainNode.gain.value = audioVolumeControlSlider.value;
+        console.log(audioVolumeControlSlider.value);
     }
-};
+});
+audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 
-// close the audiocontext
-stopBtn.onclick = function () {
-    audioCtx.close().then(function () {
-        startBtn.removeAttribute('disabled');
-        susresBtn.setAttribute('disabled', 'disabled');
-        stopBtn.setAttribute('disabled', 'disabled');
-    });
-};
-
-
-async function playAndPause() {
-    startBtn.setAttribute('disabled', 'disabled');
-    susresBtn.removeAttribute('disabled');
-    stopBtn.removeAttribute('disabled');
-
-    // set songID
-    const songID = document.querySelector("#songIDInput").value;
-    console.log(songID);
-
-    try {
-        // create web audio api context
-        AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContext();
-        let gainNode = audioCtx.createGain();
-        let audioSource = audioCtx.createBufferSource();
-
-        //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
-        //await Promise to be solved
-        let buffer = await getSong(songID);
-        console.log(buffer.byteLength);
-
-        //because buffer is a Promise Object, you have to wait till it's set to resolved.
-        //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
-        audioCtx.decodeAudioData(buffer).then((decodedAudio) => { //(decodedAudio)=>{} means function(decodedAudio){}
-            audioSource.buffer = decodedAudio;
-            console.log(decodedAudio);
-        }).catch((error) => console.log(error));
-
-        //preparation
-        audioSource.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        //play
-        audioSource.start(0);
-
-    } catch (error) {
-        console.log(error);
-    }
-
-    // report the state of the audio context to the
-    // console, when it changes
-    audioCtx.onstatechange = function () {
-        console.log(audioCtx.state);
-    }
-}
-
-
-//TODO: 一時停止中の処理などはここを参考にして実装する必要があると思う。
-//have to implement process during pause
-//https://www.tcmobile.jp/dev_blog/programming/web-audio-api%E3%82%92%E4%BD%BF%E3%81%A3%E3%81%A6%E7%B0%A1%E5%8D%98%E3%81%AA%E3%83%97%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%E3%82%92%E4%BD%9C%E3%81%A3%E3%81%A6%E3%81%BF%E3%82%8B%EF%BC%883%EF%BC%89/
-
+let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
+let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
-        timeDisplay.textContent = 'time: ' + audioCtx.currentTime.toFixed(3);
+        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
+
+        if (isPlaying) {
+            if (onMouseDown) {
+
+
+            } else {
+
+                // divide into parts
+                //let audioPlaybackPositionAutoUpdate = (audioPausedAt/1000) + ((Date.now() - audioStartAt)/1000);
+                //let audioPausedAt1000 = audioPausedAt/1000;
+                //let dateNowMinusAudioStartAt1000 = ((Date.now() - audioStartAt)/1000);
+                //let audioPlaybackPositionAutoUpdate = audioPausedAt1000 + dateNowMinusAudioStartAt1000;
+
+                let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt)/1000);
+                audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
+
+                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate/audioBufferSourceDuration;
+                audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
+                audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
+            }
+        }
+
     } else {
-        timeDisplay.textContent = 'time: not playing. select song'
+        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
     }
     requestAnimationFrame(displayTime);
 }
-
 displayTime();
+
+
+// detect mousedown & up
+let onMouseDown = false;
+window.addEventListener("mousedown", () => {
+    onMouseDown = true;
+    console.log("mouseDown");
+}, false);
+
+window.addEventListener("mouseup", () => {
+    onMouseDown = false;
+    console.log("mouseup");
+}, false);
 
 
 //display song list on in table
@@ -743,7 +850,7 @@ Object.defineProperty(this, 'getSongList', {
 
 
 //retrieve song from server
-Object.defineProperty(this, 'getSong', {
+Object.defineProperty(this, 'loadSongFromURL', {
     enumerable: false,
     configurable: false,
     value: async function (songID) {
