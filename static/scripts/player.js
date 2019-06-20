@@ -13,6 +13,8 @@ function Controller() {
 let songSelector;
 let rows;
 
+let audioInformation = document.querySelector("#audioInformation");
+
 // initial processes at page load
 window.addEventListener('load', async function () {
 
@@ -24,9 +26,13 @@ window.addEventListener('load', async function () {
     rows = songSelector.children[0].rows; //<tr> in <table>
 
     // set songID
-    document.querySelector("#songIDInput").value = getFirstSongID(rows);
+    const songID = getFirstSongID(rows);
+    document.querySelector("#songIDInput").value = songID;
 
-    //initAudioContext();
+    //album name and title
+    const songInfo = getSongInfo(songID);
+    audioInformation.textContent = songInfo.artist + " - " + songInfo.title;
+
 });
 
 
@@ -1160,23 +1166,24 @@ Object.defineProperty(this, 'getFirstSongID', {
     }
 });
 
-
-// get song title
-Object.defineProperty(this, 'getSongTitle', {
+// get song info
+Object.defineProperty(this, 'getSongInfo', {
     enumerable: false,
     configurable: false,
     value: function (id) {
-        return rows[1].cells[0].innerText;
-    }
-});
 
-
-// get album name
-Object.defineProperty(this, 'getAlbumName', {
-    enumerable: false,
-    configurable: false,
-    value: function (id) {
-        return rows[1].cells[0].innerText;
+        for (const tr of Array.prototype.slice.call(rows)){
+            if (tr.cells[0].innerText === id ){
+                return {
+                    id : tr.cells[0].innerText,
+                    title: tr.cells[1].innerText,
+                    artist: tr.cells[2].innerText,
+                    album: tr.cells[3].innerText,
+                    year: tr.cells[4].innerText,
+                    genre: tr.cells[5].innerText
+                }
+            }
+        }
     }
 });
 
