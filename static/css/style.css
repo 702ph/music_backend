@@ -8,6 +8,48 @@
 /*                  GLOBAL STYLE                 */
 /*===============================================*/
 
+/*----------------------------------------------------------------------------------------
+                                Eric Meyer's Reset CSS v2.0
+--------------------------------------------------------------------------------------- */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address,
+big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center,
+dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside,
+canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+    display: block
+}
+
+body {
+    line-height: 1
+}
+
+ol, ul {
+    list-style: none
+}
+
+blockquote, q {
+    quotes: none
+}
+
+blockquote:before, blockquote:after, q:before, q:after {
+    content: '';
+    content: none
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0
+}
+
 body {
     height: 100vh;
     background: -webkit-radial-gradient(center ellipse, #564c84 0%, #0c0b17 100%);
@@ -81,10 +123,59 @@ header .setting {
     cursor: pointer;
 }
 
-header .setting:hover {
-    color: white;
-    transition: color 1s ease;
+/*header .setting:hover {*/
+/*    color: white;*/
+/*    transition: color 1s ease;*/
+/*}*/
+
+/******************* VOLUME BAR ****************/
+
+header .volume {
+    position: relative;
+    float: right;
+    width: 45%;
+    height: 2rem;
+    cursor: pointer;
+    margin-right: -2%;
+    margin-top: -1%;
 }
+
+header .volume .volumeBG {
+    position: relative;
+    top: 50%;
+    float: right;
+    width: 85%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    height: 1rem;
+    border-top: solid 1px #000;
+    border-radius: 10px;
+    background: none;
+    box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+header .volume .volumeLine {
+    top: 50%;
+    float: right;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    position: absolute;
+    height: 0.5rem;
+    border-radius: 10px;
+    width: 45%;
+    background: #a900ff;
+    box-shadow: 0 0 2px 2px #a900ff;
+    margin-left: 17%;
+}
+
+header .volume .volumeIcon {
+    float: left;
+    width: 15%;
+}
+
+
 
 /*===============================================*/
 /*                  MAIN                         */
@@ -120,14 +211,14 @@ main .player {
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 4px 2px rgba(0, 0, 0, 0.2);
 }
 
-main .player .fa {
+main .player .buttons {
     position: absolute;
     cursor: pointer;
-    -webkit-transition: all 0.6s ease-in-out;
-    transition: all 0.6s ease-in-out;
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
-main .player .fa.play {
+main .player .buttons.play {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -142,10 +233,10 @@ main .player .fa.play {
     text-align: center;
     background: -webkit-linear-gradient(bottom, #111, #222);
     background: linear-gradient(0deg, #111, #222);
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
-main .player .fa.pause {
+main .player .buttons.pause {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -160,30 +251,30 @@ main .player .fa.pause {
     text-align: center;
     background: -webkit-linear-gradient(bottom, #111, #222);
     background: linear-gradient(0deg, #111, #222);
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
-main .player .fa.repeat {
+main .player .buttons.repeat {
     top: -1%;
     left: 50%;
     -webkit-transform: translateX(-50%);
     transform: translateX(-50%);
     width: 50px;
     height: 50px;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
-main .player .fa.fast-backward {
+main .player .buttons.fast-backward {
     top: 50%;
     left: -1%;
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
     width: 50px;
     height: 50px;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
-main .player .fa.fast-forward {
+main .player .buttons.fast-forward {
     top: 50%;
     left: 73%;
     -webkit-transform: translateY(-50%);
@@ -193,36 +284,43 @@ main .player .fa.fast-forward {
     opacity: 0.7;
 }
 
-main .player .fa.random {
+main .player .buttons.random {
     top: 74%;
     left: 50%;
     -webkit-transform: translateX(-50%);
     transform: translateX(-50%);
     width: 50px;
     height: 50px;
-    opacity: 0.7;
+    opacity: 0.5;
 }
+
+main .title {
+    text-align: center;
+    padding-bottom: 0.5rem;
+}
+
+
 
 /*************** HOVER FOR PLAYER BUTTONS ****************/
 
-main .player .fa.play:hover {
+main .player .buttons.play:hover {
     opacity: 1;
     box-shadow: 0 0 2px 2px #a900ff;
 }
 
-main .player .fa.random:hover {
+main .player .buttons.random:hover {
     opacity: 1;
 }
 
-main .player .fa.fast-backward:hover {
+main .player .buttons.fast-backward:hover {
     opacity: 1;
 }
 
-main .player .fa.fast-forward:hover {
+main .player .buttons.fast-forward:hover {
     opacity: 1;
 }
 
-main .player .fa.repeat:hover {
+main .player .buttons.repeat:hover {
     opacity: 1;
 }
 
@@ -280,11 +378,12 @@ footer .time-tracker .timer .bgStart {
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
     position: absolute;
-    height: 0.4rem;
+    height: 0.5rem;
     border-radius: 10px;
     width: 0%;
     background: #a900ff;
     box-shadow: 0 0 2px 2px #a900ff;
+    margin-left: 1%;
 }
 
 footer .time-tracker .time {

@@ -1241,14 +1241,20 @@ async function uploadSongButton(evt) {
     displaySongList();
 }
 
+/***************** BUTTON **********************/
+
 
 function showHideListFunction() {
-    var x = document.getElementById("showList");
+    let x = document.getElementById("showList");
     if (x.style.display === "block") {
         x.style.display = "none";
     } else {
         x.style.display = "block";
     }
-    var y = document.getElementById("showList");
-    y.slideToggle(400)
 }
+
+$(window).on('load', function() { // makes sure the whole site is loaded
+  $('#status').fadeOut(); // will first fade out the loading animation
+  $('#preloader').delay(500).fadeOut('slow'); // will fade out the white DIV that covers the website.
+  checkTouchScreen();
+})
