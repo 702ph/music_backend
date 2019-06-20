@@ -54,7 +54,6 @@
             </div>
         </div>
     </header>
-
     <main>
         <div class="album-art">
             <img src="images/Arctic_Monkeys.jpg" alt=""/>
@@ -68,16 +67,15 @@
             <img class="buttons random" src="images/randomButton.png" alt=""/>
         </div>
     </main>
-
-    <footer>
-        <div class="title">Arctic Monkeys - The view from the afternoon</div>
-        <div class="time-tracker">
-            <div class="timer">
-                <div class="bg" id="audioPlayBackProgressBarController"></div>
-                <div class="bgStart" id="audioPlayBackProgressBar"></div>
+        <footer>
+            <div class="title" id="audioInformation">Arctic Monkeys - The view from the afternoon</div>
+            <div class="time-tracker">
+                <div class="timer">
+                    <div class="bg" id="audioPlayBackProgressBarController"></div>
+                    <div class="bgStart" id="audioPlayBackProgressBar"></div>
+                </div>
+                <div class="time" id="audioPlayBackProgressCounter">00:00:00</div>
             </div>
-            <div class="time" id="audioPlayBackProgressCounter">00:00:00</div>
-        </div>
     </footer>
 
 
@@ -97,10 +95,6 @@
 
 
     <div>
-        <!-- replace by new button -->
-        <!--
-        <button class="playerButtons" id="startAudioContext">Play</button>
-        -->
         <button class="playerButtons" id="suspendAudioContext">Pause(DO NOT CLICK!)</button>
         <button class="playerButtons" id="stopAudioContext">Stop(DO NOT CLICK!)</button>
         <div class="space"></div>
@@ -111,21 +105,6 @@
     <div class="padding">
         <input type="number" , id="songIDInput" , value="">
     </div>
-    <!--
-          <div>
-
-              <button class="playerButtons" id="startAudioContext">Play</button>
-
-              <button class="playerButtons" id="suspendAudioContext">Pause</button>
-              <button class="playerButtons" id="stopAudioContext">Stop</button>
-              <div class="space"></div>
-              <p id="counter">Current context time: No context exists.</p>
-          </div>
-
-          <div class="padding">
-              <input type="number" , id="songIDInput" , value="">
-          </div>
-    -->
 
     <div id="edit_buttons">
         <input type="button" id="editStartButton" value="🖋">
