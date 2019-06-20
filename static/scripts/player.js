@@ -10,18 +10,29 @@ function Controller() {
 }
 
 
+let songSelector;
+let rows;
+
+let audioInformation = document.querySelector("#audioInformation");
+
 // initial processes at page load
 window.addEventListener('load', async function () {
 
     //display song list
     await displaySongList();
 
-    //set songID
-    let songSelector = document.querySelector("#songSelectorTable");
-    let rows = songSelector.children[0].rows; //<tr> in <table>
-    document.querySelector("#songIDInput").value = getFirstSongID(rows);
+    // set
+    songSelector = document.querySelector("#songSelectorTable");
+    rows = songSelector.children[0].rows; //<tr> in <table>
 
-    //initAudioContext();
+    // set songID
+    const songID = getFirstSongID(rows);
+    document.querySelector("#songIDInput").value = songID;
+
+    //album name and title
+    const songInfo = getSongInfo(songID);
+    audioInformation.textContent = songInfo.artist + " - " + songInfo.title;
+
 });
 
 
@@ -136,8 +147,8 @@ Object.defineProperty(this, 'editTable', {
     value: async function () {  //TODO: have to be async??
 
         //get table
-        let songSelector = document.querySelector("#songSelectorTable");
-        let rows = songSelector.children[0].rows; //<tr> in <table>
+        //let songSelector = document.querySelector("#songSelectorTable");
+        //let rows = songSelector.children[0].rows; //<tr> in <table>
 
         // if in table edit mode, finish the mode and send changes to server.
         if (inTableEditMode) {
@@ -339,8 +350,8 @@ Object.defineProperty(this, 'cancelDeleteSongs', {
     value: function () {
 
         //remove color
-        let songSelector = document.querySelector("#songSelectorTable");
-        let rows = songSelector.children[0].rows; //<tr> in <table>
+        //let songSelector = document.querySelector("#songSelectorTable");
+        //let rows = songSelector.children[0].rows; //<tr> in <table>
         removeHighlightsFromTable(rows);
 
         //reset visibility
@@ -365,10 +376,10 @@ Object.defineProperty(this, 'cancelEditTable', {
     configurable: false,
     value: function () {
         //get table
-        let songSelector = document.querySelector("#songSelectorTable");
+        //let songSelector = document.querySelector("#songSelectorTable");
 
         //<tr> in <table>
-        let rows = songSelector.children[0].rows;
+        //let rows = songSelector.children[0].rows;
 
 
         //recovery previous contents. (override current table with previous contents )
@@ -477,8 +488,8 @@ let audioCtx;
 let startBtn = document.querySelector('#startAudioContext');
 let susresBtn = document.querySelector('#suspendAudioContext');
 let stopBtn = document.querySelector('#stopAudioContext');
+let audioPauseButton = document.querySelector("#audioPauseButton");
 let timeDisplay = document.querySelector('#counter');
-//let clickedID;
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
@@ -495,6 +506,7 @@ let audioPlaybackPosition = 0;
 let audioPausedAt = 0;
 let audioStartAt = 0;
 
+audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
 
 async function start() {
@@ -525,6 +537,7 @@ async function start() {
             console.log("audioPausedAt/1000: " + (audioPausedAt / 1000));
 
             isPlaying = false;
+            showPauseIcon(false);
             return;
 
         } else { // start for when audio is NOT being played. => start playing audio
@@ -548,6 +561,7 @@ async function start() {
             //console.log("playbackStartAudioContextTimeStamp: " + playbackStartAudioContextTimeStamp);
 
             isPlaying = true;
+            showPauseIcon(true);
             return;
         }
     }
@@ -600,6 +614,7 @@ async function start() {
         audioBufferSourceNode.start(0);
 
         isPlaying = true;
+        showPauseIcon(true);
         nowPlayingSongID = songID;
 
     } catch (error) {
@@ -613,6 +628,18 @@ async function start() {
     }
 
 }
+
+
+function showPauseIcon(show){
+    if (show){
+        audioPauseButton.classList.remove("hidden");
+        startBtn.classList.add("hidden");
+    } else {
+        audioPauseButton.classList.add("hidden");
+        startBtn.classList.remove("hidden");
+    }
+}
+
 
 function initAudioSource() {
     try {
@@ -822,7 +849,7 @@ let audioPlayBackProgressBar = document.querySelector("#audioPlayBackProgressBar
 
 audioPlayBackProgressBarController.addEventListener("click", (e) => {
     const percent = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
-    console.log(percent);
+    console.log("percent:" +  percent);
     audioPlayBackProgressBar.style = "width: "+ percent*100 +"%";
 
     //calculate exact position in audio source
@@ -995,13 +1022,12 @@ Object.defineProperty(this, 'postTableContents', {
 
 
 // delete confirm
-// TODO: we also need unconfirm
 let inDeleteConfirmedState = false;
 let deleteConfirmBtn = document.querySelector("#deleteConfirmButton");
 deleteConfirmBtn.onclick = () => {
     //get table
-    let songSelector = document.querySelector("#songSelectorTable");
-    let rows = songSelector.children[0].rows; //<tr> in <table>
+    //let songSelector = document.querySelector("#songSelectorTable");
+    //let rows = songSelector.children[0].rows; //<tr> in <table>
 
     if (inDeleteConfirmedState) {
         // remove highlights
@@ -1042,8 +1068,8 @@ Object.defineProperty(this, 'deleteSongs', {
         let deleteBtn = document.querySelector("#deleteButton");
 
         //get table
-        let songSelector = document.querySelector("#songSelectorTable");
-        let rows = songSelector.children[0].rows; //<tr> in <table>
+        //let songSelector = document.querySelector("#songSelectorTable");
+        //let rows = songSelector.children[0].rows; //<tr> in <table>
 
 
         //if it's not in delete song mode, change mode to it.
@@ -1114,22 +1140,6 @@ Object.defineProperty(this, 'getConfirmedItemsInTable', {
 });
 
 
-// highlight
-//
-// Object.defineProperty(this, 'highlightSelectedItemsInTable', {
-//     enumerable: false,
-//     configurable: false,
-//     value: function (rows) {
-//         //iteration to highlight
-//         Array.prototype.slice.call(rows).forEach((row, index) => {
-//             if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-//                 row.classList.remove('greenYellow'); //remove style sheet
-//             }
-//         });
-//     }
-// });
-
-
 // get selected items
 Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
     enumerable: false,
@@ -1151,8 +1161,29 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
 Object.defineProperty(this, 'getFirstSongID', {
     enumerable: false,
     configurable: false,
-    value: function (rows) {
+    value: function () {
         return rows[1].cells[0].innerText;
+    }
+});
+
+// get song info
+Object.defineProperty(this, 'getSongInfo', {
+    enumerable: false,
+    configurable: false,
+    value: function (id) {
+
+        for (const tr of Array.prototype.slice.call(rows)){
+            if (tr.cells[0].innerText === id ){
+                return {
+                    id : tr.cells[0].innerText,
+                    title: tr.cells[1].innerText,
+                    artist: tr.cells[2].innerText,
+                    album: tr.cells[3].innerText,
+                    year: tr.cells[4].innerText,
+                    genre: tr.cells[5].innerText
+                }
+            }
+        }
     }
 });
 
