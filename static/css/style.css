@@ -285,6 +285,7 @@ footer .time-tracker .timer .bgStart {
     width: 0%;
     background: #a900ff;
     box-shadow: 0 0 2px 2px #a900ff;
+    margin-left: 1%;
 }
 
 footer .time-tracker .time {

@@ -477,8 +477,8 @@ let audioCtx;
 let startBtn = document.querySelector('#startAudioContext');
 let susresBtn = document.querySelector('#suspendAudioContext');
 let stopBtn = document.querySelector('#stopAudioContext');
+let audioPauseButton = document.querySelector("#audioPauseButton");
 let timeDisplay = document.querySelector('#counter');
-//let clickedID;
 
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
@@ -495,6 +495,7 @@ let audioPlaybackPosition = 0;
 let audioPausedAt = 0;
 let audioStartAt = 0;
 
+audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
 
 async function start() {
@@ -525,6 +526,7 @@ async function start() {
             console.log("audioPausedAt/1000: " + (audioPausedAt / 1000));
 
             isPlaying = false;
+            showPauseIcon(false);
             return;
 
         } else { // start for when audio is NOT being played. => start playing audio
@@ -548,6 +550,7 @@ async function start() {
             //console.log("playbackStartAudioContextTimeStamp: " + playbackStartAudioContextTimeStamp);
 
             isPlaying = true;
+            showPauseIcon(true);
             return;
         }
     }
@@ -600,6 +603,7 @@ async function start() {
         audioBufferSourceNode.start(0);
 
         isPlaying = true;
+        showPauseIcon(true);
         nowPlayingSongID = songID;
 
     } catch (error) {
@@ -613,6 +617,18 @@ async function start() {
     }
 
 }
+
+
+function showPauseIcon(show){
+    if (show){
+        audioPauseButton.classList.remove("hidden");
+        startBtn.classList.add("hidden");
+    } else {
+        audioPauseButton.classList.add("hidden");
+        startBtn.classList.remove("hidden");
+    }
+}
+
 
 function initAudioSource() {
     try {
@@ -822,7 +838,7 @@ let audioPlayBackProgressBar = document.querySelector("#audioPlayBackProgressBar
 
 audioPlayBackProgressBarController.addEventListener("click", (e) => {
     const percent = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
-    console.log(percent);
+    console.log("percent:" +  percent);
     audioPlayBackProgressBar.style = "width: "+ percent*100 +"%";
 
     //calculate exact position in audio source
@@ -1149,6 +1165,25 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
 
 // get id for the first item
 Object.defineProperty(this, 'getFirstSongID', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        return rows[1].cells[0].innerText;
+    }
+});
+
+
+// get song title
+Object.defineProperty(this, 'getSongTitle', {
+    enumerable: false,
+    configurable: false,
+    value: function (rows) {
+        return rows[1].cells[0].innerText;
+    }
+});
+
+// get album name
+Object.defineProperty(this, 'getAlbumName', {
     enumerable: false,
     configurable: false,
     value: function (rows) {

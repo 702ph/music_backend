@@ -84,14 +84,14 @@
                 <img class="fa repeat" src="images/loopButton.png"/>
                 <img class="fa fast-backward" src="images/rewindButton.png"/>
                 <img class="fa play" src="images/playButton.png" id="startAudioContext"/>
-                <img class="fa pause hidden" src="images/pauseButton.png"/>
+                <img class="fa pause hidden" src="images/pauseButton.png" id="audioPauseButton"/>
                 <img class="fa fast-forward" src="images/skipButton.png"/>
                 <img class="fa random" src="images/randomButton.png" alt=""/>
             </div>
         </main>
 
         <footer>
-            <div class="title">Arctic Monkeys - The view from the afternoon</div>
+            <div class="title" id="audioTitle">Arctic Monkeys - The view from the afternoon</div>
             <div class="time-tracker">
                 <div class="timer">
                     <div class="bg" id="audioPlayBackProgressBarController"></div>
@@ -118,10 +118,6 @@
 
 
     <div>
-        <!-- replace by new button -->
-        <!--
-        <button class="playerButtons" id="startAudioContext">Play</button>
-        -->
         <button class="playerButtons" id="suspendAudioContext">Pause(DO NOT CLICK!)</button>
         <button class="playerButtons" id="stopAudioContext">Stop(DO NOT CLICK!)</button>
         <div class="space"></div>
@@ -132,21 +128,7 @@
     <div class="padding">
         <input type="number" , id="songIDInput" , value="">
     </div>
-  <!--
-        <div>
 
-            <button class="playerButtons" id="startAudioContext">Play</button>
-
-            <button class="playerButtons" id="suspendAudioContext">Pause</button>
-            <button class="playerButtons" id="stopAudioContext">Stop</button>
-            <div class="space"></div>
-            <p id="counter">Current context time: No context exists.</p>
-        </div>
-
-        <div class="padding">
-            <input type="number" , id="songIDInput" , value="">
-        </div>
-  -->
 
         <div id="edit_buttons">
             <input type="button" id="editStartButton" value="🖋">

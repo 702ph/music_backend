@@ -49,10 +49,14 @@ testing issues...4
 --------------------
 04
 
-[] prevent from several music being played at one time. introducing : nowPlaying:boolean
+[] prevent from several music being played at one time.
+introducing : nowPlaying:boolean?
+
+[] start/pause icon change
 
 [] fix seek in pause
-[] refactor seek
+[] refactor seek (maybe in class)
+
 [] clear audio context after play
 
 [] implement for forward button
@@ -60,8 +64,9 @@ testing issues...4
 [] implement for repeat button
 [] implement for random button
 
-[] implement clickable progressbar
-[] implement time couner
+[x] implement clickable progressbar
+[] fix clickable progressbar behaviour (when back)
+[x] implement time counter
 
 ----
 05
