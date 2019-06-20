@@ -9,8 +9,6 @@
 function Controller() {
 }
 
-//let songSelector = document.querySelector("#songSelectorTable");
-//let rows = songSelector.children[0].rows; //<tr> in <table>
 
 let songSelector;
 let rows;
@@ -21,6 +19,7 @@ window.addEventListener('load', async function () {
     //display song list
     await displaySongList();
 
+    // set
     songSelector = document.querySelector("#songSelectorTable");
     rows = songSelector.children[0].rows; //<tr> in <table>
 
@@ -1133,22 +1132,6 @@ Object.defineProperty(this, 'getConfirmedItemsInTable', {
         }).filter(e => !(e === undefined)); //return only "not" undefined
     }
 });
-
-
-// highlight
-//
-// Object.defineProperty(this, 'highlightSelectedItemsInTable', {
-//     enumerable: false,
-//     configurable: false,
-//     value: function (rows) {
-//         //iteration to highlight
-//         Array.prototype.slice.call(rows).forEach((row, index) => {
-//             if (!(index === 0)) { // 0. row is for title and it doesn't have to be editable
-//                 row.classList.remove('greenYellow'); //remove style sheet
-//             }
-//         });
-//     }
-// });
 
 
 // get selected items
