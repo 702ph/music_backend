@@ -34,9 +34,9 @@ testing issues...4
 [X] change the style of song deletion / and refactoring
 [X] highlight to be deleted songs
 
-[] audio context: change volume
-[] audio context: change position
-[] audio context: replace start/stop button
+[X] audio context: change volume
+[X] audio context: change position
+[X] audio context: replace start/stop button
 
 [X] server side: implement create_at
 [X] front end : remove create_at
@@ -47,16 +47,31 @@ testing issues...4
 [x] set default song id on load
 
 --------------------
+04
 
-04_
+[] prevent from several music being played at one time. introducing : nowPlaying:boolean
+
+[] fix seek in pause
+[] refactor seek
+[] clear audio context after play
+
+[] implement for forward button
+[] implement for back button
+[] implement for repeat button
+[] implement for random button
+
+[] implement clickable progressbar
+[] implement time couner
+
+----
+05
+
 [] log-in function
 [] server side: try, catch
 [] clean up server code
 
 [] take this out of all functions: let songSelector = document.querySelector("#songSelectorTable");
 let rows = songSelector.children[0].rows; //<tr> in <table>
-
-[] prevent from several music being played at one time. introducing : nowPlaying:boolean
 
 -------------------
 
