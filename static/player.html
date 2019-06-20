@@ -6,8 +6,7 @@
     <meta name="author" content="Shuya Fuchigami, 554092 and Sebastian Braun, 549301">
     <title>Musicplayer and Server</title>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
 
     <link rel="stylesheet" type="text/css" href="css/player.css"/>
@@ -42,12 +41,6 @@
 
 </div>
 
-
-<div id="audioDropPanel">
-    <h1>Music Drop</h1>
-</div>
-
-
 <div class="mediaplayer">
 
     <header>
@@ -74,8 +67,8 @@
 
         <header>
             <div tooltip="click to  show your playlist">
-            <div onclick="showHideListFunction()" class="playlist">
-                <i class="fa fa-bars"></i>
+            <div onclick="showHideListFunction()" >
+                <img class="playlist" src="images/playlistButton.png"/>
             </div>
             </div>
             <div class="setting">
@@ -88,11 +81,12 @@
                 <img src="images/Arctic_Monkeys.jpg" alt=""/>
             </div>
             <div class="player">
-                <i class="fa fa-repeat"></i>
-                <i class="fa fa-fast-backward"></i>
-                <i class="fa fa-play" id="startAudioContext"></i>
-                <i class="fa fa-fast-forward"></i>
-                <i class="fa fa-random"></i>
+                <img class="fa repeat" src="images/loopButton.png"/>
+                <img class="fa fast-backward" src="images/rewindButton.png"/>
+                <img class="fa play" src="images/playButton.png" id="startAudioContext"/>
+                <img class="fa pause hidden" src="images/pauseButton.png"/>
+                <img class="fa fast-forward" src="images/skipButton.png"/>
+                <img class="fa random" src="images/randomButton.png" alt=""/>
             </div>
         </main>
 
