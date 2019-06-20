@@ -4,6 +4,7 @@ import mimetypes
 import io
 import sqlalchemy
 import datetime
+import timestring
 
 from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS

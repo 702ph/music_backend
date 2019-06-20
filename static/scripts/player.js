@@ -9,6 +9,11 @@
 function Controller() {
 }
 
+//let songSelector = document.querySelector("#songSelectorTable");
+//let rows = songSelector.children[0].rows; //<tr> in <table>
+
+let songSelector;
+let rows;
 
 // initial processes at page load
 window.addEventListener('load', async function () {
@@ -16,9 +21,10 @@ window.addEventListener('load', async function () {
     //display song list
     await displaySongList();
 
-    //set songID
-    let songSelector = document.querySelector("#songSelectorTable");
-    let rows = songSelector.children[0].rows; //<tr> in <table>
+    songSelector = document.querySelector("#songSelectorTable");
+    rows = songSelector.children[0].rows; //<tr> in <table>
+
+    // set songID
     document.querySelector("#songIDInput").value = getFirstSongID(rows);
 
     //initAudioContext();
@@ -136,8 +142,8 @@ Object.defineProperty(this, 'editTable', {
     value: async function () {  //TODO: have to be async??
 
         //get table
-        let songSelector = document.querySelector("#songSelectorTable");
-        let rows = songSelector.children[0].rows; //<tr> in <table>
+        //let songSelector = document.querySelector("#songSelectorTable");
+        //let rows = songSelector.children[0].rows; //<tr> in <table>
 
         // if in table edit mode, finish the mode and send changes to server.
         if (inTableEditMode) {
@@ -339,8 +345,8 @@ Object.defineProperty(this, 'cancelDeleteSongs', {
     value: function () {
 
         //remove color
-        let songSelector = document.querySelector("#songSelectorTable");
-        let rows = songSelector.children[0].rows; //<tr> in <table>
+        //let songSelector = document.querySelector("#songSelectorTable");
+        //let rows = songSelector.children[0].rows; //<tr> in <table>
         removeHighlightsFromTable(rows);
 
         //reset visibility
@@ -365,10 +371,10 @@ Object.defineProperty(this, 'cancelEditTable', {
     configurable: false,
     value: function () {
         //get table
-        let songSelector = document.querySelector("#songSelectorTable");
+        //let songSelector = document.querySelector("#songSelectorTable");
 
         //<tr> in <table>
-        let rows = songSelector.children[0].rows;
+        //let rows = songSelector.children[0].rows;
 
 
         //recovery previous contents. (override current table with previous contents )
@@ -1011,13 +1017,12 @@ Object.defineProperty(this, 'postTableContents', {
 
 
 // delete confirm
-// TODO: we also need unconfirm
 let inDeleteConfirmedState = false;
 let deleteConfirmBtn = document.querySelector("#deleteConfirmButton");
 deleteConfirmBtn.onclick = () => {
     //get table
-    let songSelector = document.querySelector("#songSelectorTable");
-    let rows = songSelector.children[0].rows; //<tr> in <table>
+    //let songSelector = document.querySelector("#songSelectorTable");
+    //let rows = songSelector.children[0].rows; //<tr> in <table>
 
     if (inDeleteConfirmedState) {
         // remove highlights
@@ -1058,8 +1063,8 @@ Object.defineProperty(this, 'deleteSongs', {
         let deleteBtn = document.querySelector("#deleteButton");
 
         //get table
-        let songSelector = document.querySelector("#songSelectorTable");
-        let rows = songSelector.children[0].rows; //<tr> in <table>
+        //let songSelector = document.querySelector("#songSelectorTable");
+        //let rows = songSelector.children[0].rows; //<tr> in <table>
 
 
         //if it's not in delete song mode, change mode to it.
@@ -1167,7 +1172,7 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
 Object.defineProperty(this, 'getFirstSongID', {
     enumerable: false,
     configurable: false,
-    value: function (rows) {
+    value: function () {
         return rows[1].cells[0].innerText;
     }
 });
@@ -1177,16 +1182,17 @@ Object.defineProperty(this, 'getFirstSongID', {
 Object.defineProperty(this, 'getSongTitle', {
     enumerable: false,
     configurable: false,
-    value: function (rows) {
+    value: function (id) {
         return rows[1].cells[0].innerText;
     }
 });
+
 
 // get album name
 Object.defineProperty(this, 'getAlbumName', {
     enumerable: false,
     configurable: false,
-    value: function (rows) {
+    value: function (id) {
         return rows[1].cells[0].innerText;
     }
 });
