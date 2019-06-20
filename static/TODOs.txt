@@ -52,6 +52,7 @@ testing issues...4
 [] prevent from several music being played at one time. introducing : nowPlaying:boolean
 
 [] fix seek in pause
+[] refactor seek
 [] clear audio context after play
 
 [] implement for forward button
@@ -60,6 +61,7 @@ testing issues...4
 [] implement for random button
 
 [] implement clickable progressbar
+[] implement time couner
 
 ----
 05

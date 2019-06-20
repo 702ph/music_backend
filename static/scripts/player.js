@@ -743,6 +743,7 @@ audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
 let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
+let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgressCounter");
 
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
@@ -750,22 +751,21 @@ function displayTime() {
 
         if (isPlaying) {
             if (onMouseDown) {
-
+            // do nothing
 
             } else {
-
-                // divide into parts
-                //let audioPlaybackPositionAutoUpdate = (audioPausedAt/1000) + ((Date.now() - audioStartAt)/1000);
-                //let audioPausedAt1000 = audioPausedAt/1000;
-                //let dateNowMinusAudioStartAt1000 = ((Date.now() - audioStartAt)/1000);
-                //let audioPlaybackPositionAutoUpdate = audioPausedAt1000 + dateNowMinusAudioStartAt1000;
 
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
 
+                audioPlayBackProgressCounter.textContent = timeConverter.secToHourString(audioPlaybackPositionAutoUpdate);
+
                 let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
                 audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
                 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
+
+                //purple progress bar
+                audioPlayBackProgressBar.style = "width: "+ audioPlaybackPositionRatioAutoUpdate*100 +"%";
             }
         }
 
@@ -776,6 +776,31 @@ function displayTime() {
 }
 
 displayTime();
+
+
+class TimeConverter {
+    secToHour(time){
+        const hour = Math.floor(time / 3600);
+        const min = Math.floor(time / 60 % 60);
+        const sec = Math.floor((time % 60) % 60);
+
+        return {
+            hour : hour,
+            min : min,
+            sec : sec
+        }
+    }
+
+    secToHourString(time){
+        const t = this.secToHour(time);
+        const hour = t.hour > 9 ? t.hour : "0" + t.hour;
+        const min = t.min > 9 ? t.min : "0" + t.min;
+        const sec = t.sec > 9 ? t.sec : "0" + t.sec;
+        return hour + ":" + min + ":" + sec;
+    }
+}
+const timeConverter = new TimeConverter();
+
 
 
 // detect mousedown & up
@@ -791,30 +816,32 @@ window.addEventListener("mouseup", () => {
 }, false);
 
 
-//progress bar
+//progress bar and progress bar cotroller
+let audioPlayBackProgressBarController = document.querySelector("#audioPlayBackProgressBarController");
 let audioPlayBackProgressBar = document.querySelector("#audioPlayBackProgressBar");
-/*
-function updateProgressBar(width) {
-    if (width > 100) return;
 
-    audioPlayBackProgressBar.value = width;
-
-    setTimeout(function () {
-        updateProgressBar(width + 1);
-    }, 1000);
-}
-updateProgressBar(0);
-*/
-
-
-audioPlayBackProgressBar.addEventListener("click", (e) => {
-    let width = window.getComputedStyle(
-	document.querySelector('.element'), ':before'
-).getPropertyValue('color');
-
-    const percent = (e.pageX - (audioPlayBackProgressBar.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBar.clientWidth;
+audioPlayBackProgressBarController.addEventListener("click", (e) => {
+    const percent = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
     console.log(percent);
-    audioPlayBackProgressBar.style = "before:: width: "+ percent*100 +"%";
+    audioPlayBackProgressBar.style = "width: "+ percent*100 +"%";
+
+    //calculate exact position in audio source
+    audioPausedAt = (audioBufferSourceDuration * percent) * 1000;
+    console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
+
+    // start & stop audio source
+    //TODO: be refactored by (isPlayign) variable.
+    //TODO: extract method.
+    if (audioCtx.state === "running") {
+        audioBufferSourceNode.stop(0);
+        initAudioSource();
+        audioStartAt = Date.now() - audioPausedAt;
+        audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
+        initAudioSource();
+        audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    }
+
 });
 
 
