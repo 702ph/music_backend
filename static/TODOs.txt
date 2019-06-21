@@ -63,6 +63,7 @@ testing issues...4
 [] implement for back button
 [] implement for repeat button
 [] implement for random button
+[] at end play next song
 
 [x] implement clickable progressbar
 [] improve clickable progressbar behaviour (when back)

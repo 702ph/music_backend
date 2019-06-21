@@ -581,9 +581,12 @@ async function start() {
     try {
         // refactored to initAudioContext()
         // create web audio api context
-        AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContext();
-        hasAudioContextInitialized = true;
+        // if (audioCtx === undefined) {
+        //     AudioContext = window.AudioContext || window.webkitAudioContext;
+        //     audioCtx = new AudioContext();
+        //     hasAudioContextInitialized = true;
+        // }
+        initAudioContext();
 
         gainNode = audioCtx.createGain()
         audioBufferSourceNode = audioCtx.createBufferSource();
@@ -629,6 +632,48 @@ async function start() {
 }
 
 
+
+
+Object.defineProperty(this, 'playNextSong', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+
+        try {
+            // create web audio api context
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            gainNode = audioCtx.createGain();
+            audioBufferSourceNode = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+});
+
+
+Object.defineProperty(this, 'getNextSongID', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+        // if it already exists, return.
+        if (!audioCtx === undefined) return;
+
+        try {
+            // create web audio api context
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            gainNode = audioCtx.createGain();
+            audioBufferSourceNode = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+});
+
+
 function showPauseIcon(show) {
     if (show) {
         audioPauseButton.classList.remove("hidden");
@@ -638,6 +683,32 @@ function showPauseIcon(show) {
         startBtn.classList.remove("hidden");
     }
 }
+
+
+
+
+/***************** INITIALIZATION **********************/
+
+//init audio context on load
+Object.defineProperty(this, 'initAudioContext', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+        // if it already exists, do nothing.
+        if (!audioCtx === undefined) return;
+
+        // create web audio context
+        try {
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            gainNode = audioCtx.createGain();
+            audioBufferSourceNode = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+});
 
 
 function initAudioSource() {
@@ -654,9 +725,20 @@ function initAudioSource() {
     }
 }
 
+
+
+/*****************  CORE MODULES **********************/
 // Audio
-function Audio() {
+class Audio {
 }
+
+class Player {
+
+}
+
+/*****************  **********************/
+
+
 
 
 //play back position
@@ -738,26 +820,6 @@ stopBtn.onclick = function () {
 };
 
 
-//init audio context on load
-Object.defineProperty(this, 'initAudioContext', {
-    enumerable: false,
-    configurable: false,
-    value: async function () {
-        // if it already exists, return.
-        if (!audioCtx === undefined) return;
-
-        try {
-            // create web audio api context
-            AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            gainNode = audioCtx.createGain();
-            audioBufferSourceNode = audioCtx.createBufferSource();
-        } catch (error) {
-            console.log(error);
-        }
-
-    }
-});
 
 
 // change gain volume
@@ -819,7 +881,7 @@ function displayTime() {
 
 displayTime();
 
-
+// convert second to hh:mm:ss
 class TimeConverter {
     secToHour(time) {
         const hour = Math.floor(time / 3600);
@@ -874,15 +936,17 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
     // start & stop audio source
     //TODO: be refactored by (isPlayign) variable.
     //TODO: extract method.
-    if (audioCtx.state === "running") {
-        audioBufferSourceNode.stop(0);
-        initAudioSource();
-        audioStartAt = Date.now() - audioPausedAt;
-        audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
-        initAudioSource();
-        audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    }
+
+    // if (audioCtx.state === "running") {
+    //     audioBufferSourceNode.stop(0);
+    //     initAudioSource();
+    //     audioStartAt = Date.now() - audioPausedAt;
+    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    // } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
+    //     initAudioSource();
+    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    // }
+    seekAudioPlaybackPosition();
 });
 
 
