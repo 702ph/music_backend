@@ -31,8 +31,7 @@ window.addEventListener('load', async function () {
 
     //album name and title
     const songInfo = getSongInfo(songID);
-    audioInformation.textContent = songInfo.artist + " - " + songInfo.title;
-
+    audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
 });
 
 
@@ -630,8 +629,8 @@ async function start() {
 }
 
 
-function showPauseIcon(show){
-    if (show){
+function showPauseIcon(show) {
+    if (show) {
         audioPauseButton.classList.remove("hidden");
         startBtn.classList.add("hidden");
     } else {
@@ -686,16 +685,32 @@ function changeAudioPlaybackPosition() {
     // start & stop audio source
 
     //TODO: be refactored by (isPlayign) variable.
-    if (audioCtx.state === "running") {
+    // if (audioCtx.state === "running") {
+    //     audioBufferSourceNode.stop(0);
+    //     initAudioSource();
+    //     audioStartAt = Date.now() - audioPausedAt;
+    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    // } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
+    //     initAudioSource();
+    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    // }
+    seekAudioPlaybackPosition();
+}
+
+
+function seekAudioPlaybackPosition() {
+    if (isPlaying) {
         audioBufferSourceNode.stop(0);
         initAudioSource();
         audioStartAt = Date.now() - audioPausedAt;
         audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
+    } else {
         initAudioSource();
-        audioBufferSourceNode.start(0, audioPausedAt / 1000);
+        //audioBufferSourceNode.start(0, audioPausedAt / 1000);
     }
 }
+
+
 
 
 // suspend/resume the audioContext
@@ -778,7 +793,7 @@ function displayTime() {
 
         if (isPlaying) {
             if (onMouseDown) {
-            // do nothing
+                // do nothing
 
             } else {
 
@@ -792,7 +807,7 @@ function displayTime() {
                 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
 
                 //purple progress bar
-                audioPlayBackProgressBar.style = "width: "+ audioPlaybackPositionRatioAutoUpdate*100 +"%";
+                audioPlayBackProgressBar.style = "width: " + audioPlaybackPositionRatioAutoUpdate * 100 + "%";
             }
         }
 
@@ -806,19 +821,19 @@ displayTime();
 
 
 class TimeConverter {
-    secToHour(time){
+    secToHour(time) {
         const hour = Math.floor(time / 3600);
         const min = Math.floor(time / 60 % 60);
         const sec = Math.floor((time % 60) % 60);
 
         return {
-            hour : hour,
-            min : min,
-            sec : sec
+            hour: hour,
+            min: min,
+            sec: sec
         }
     }
 
-    secToHourString(time){
+    secToHourString(time) {
         const t = this.secToHour(time);
         const hour = t.hour > 9 ? t.hour : "0" + t.hour;
         const min = t.min > 9 ? t.min : "0" + t.min;
@@ -826,8 +841,8 @@ class TimeConverter {
         return hour + ":" + min + ":" + sec;
     }
 }
-const timeConverter = new TimeConverter();
 
+const timeConverter = new TimeConverter();
 
 
 // detect mousedown & up
@@ -843,17 +858,17 @@ window.addEventListener("mouseup", () => {
 }, false);
 
 
-//progress bar and progress bar cotroller
+//progress bar and progress bar controller
 let audioPlayBackProgressBarController = document.querySelector("#audioPlayBackProgressBarController");
 let audioPlayBackProgressBar = document.querySelector("#audioPlayBackProgressBar");
 
 audioPlayBackProgressBarController.addEventListener("click", (e) => {
-    const percent = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
-    console.log("percent:" +  percent);
-    audioPlayBackProgressBar.style = "width: "+ percent*100 +"%";
+    const ratio = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
+    console.log("ratio:" + ratio);
+    audioPlayBackProgressBar.style = "width: " + ratio * 100 + "%";
 
     //calculate exact position in audio source
-    audioPausedAt = (audioBufferSourceDuration * percent) * 1000;
+    audioPausedAt = (audioBufferSourceDuration * ratio) * 1000;
     console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
 
     // start & stop audio source
@@ -868,7 +883,28 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
         initAudioSource();
         audioBufferSourceNode.start(0, audioPausedAt / 1000);
     }
+});
 
+
+
+
+let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
+let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
+audioPlayBackVolumeController.addEventListener("click", (e) => {
+    const ratio = (e.pageX - (audioPlayBackVolumeController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackVolumeController.clientWidth;
+    console.log("volume ratio:" + ratio);
+    audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
+
+    // if gainNode is not initialized, return.
+    if (gainNode === undefined) return;
+
+    const maxGain = 3;
+
+    //change display
+    audioVolumeDisplay.innerText = maxGain * ratio;
+
+    //change volume
+    gainNode.gain.value = maxGain * ratio;
 });
 
 
@@ -1172,10 +1208,10 @@ Object.defineProperty(this, 'getSongInfo', {
     configurable: false,
     value: function (id) {
 
-        for (const tr of Array.prototype.slice.call(rows)){
-            if (tr.cells[0].innerText === id ){
+        for (const tr of Array.prototype.slice.call(rows)) {
+            if (tr.cells[0].innerText === id) {
                 return {
-                    id : tr.cells[0].innerText,
+                    id: tr.cells[0].innerText,
                     title: tr.cells[1].innerText,
                     artist: tr.cells[2].innerText,
                     album: tr.cells[3].innerText,
@@ -1284,8 +1320,8 @@ function showHideListFunction() {
     }
 }
 
-$(window).on('load', function() { // makes sure the whole site is loaded
-  $('#status').fadeOut(); // will first fade out the loading animation
-  $('#preloader').delay(500).fadeOut('slow'); // will fade out the white DIV that covers the website.
-  checkTouchScreen();
+$(window).on('load', function () { // makes sure the whole site is loaded
+    $('#status').fadeOut(); // will first fade out the loading animation
+    $('#preloader').delay(500).fadeOut('slow'); // will fade out the white DIV that covers the website.
+    checkTouchScreen();
 })

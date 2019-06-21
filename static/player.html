@@ -13,7 +13,7 @@
 <body>
 
 <div id="audioController">
-    <Label> audio position (prototype implementation) </Label>
+    <Label> audio position </Label>
     <br>
     <input class="range" type="range" id="audioPlaybackPositionControlSlider" min="0.0" max="1.0" step="0.01"
            value="0.0">
@@ -30,7 +30,7 @@
     <br>
     <br>
 
-    <Label> audio volume (prototype implementation) </Label>
+    <Label> audio volume (not linked with purple one)</Label>
     <br>
     <input class="range" type="range" id="audioVolumeControlSlider" min="0.0" max="3.0" step="0.05" value="1.5">
     <br>
@@ -48,8 +48,8 @@
         </div>
         <div>
             <div class="volume">
-                <div class="volumeBG"></div>
-                <div class="volumeLine"></div>
+                <div class="volumeBG" id="audioPlayBackVolumeController"></div>
+                <div class="volumeLine" id="audioPlayBackVolumeBar"></div>
                 <img class="volumeIcon" src="images/volumeButton.png"/>
             </div>
         </div>
