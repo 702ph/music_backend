@@ -506,7 +506,6 @@ stopBtn.setAttribute('disabled', 'disabled');
 let isPlaying = false; //TODO: can be replaced by audioContext.state -> no.
 let selectedSongID;
 let nowPlayingSongID;
-let hasAudioContextInitialized = false;
 
 let gainNode;
 let audioBufferSourceNode;
@@ -520,6 +519,16 @@ let audioStartAt = 0;
 audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
 
+
+// Object.defineProperty(this, "pause", {
+//     enumerable: false,
+//     configurable: false,
+//     value: () => {
+//         start();
+//     }
+// });
+
+
 async function start() {
     startBtn.setAttribute('disabled', 'disabled');
     susresBtn.removeAttribute('disabled');
@@ -529,7 +538,6 @@ async function start() {
     //const selectedSongID = document.querySelector("#songIDInput").value;
     console.log(selectedSongID);
     console.log(nowPlayingSongID);
-    console.log(hasAudioContextInitialized);
 
     //TODO :stop & pause
     // if nowPlayingSongID = selectedSongID is the same, which means the same audio is being played.
@@ -551,7 +559,7 @@ async function start() {
             showPauseIcon(false);
             return;
 
-        } else { // start for when audio is NOT being played. => start playing audio
+        } else { // start again when audio is NOT being played. => start playing audio
 
             // re-init audio source
             initAudioSource();
@@ -576,28 +584,28 @@ async function start() {
             return;
         }
     }
+    // else {
+    //     // comes here if selectedSongID has changed during play
+    //     await audioCtx.close();
+    // }
     //TODO: extract above method like:
     // const control = () = {
     //    if (!isPlaying) start();
     //    else stop();
     // };
 
-
-    //comes here means it is for the first time to play audio
-    // If a new audio file is selected to play, the old audio context must be closed.
-    if (hasAudioContextInitialized) {
-        await audioCtx.close();
+    //comes here if selectedSongID has changed during play or it is for the first time to play audio
+    // If a new audio file is selected to play, the existing audio context must be closed.
+    if (audioCtx !== undefined) {  //for the very first time
+        if (audioCtx.state !== "closed") { // only close it if it is not "closed". if you try to close while is it already closed you will get error.
+            await audioCtx.close();
+            showPauseIcon(false);
+            return;
+        }
     }
 
     // comes here means it is for the very first time to play audio or a new audio file is selected to play.
     try {
-        // refactored to initAudioContext()
-        // create web audio api context
-        // if (audioCtx === undefined) {
-        //     AudioContext = window.AudioContext || window.webkitAudioContext;
-        //     audioCtx = new AudioContext();
-        //     hasAudioContextInitialized = true;
-        // }
         initAudioContext();
 
         gainNode = audioCtx.createGain()
@@ -713,6 +721,8 @@ Object.defineProperty(this, 'initAudioContext', {
         try {
             AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
+
+
             gainNode = audioCtx.createGain();
             audioBufferSourceNode = audioCtx.createBufferSource();
         } catch (error) {
@@ -742,7 +752,13 @@ function initAudioSource() {
 /*****************  CORE MODULES **********************/
 // Audio
 class Audio {
+
+    constructor(gainNode, source){
+        this.gainNode = gainNode;
+        this.source = source;
+    }
 }
+
 
 class Player {
 

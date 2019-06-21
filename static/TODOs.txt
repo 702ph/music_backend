@@ -49,7 +49,8 @@ testing issues...4
 --------------------
 04
 
-[ ] prevent from several music being played at one time.
+[X] prevent from several music being played at one time
+[] or while other is being played.
 
 [X] start/pause icon change
 [X] show album & title
