@@ -49,7 +49,7 @@ testing issues...4
 --------------------
 04
 
-[X] prevent from several music being played at one time. (isPlaying)
+[ ] prevent from several music being played at one time.
 
 [X] start/pause icon change
 [X] show album & title
@@ -64,6 +64,7 @@ testing issues...4
 [] implement for repeat button
 [] implement for random button
 [] at end play next song
+
 
 [x] implement clickable progressbar
 [] improve clickable progressbar behaviour (when back)

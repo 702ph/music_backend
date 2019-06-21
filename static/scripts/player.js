@@ -26,11 +26,14 @@ window.addEventListener('load', async function () {
     rows = songSelector.children[0].rows; //<tr> in <table>
 
     // set songID
-    const songID = getFirstSongID(rows);
-    document.querySelector("#songIDInput").value = songID;
+    //const songID = getFirstSongID(rows);
+    //document.querySelector("#songIDInput").value = songID;
+
+    selectedSongID = getFirstSongID(rows);
+    document.querySelector("#songIDInput").value = selectedSongID;
 
     //album name and title
-    const songInfo = getSongInfo(songID);
+    const songInfo = getSongInfo(selectedSongID);
     audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
 });
 
@@ -404,6 +407,8 @@ Object.defineProperty(this, 'cancelEditTable', {
 });
 
 
+/***************** TABLE **********************/
+
 //get element in table
 document.addEventListener('click', function (e) {
 
@@ -420,8 +425,11 @@ document.addEventListener('click', function (e) {
             if (x == t.parentNode) {
                 x.classList.add('greenYellow');
                 let ch = x.children;
-                clickedID = ch[0].textContent; //the first children for id
-                document.querySelector("#songIDInput").value = clickedID;
+                //clickedID = ch[0].textContent; //the first children for id
+                //document.querySelector("#songIDInput").value = clickedID;
+
+                selectedSongID = ch[0].textContent; //the first children for id
+                document.querySelector("#songIDInput").value = selectedSongID;
 
                 // for debug table
                 let tableDebug = document.querySelector('#tableDebug');
@@ -452,7 +460,7 @@ document.addEventListener('click', function (e) {
 });
 
 
-// get element in table for delete mode (multiple choice)
+// color rows in table for delete mode (multiple choice)
 document.addEventListener('click', function (event) {
 
     // only for delete mode
@@ -483,6 +491,9 @@ document.addEventListener('click', function (event) {
 });
 
 
+/*****************  **********************/
+
+
 let audioCtx;
 let startBtn = document.querySelector('#startAudioContext');
 let susresBtn = document.querySelector('#suspendAudioContext');
@@ -493,6 +504,7 @@ let timeDisplay = document.querySelector('#counter');
 susresBtn.setAttribute('disabled', 'disabled');
 stopBtn.setAttribute('disabled', 'disabled');
 let isPlaying = false; //TODO: can be replaced by audioContext.state -> no.
+let selectedSongID;
 let nowPlayingSongID;
 let hasAudioContextInitialized = false;
 
@@ -513,15 +525,15 @@ async function start() {
     susresBtn.removeAttribute('disabled');
     stopBtn.removeAttribute('disabled');
 
-    // set songID
-    const songID = document.querySelector("#songIDInput").value;
-    console.log(songID);
+    // set selectedSongID
+    //const selectedSongID = document.querySelector("#songIDInput").value;
+    console.log(selectedSongID);
     console.log(nowPlayingSongID);
     console.log(hasAudioContextInitialized);
 
     //TODO :stop & pause
-    // if nowPlayingSongID = songID is the same, which means the same audio is being played.
-    if (nowPlayingSongID === songID) {
+    // if nowPlayingSongID = selectedSongID is the same, which means the same audio is being played.
+    if (nowPlayingSongID === selectedSongID) {
 
         // pause  for when audio is being played.  -> stop playing audio
         if (isPlaying) {
@@ -594,7 +606,7 @@ async function start() {
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
         /*let*/
-        audioArrayBuffer = await loadSongFromURL(songID);
+        audioArrayBuffer = await loadSongFromURL(selectedSongID);
         console.log(audioArrayBuffer.byteLength);
 
         // set audio buffer
@@ -617,7 +629,7 @@ async function start() {
 
         isPlaying = true;
         showPauseIcon(true);
-        nowPlayingSongID = songID;
+        nowPlayingSongID = selectedSongID;
 
     } catch (error) {
         console.log(error);
