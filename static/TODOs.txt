@@ -50,12 +50,12 @@ testing issues...4
 04
 
 [X] prevent from several music being played at one time
-[] or while other is being played.
+[X] or while other is being played.
 
 [X] start/pause icon change
 [X] show album & title
 
-[] fix seek in pause
+[x] fix seek in pause
 [] refactor seek (maybe in class)
 
 [] clear audio context after play (onended)
@@ -65,7 +65,6 @@ testing issues...4
 [] implement for repeat button
 [] implement for random button
 [] at end play next song
-
 
 [x] implement clickable progressbar
 [] improve clickable progressbar behaviour (when back)
