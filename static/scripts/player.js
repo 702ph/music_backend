@@ -515,9 +515,12 @@ let audioBufferSourceDuration;
 let audioPlaybackPosition = 0;
 let audioPausedAt = 0;
 let audioStartAt = 0;
+let audioRepeatPlay = false;
+let audioRandomPlay = false;
 
 audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
+audioBufferSourceNode.onended = () => doOnPlayEnded();
 
 
 // Object.defineProperty(this, "pause", {
@@ -652,12 +655,39 @@ async function start() {
 }
 
 
+Object.defineProperty(this, 'doOnPlayEnded', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+
+
+        /*
+        if (audioRandomPlay) {}
+
+        await audioCtx.close();
+        //await audioCtx.close();
+
+        try {
+            // create web audio api context
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            gainNode = audioCtx.createGain();
+            audioBufferSourceNode = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+         */
+
+    }
+});
 
 
 Object.defineProperty(this, 'playNextSong', {
     enumerable: false,
     configurable: false,
     value: async function () {
+
+        /
 
         try {
             // create web audio api context
