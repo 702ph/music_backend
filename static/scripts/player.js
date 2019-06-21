@@ -515,21 +515,10 @@ let audioBufferSourceDuration;
 let audioPlaybackPosition = 0;
 let audioPausedAt = 0;
 let audioStartAt = 0;
-let audioRepeatPlay = false;
-let audioRandomPlay = false;
+
 
 audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
-audioBufferSourceNode.onended = () => doOnPlayEnded();
-
-
-// Object.defineProperty(this, "pause", {
-//     enumerable: false,
-//     configurable: false,
-//     value: () => {
-//         start();
-//     }
-// });
 
 
 async function start() {
@@ -660,43 +649,18 @@ Object.defineProperty(this, 'doOnPlayEnded', {
     configurable: false,
     value: async function () {
 
+        audioCtx.close();
+        audioPlayBackProgressBar.style = "width: 0%";
+        isPlaying = false;
 
-        /*
-        if (audioRandomPlay) {}
-
-        await audioCtx.close();
-        //await audioCtx.close();
-
-        try {
-            // create web audio api context
-            AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            gainNode = audioCtx.createGain();
-            audioBufferSourceNode = audioCtx.createBufferSource();
-        } catch (error) {
-            console.log(error);
-        }
-         */
-
-    }
-});
-
-
-Object.defineProperty(this, 'playNextSong', {
-    enumerable: false,
-    configurable: false,
-    value: async function () {
-
-        /
-
-        try {
-            // create web audio api context
-            AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            gainNode = audioCtx.createGain();
-            audioBufferSourceNode = audioCtx.createBufferSource();
-        } catch (error) {
-            console.log(error);
+        if (audioRepeatPlay) {
+            start();
+        } else if (audioRandomPlay) {
+            selectedSongID = getRandomSongID();
+            start();
+        } else {
+            selectedSongID = getNextSongID();
+            start();
         }
 
     }
@@ -706,21 +670,17 @@ Object.defineProperty(this, 'playNextSong', {
 Object.defineProperty(this, 'getNextSongID', {
     enumerable: false,
     configurable: false,
-    value: async function () {
-        // if it already exists, return.
-        if (!audioCtx === undefined) return;
+    value: {
 
-        try {
-            // create web audio api context
-            AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-            gainNode = audioCtx.createGain();
-            audioBufferSourceNode = audioCtx.createBufferSource();
-        } catch (error) {
-            console.log(error);
-        }
-
+        //similar to get song info
     }
+});
+
+
+Object.defineProperty(this, 'getRandomSongID', {
+    enumerable: false,
+    configurable: false,
+    value: {}
 });
 
 
@@ -733,8 +693,6 @@ function showPauseIcon(show) {
         startBtn.classList.remove("hidden");
     }
 }
-
-
 
 
 /***************** INITIALIZATION **********************/
@@ -778,12 +736,11 @@ function initAudioSource() {
 }
 
 
-
 /*****************  CORE MODULES **********************/
 // Audio
 class Audio {
 
-    constructor(gainNode, source){
+    constructor(gainNode, source) {
         this.gainNode = gainNode;
         this.source = source;
     }
@@ -851,8 +808,6 @@ function seekAudioPlaybackPosition() {
 }
 
 
-
-
 // suspend/resume the audioContext
 susresBtn.onclick = function () {
 
@@ -876,8 +831,6 @@ stopBtn.onclick = function () {
         stopBtn.setAttribute('disabled', 'disabled');
     });
 };
-
-
 
 
 // change gain volume
@@ -928,6 +881,12 @@ function displayTime() {
 
                 //purple progress bar
                 audioPlayBackProgressBar.style = "width: " + audioPlaybackPositionRatioAutoUpdate * 100 + "%";
+
+                // on ended
+                if (audioPlaybackPositionAutoUpdate === audioBufferSourceDuration) {
+                    doOnPlayEnded();
+                }
+
             }
         }
 
@@ -938,6 +897,7 @@ function displayTime() {
 }
 
 displayTime();
+
 
 // convert second to hh:mm:ss
 class TimeConverter {
@@ -1006,8 +966,6 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
     // }
     seekAudioPlaybackPosition();
 });
-
-
 
 
 let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
@@ -1430,6 +1388,49 @@ async function uploadSongButton(evt) {
     displaySongList();
 }
 
+
+/***************** PLAYER BUTTONS (REPEAT&RANDOM) **********************/
+
+let audioRepeatPlay = false;
+let audioRandomPlay = false;
+let audioRepeatPlayStatusDisplay = document.querySelector("#audioRepeatPlayStatusDisplay");
+let audioRandomPlayStatusDisplay = document.querySelector("#audioRandomPlayStatusDisplay");
+let audioRepeatPlayButton = document.querySelector("#audioRepeatPlayButton");
+let audioRandomPlayButton = document.querySelector("#audioRandomPlayButton");
+audioRepeatPlayButton.onclick = () => setAudioRepeatPlay();
+audioRandomPlayButton.onclick = () => setAudioRandomPlay();
+
+
+Object.defineProperty(this, "setAudioRepeatPlay", {
+    enumerable: false,
+    writable: false,
+    value: () => {
+        if (audioRepeatPlay) {
+            audioRepeatPlay = false;
+            audioRepeatPlayStatusDisplay.textContent = "OFF";
+        } else {
+            audioRepeatPlay = true;
+            audioRepeatPlayStatusDisplay.textContent = "ON";
+        }
+    }
+});
+
+
+Object.defineProperty(this, "setAudioRandomPlay", {
+    enumerable: false,
+    writable: false,
+    value: () => {
+        if (audioRandomPlay) {
+            audioRandomPlay = false;
+            audioRandomPlayStatusDisplay.textContent = "OFF";
+        } else {
+            audioRandomPlay = true;
+            audioRandomPlayStatusDisplay.textContent = "ON";
+        }
+    }
+});
+
+
 /***************** BUTTON **********************/
 
 
@@ -1447,3 +1448,8 @@ $(window).on('load', function () { // makes sure the whole site is loaded
     $('#preloader').delay(500).fadeOut('slow'); // will fade out the white DIV that covers the website.
     checkTouchScreen();
 })
+
+
+
+
+
