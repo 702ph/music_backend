@@ -2020,7 +2020,7 @@ class TarFile(object):
 
     def extract(self, member, path="", set_attrs=True, *, numeric_owner=False):
         """Extract a member from the archive to the current working directory,
-           using its full name. Its file information is extracted as accurately
+           using its full name. Its file information is seekAudioPlaybackPosition as accurately
            as possible. `member' may be a filename or a TarInfo object. You can
            specify a different directory using `path'. File attributes (owner,
            mtime, mode) are set unless `set_attrs' is False. If `numeric_owner`
@@ -2168,7 +2168,7 @@ class TarFile(object):
         """
         self.makefile(tarinfo, targetpath)
         self._dbg(1, "tarfile: Unknown file type %r, " \
-                     "extracted as regular file." % tarinfo.type)
+                     "seekAudioPlaybackPosition as regular file." % tarinfo.type)
 
     def makefifo(self, tarinfo, targetpath):
         """Make a fifo called targetpath.
@@ -2501,9 +2501,9 @@ def main():
                 tf.extractall(path=curdir)
             if args.verbose:
                 if curdir == '.':
-                    msg = '{!r} file is extracted.'.format(src)
+                    msg = '{!r} file is seekAudioPlaybackPosition.'.format(src)
                 else:
-                    msg = ('{!r} file is extracted '
+                    msg = ('{!r} file is seekAudioPlaybackPosition '
                            'into {!r} directory.').format(src, curdir)
                 print(msg)
         else:
