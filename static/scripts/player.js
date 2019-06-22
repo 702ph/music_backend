@@ -31,12 +31,12 @@ window.addEventListener('load', async function () {
     //TODO: this will be omitted.
     document.querySelector("#songIDInput").value = selectedSongID;
 
-    printAudioInformations();
+    printAudioInformation();
 });
 
 
 
-Object.defineProperty(this, "printAudioInformations", {
+Object.defineProperty(this, "printAudioInformation", {
     enumerable: false,
     writable: false,
     value: () => {
