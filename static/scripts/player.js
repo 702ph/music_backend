@@ -35,7 +35,6 @@ window.addEventListener('load', async function () {
 });
 
 
-
 Object.defineProperty(this, "printAudioInformation", {
     enumerable: false,
     writable: false,
@@ -44,7 +43,6 @@ Object.defineProperty(this, "printAudioInformation", {
         audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
     }
 });
-
 
 
 //prevent drag and drop on document
@@ -437,7 +435,12 @@ document.addEventListener('click', function (e) {
                 //clickedID = ch[0].textContent; //the first children for id
                 //document.querySelector("#songIDInput").value = clickedID;
 
-                selectedSongID = ch[0].textContent; //the first children for id
+                selectedSongID = ch[0].textContent; //the first children is for id
+                if (!isPlaying) {
+                    printAudioInformation();
+                }
+
+                //TODO: to be removed
                 document.querySelector("#songIDInput").value = selectedSongID;
 
                 // for debug table
@@ -614,7 +617,6 @@ async function start() {
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
-        /*let*/
         audioArrayBuffer = await loadSongFromURL(selectedSongID);
         console.log(audioArrayBuffer.byteLength);
 
@@ -638,6 +640,7 @@ async function start() {
 
         isPlaying = true;
         showPauseIcon(true);
+        printAudioInformation();
         nowPlayingSongID = selectedSongID;
 
     } catch (error) {
@@ -653,7 +656,7 @@ async function start() {
 }
 
 
-Object.defineProperty(this, 'doOnPlayEnded', {
+Object.defineProperty(this, 'playNextSong', {
     enumerable: false,
     configurable: false,
     value: async function () {
@@ -661,19 +664,23 @@ Object.defineProperty(this, 'doOnPlayEnded', {
         // prepare for next
         audioCtx.close();
         audioPlayBackProgressBar.style = "width: 0%";
-        //isPlaying = false;
 
-        // play
-        if (audioRepeatPlay) {
+        if (audioRepeatPlay) { //repeat play
             await start();
-        } else if (audioRandomPlay) {
+        } else if (audioRandomPlay) { // random play
             selectedSongID = getRandomSongID();
-            printAudioInformations();
+            //printAudioInformation();
             await start();
-        } else {
+            changeGainVolume();
+        } else if (parseInt(getNextSongID(nowPlayingSongID)) === 0) { // the last song
+            selectedSongID = getFirstSongID();
+            showPauseIcon(false);
+            printAudioInformation();
+        } else { //play next song
             selectedSongID = getNextSongID(nowPlayingSongID);
-            printAudioInformations();
+            //printAudioInformation();
             await start();
+            changeGainVolume();
         }
 
     }
@@ -701,7 +708,7 @@ Object.defineProperty(this, 'getRandomSongID', {
     enumerable: false,
     configurable: false,
     value: () => {
-        while(true) {
+        while (true) {
             const randomPosition = Math.floor(Math.random() * (rows.length - 1)) + 1;
             const randomSongID = rows[randomPosition].cells[0].innerText;
 
@@ -903,7 +910,6 @@ function displayTime() {
 
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
-
                 audioPlayBackProgressCounter.textContent = timeConverter.secToHourString(audioPlaybackPositionAutoUpdate);
 
                 let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
@@ -916,7 +922,9 @@ function displayTime() {
                 // on ended
                 if (audioPlaybackPositionAutoUpdate > audioBufferSourceDuration) {
                     isPlaying = false;
-                    doOnPlayEnded();
+                    doOnEnded();
+
+                    playNextSong();
                 }
 
             }
@@ -929,6 +937,15 @@ function displayTime() {
 }
 
 displayTime();
+
+
+function doOnEnded() {
+    audioPlaybackPositionDisplayDecimal.textContent = "0";
+    audioPlayBackProgressCounter.textContent = "00:00:00";
+    audioPlaybackPositionControlSlider.value = 0;
+    audioPlaybackPositionDisplay.textContent = "0";
+    audioPlayBackProgressBar.style = "width: 0%";
+}
 
 
 // convert second to hh:mm:ss
