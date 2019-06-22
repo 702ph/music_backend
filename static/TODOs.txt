@@ -63,7 +63,8 @@ testing issues...4
 [] play next song automatically at end
 [X] implement for repeat button
 [X] implement for random button
-[] fix repeat
+[] fix repeat play
+[] fix random play
 
 [X] implement for forward button
 [] implement for back button

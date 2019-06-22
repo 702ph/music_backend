@@ -590,6 +590,22 @@ async function start() {
             return;
         }
     }
+
+    // else {
+    //     if (audioCtx.state === "closed") initAudioContext();
+    //
+    //     // re-init audio source
+    //     initAudioSource();
+    //
+    //     if (0 < audioPausedAt) {
+    //         audioStartAt = Date.now() - audioPausedAt;
+    //         audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    //     }
+    //     console.log("audioStartAt/1000: " + (audioStartAt / 1000));
+    //
+    // }
+
+
     // else {
     //     // comes here if selectedSongID has changed during play
     //     await audioCtx.close();
@@ -604,6 +620,7 @@ async function start() {
     // If a new audio file is selected to play, the existing audio context must be closed.
     if (audioCtx !== undefined) {  //for the very first time
         if (audioCtx.state !== "closed") { // only close it if it is not "closed". if you try to close while is it already closed you will get error.
+            //audioBufferSourceNode.disconnect();
             await audioCtx.close();
             showPauseIcon(false);
         }
@@ -663,6 +680,7 @@ Object.defineProperty(this, 'playNextSong', {
     value: async function () {
 
         if (audioRepeatPlay) { //repeat play
+            if (isPlaying) return;
             await start();
         } else if (audioRandomPlay) { // random play
             selectedSongID = getRandomSongID();
@@ -945,6 +963,7 @@ function doOnEnded() {
     audioPlayBackProgressBar.style = "width: 0%";
 
     //close audio context
+    audioBufferSourceNode.disconnect();
     audioCtx.close();
 }
 
@@ -1490,9 +1509,15 @@ Object.defineProperty(this, "setAudioRepeatPlay", {
             audioRepeatPlay = false;
             audioRepeatPlayStatusDisplay.textContent = "OFF";
         } else {
+            //enable repeat
             audioRepeatPlay = true;
             audioRepeatPlayStatusDisplay.textContent = "ON";
+
+            //disable random
+            audioRandomPlay = false;
+            audioRandomPlayStatusDisplay.textContent = "OFF";
         }
+
     }
 });
 
@@ -1505,9 +1530,15 @@ Object.defineProperty(this, "setAudioRandomPlay", {
             audioRandomPlay = false;
             audioRandomPlayStatusDisplay.textContent = "OFF";
         } else {
+            // enable random
             audioRandomPlay = true;
             audioRandomPlayStatusDisplay.textContent = "ON";
+
+            //disable repeat
+            audioRepeatPlay = false;
+            audioRepeatPlayStatusDisplay.textContent = "OFF";
         }
+
     }
 });
 
