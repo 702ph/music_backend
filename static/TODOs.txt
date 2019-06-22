@@ -60,15 +60,13 @@ testing issues...4
 
 [] clear audio context after play (onended)
 
-
 [] play next song automatically at end
-[] implement for repeat button
-[] implement for random button
+[X] implement for repeat button
+[X] implement for random button
+[] fix repeat
 
-
-[] implement for forward button
+[X] implement for forward button
 [] implement for back button
-
 
 [x] implement clickable progressbar
 [] improve clickable progressbar behaviour (when back)
