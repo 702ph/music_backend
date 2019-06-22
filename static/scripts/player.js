@@ -26,16 +26,25 @@ window.addEventListener('load', async function () {
     rows = songSelector.children[0].rows; //<tr> in <table>
 
     // set songID
-    //const songID = getFirstSongID(rows);
-    //document.querySelector("#songIDInput").value = songID;
-
     selectedSongID = getFirstSongID(rows);
+
+    //TODO: this will be omitted.
     document.querySelector("#songIDInput").value = selectedSongID;
 
-    //album name and title
-    const songInfo = getSongInfo(selectedSongID);
-    audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
+    printAudioInformations();
 });
+
+
+
+Object.defineProperty(this, "printAudioInformations", {
+    enumerable: false,
+    writable: false,
+    value: () => {
+        const songInfo = getSongInfo(selectedSongID);
+        audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
+    }
+});
+
 
 
 //prevent drag and drop on document
@@ -649,38 +658,60 @@ Object.defineProperty(this, 'doOnPlayEnded', {
     configurable: false,
     value: async function () {
 
+        // prepare for next
         audioCtx.close();
         audioPlayBackProgressBar.style = "width: 0%";
-        isPlaying = false;
+        //isPlaying = false;
 
+        // play
         if (audioRepeatPlay) {
-            start();
+            await start();
         } else if (audioRandomPlay) {
             selectedSongID = getRandomSongID();
-            start();
+            printAudioInformations();
+            await start();
         } else {
-            selectedSongID = getNextSongID();
-            start();
+            selectedSongID = getNextSongID(nowPlayingSongID);
+            printAudioInformations();
+            await start();
         }
 
     }
 });
 
 
+// get next song id. return 0 for the next song of the last song.
 Object.defineProperty(this, 'getNextSongID', {
     enumerable: false,
     configurable: false,
-    value: {
-
-        //similar to get song info
+    value: (id) => {
+        for (const key in Array.prototype.slice.call(rows)) {
+            if (parseInt(key) === rows.length - 1) return 0; // if it's the last element in table, return 0. because there's no nextSong.
+            if (parseInt(key) === 0) continue; // ignore first row. it's for title.
+            if (rows[key].cells[0].innerText === id) {
+                return rows[parseInt(key) + 1].cells[0].innerText;
+            }
+        }
     }
 });
 
 
+// get song id randomly
 Object.defineProperty(this, 'getRandomSongID', {
     enumerable: false,
     configurable: false,
-    value: {}
+    value: () => {
+        while(true) {
+            const randomPosition = Math.floor(Math.random() * (rows.length - 1)) + 1;
+            const randomSongID = rows[randomPosition].cells[0].innerText;
+
+            // return only if the both IDs are different.
+            if (parseInt(nowPlayingSongID) !== parseInt(randomSongID)) {
+                console.log(randomPosition, randomSongID);
+                return randomSongID;
+            }
+        }
+    }
 });
 
 
@@ -883,7 +914,8 @@ function displayTime() {
                 audioPlayBackProgressBar.style = "width: " + audioPlaybackPositionRatioAutoUpdate * 100 + "%";
 
                 // on ended
-                if (audioPlaybackPositionAutoUpdate === audioBufferSourceDuration) {
+                if (audioPlaybackPositionAutoUpdate > audioBufferSourceDuration) {
+                    isPlaying = false;
                     doOnPlayEnded();
                 }
 
@@ -1286,8 +1318,7 @@ Object.defineProperty(this, 'getFirstSongID', {
 Object.defineProperty(this, 'getSongInfo', {
     enumerable: false,
     configurable: false,
-    value: function (id) {
-
+    value: (id) => {
         for (const tr of Array.prototype.slice.call(rows)) {
             if (tr.cells[0].innerText === id) {
                 return {
