@@ -544,7 +544,7 @@ async function start() {
     console.log(nowPlayingSongID);
 
     //TODO :stop & pause
-    // if nowPlayingSongID = selectedSongID is the same, which means the same audio is being played.
+    // if nowPlayingSongID = selectedSongID are the same, no new song was selected during the playback.
     if (nowPlayingSongID === selectedSongID) {
 
         // pause  for when audio is being played.  -> stop playing audio
@@ -564,6 +564,8 @@ async function start() {
             return;
 
         } else { // start again when audio is NOT being played. => start playing audio
+
+            if (audioCtx.state === "closed") initAudioContext();
 
             // re-init audio source
             initAudioSource();
@@ -604,11 +606,10 @@ async function start() {
         if (audioCtx.state !== "closed") { // only close it if it is not "closed". if you try to close while is it already closed you will get error.
             await audioCtx.close();
             showPauseIcon(false);
-            return;
         }
     }
 
-    // comes here means it is for the very first time to play audio or a new audio file is selected to play.
+    // comes here means it is for the very first time to play audio or a new song was selected to play.
     try {
         initAudioContext();
 
@@ -660,10 +661,6 @@ Object.defineProperty(this, 'playNextSong', {
     enumerable: false,
     configurable: false,
     value: async function () {
-
-        // prepare for next
-        audioCtx.close();
-        audioPlayBackProgressBar.style = "width: 0%";
 
         if (audioRepeatPlay) { //repeat play
             await start();
@@ -940,11 +937,15 @@ displayTime();
 
 
 function doOnEnded() {
+
     audioPlaybackPositionDisplayDecimal.textContent = "0";
     audioPlayBackProgressCounter.textContent = "00:00:00";
     audioPlaybackPositionControlSlider.value = 0;
     audioPlaybackPositionDisplay.textContent = "0";
     audioPlayBackProgressBar.style = "width: 0%";
+
+    //close audio context
+    audioCtx.close();
 }
 
 
@@ -1437,8 +1438,40 @@ async function uploadSongButton(evt) {
 }
 
 
-/***************** PLAYER BUTTONS (REPEAT&RANDOM) **********************/
+/***************** PLAYER BUTTONS (REWIND & SKIP) **********************/
 
+let audioSkipButton = document.querySelector("#audioSkipButton");
+audioSkipButton.onclick = () => skipSong();
+
+Object.defineProperty(this, "skipSong", {
+    enumerable: false,
+    configurable: false,
+    value: async () => {
+        if (isPlaying) {// in play
+            if (parseInt(getNextSongID(selectedSongID)) === 0) return; // do nothing, if it's the last song.
+            playNextSong();
+        } else { // in pause
+            if (audioRepeatPlay) {
+                // do nothing if audioRepeatPlay === true
+            } else if (audioRandomPlay) {
+                selectedSongID = getRandomSongID();
+                printAudioInformation();
+            } else if (parseInt(getNextSongID(selectedSongID) === 0)) {
+                // do nothing, if it's the last song.
+            } else { // in pause. //if no song has been played so far or in pause.
+                selectedSongID = getNextSongID(selectedSongID);
+                printAudioInformation();
+            }
+        }
+    }
+});
+
+
+let audioRewindButton = document.querySelector("#audioRewindButton");
+//audioRewindButton.onclick = () => rewindSong();
+
+
+/***************** PLAYER BUTTONS (REPEAT&RANDOM) **********************/
 let audioRepeatPlay = false;
 let audioRandomPlay = false;
 let audioRepeatPlayStatusDisplay = document.querySelector("#audioRepeatPlayStatusDisplay");
