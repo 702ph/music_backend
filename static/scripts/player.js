@@ -808,16 +808,14 @@ class Player {
 
 
 
-
 //play back position
 let audioPlaybackPositionRatio;
-let playbackStartAudioContextTimeStamp;
+//let playbackStartAudioContextTimeStamp;
 let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
 let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
 
 // initial setup
 audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
-
 audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
 
 function changeAudioPlaybackPosition() {
@@ -833,28 +831,17 @@ function changeAudioPlaybackPosition() {
     console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
 
     // start & stop audio source
-
-    //TODO: be refactored by (isPlayign) variable.
-    // if (audioCtx.state === "running") {
-    //     audioBufferSourceNode.stop(0);
-    //     initAudioSource();
-    //     audioStartAt = Date.now() - audioPausedAt;
-    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    // } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
-    //     initAudioSource();
-    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    // }
     seekAudioPlaybackPosition();
 }
 
 
 function seekAudioPlaybackPosition() {
-    if (isPlaying) {
+    if (isPlaying) { //in playing
         audioBufferSourceNode.stop(0);
         initAudioSource();
         audioStartAt = Date.now() - audioPausedAt;
         audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    } else {
+    } else { //in pause, only initialize audio source
         initAudioSource();
         //audioBufferSourceNode.start(0, audioPausedAt / 1000);
     }
