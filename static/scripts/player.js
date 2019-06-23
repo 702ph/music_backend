@@ -554,7 +554,7 @@ async function start() {
             // } else {
 
             // pause(stop)
-                audioBufferSourceNode.stop(0);
+            audioBufferSourceNode.stop(0);
 
             // audioPlaybackPosition for re-start
             //audioPlaybackPosition = audioCtx.currentTime - playbackStartAudioContextTimeStamp;
@@ -683,7 +683,7 @@ Object.defineProperty(this, "rePlaySong", {
     value: async () => {
 
         // in playing
-        if (isPlaying){
+        if (isPlaying) {
             audioBufferSourceNode.disconnect();
             await audioCtx.close();
         }
@@ -703,12 +703,6 @@ Object.defineProperty(this, "rePlaySong", {
         printAudioInformation();
     }
 });
-
-
-
-
-
-
 
 
 // get song id randomly
@@ -803,7 +797,7 @@ function initAudioBufferSourceNode() {
 
 /***************** PLAYER CONTROLLER **********************/
 
-let playController =  {};
+let playController = {};
 
 Object.defineProperty(playController, "setNextSong", {
     enumerable: false,
@@ -925,7 +919,6 @@ Object.defineProperty(playController, 'getPreviousSongID', {
         }
     }
 });
-
 
 
 /*****************  **********************/
@@ -1084,29 +1077,58 @@ function doOnEnded() {
 
 
 // convert second to hh:mm:ss
-class TimeConverter {
-    secToHour(time) {
-        const hour = Math.floor(time / 3600);
-        const min = Math.floor(time / 60 % 60);
-        const sec = Math.floor((time % 60) % 60);
+// class TimeConverter {
+//     secToHour(time) {
+//         const hour = Math.floor(time / 3600);
+//         const min = Math.floor(time / 60 % 60);
+//         const sec = Math.floor((time % 60) % 60);
+//
+//         return {
+//             hour: hour,
+//             min: min,
+//             sec: sec
+//         }
+//     }
+//
+//     secToHourString(time) {
+//         const t = this.secToHour(time);
+//         const hour = t.hour > 9 ? t.hour : "0" + t.hour;
+//         const min = t.min > 9 ? t.min : "0" + t.min;
+//         const sec = t.sec > 9 ? t.sec : "0" + t.sec;
+//         return hour + ":" + min + ":" + sec;
+//     }
+// }
+//
+// const timeConverter = new TimeConverter();
 
+
+/***************** TIME CONVERTER **********************/
+
+// convert second to hh:mm:ss
+Object.defineProperty(this, "TimeConverter", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: () => {
         return {
-            hour: hour,
-            min: min,
-            sec: sec
+            secToHourString: (time) => {
+                const t = {
+                    hour: Math.floor(time / 3600),
+                    min: Math.floor(time / 60 % 60),
+                    sec: Math.floor((time % 60) % 60),
+                };
+                const hour = t.hour > 9 ? t.hour : "0" + t.hour;
+                const min = t.min > 9 ? t.min : "0" + t.min;
+                const sec = t.sec > 9 ? t.sec : "0" + t.sec;
+                return hour + ":" + min + ":" + sec;
+            }
         }
     }
+});
+const timeConverter = TimeConverter();
 
-    secToHourString(time) {
-        const t = this.secToHour(time);
-        const hour = t.hour > 9 ? t.hour : "0" + t.hour;
-        const min = t.min > 9 ? t.min : "0" + t.min;
-        const sec = t.sec > 9 ? t.sec : "0" + t.sec;
-        return hour + ":" + min + ":" + sec;
-    }
-}
 
-const timeConverter = new TimeConverter();
+/*****************  **********************/
 
 
 // detect mousedown & up

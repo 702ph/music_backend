@@ -80,6 +80,8 @@ testing issues...4
 [] remove classes
 [] separate function for start/pause
 
+[] refactor timeconverter
+
 ----
 05
 
