@@ -66,6 +66,8 @@ testing issues...4
 [] fix repeat play
 [] fix random play
 
+[] fix: TypeError: Cannot read property 'id' of undefined
+
 [X] implement for forward button
 [] implement for back button
 
@@ -74,6 +76,8 @@ testing issues...4
 [x] implement time counter
 
 [x] add volume controller (new version)
+
+[] remove classes
 
 ----
 05

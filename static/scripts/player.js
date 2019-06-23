@@ -524,8 +524,8 @@ let audioBufferSourceNode;
 let audioArrayBuffer;
 let decodedAudioBuffer;
 let audioBufferSourceDuration;
-let audioPlaybackPosition = 0;
-let audioPausedAt = 0;
+//let audioPlaybackPosition = 0;
+let audioPausedAt = undefined;
 let audioStartAt = 0;
 
 
@@ -538,16 +538,14 @@ async function start() {
     susresBtn.removeAttribute('disabled');
     stopBtn.removeAttribute('disabled');
 
-    // set selectedSongID
-    //const selectedSongID = document.querySelector("#songIDInput").value;
+    //debug
     console.log(selectedSongID);
     console.log(nowPlayingSongID);
 
-    //TODO :stop & pause
     // if nowPlayingSongID = selectedSongID are the same, no new song was selected during the playback.
     if (nowPlayingSongID === selectedSongID) {
 
-        // pause  for when audio is being played.  -> stop playing audio
+        // pause when audio is being played.  -> stop playing audio
         if (isPlaying) {
             // pause(stop)
             audioBufferSourceNode.stop(0);
@@ -568,9 +566,10 @@ async function start() {
             if (audioCtx.state === "closed") initAudioContext();
 
             // re-init audio source
-            initAudioSource();
+            initAudioBufferSourceNode();
 
             if (0 < audioPausedAt) {
+                //if (audioPausedAt === undefined){
                 audioStartAt = Date.now() - audioPausedAt;
                 audioBufferSourceNode.start(0, audioPausedAt / 1000);
             } else {
@@ -595,7 +594,7 @@ async function start() {
     //     if (audioCtx.state === "closed") initAudioContext();
     //
     //     // re-init audio source
-    //     initAudioSource();
+    //     initAudioBufferSourceNode();
     //
     //     if (0 < audioPausedAt) {
     //         audioStartAt = Date.now() - audioPausedAt;
@@ -630,8 +629,8 @@ async function start() {
     try {
         initAudioContext();
 
-        gainNode = audioCtx.createGain()
-        audioBufferSourceNode = audioCtx.createBufferSource();
+        //gainNode = audioCtx.createGain();
+        //audioBufferSourceNode = audioCtx.createBufferSource();
 
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
@@ -674,13 +673,38 @@ async function start() {
 }
 
 
+Object.defineProperty(this, "rePlay", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async () => {
+        // initialize audio context
+        if (audioCtx.state === "closed") initAudioContext();
+
+        // initialize audio source Buffer
+        initAudioBufferSourceNode();
+
+        //play
+        audioStartAt = Date.now();
+        audioBufferSourceNode.start(0);
+
+        isPlaying = true;
+        showPauseIcon(true);
+        printAudioInformation();
+
+        //nowPlayingSongID = selectedSongID; // no we don't need this.
+    }
+});
+
+
 Object.defineProperty(this, 'playNextSong', {
     enumerable: false,
     configurable: false,
     value: async function () {
 
         if (audioRepeatPlay) { //repeat play
-            if (isPlaying) return;
+            //if (isPlaying) return;  // do nothing if a song is now playing.
+            //await rePlay();
             await start();
         } else if (audioRandomPlay) { // random play
             selectedSongID = getRandomSongID();
@@ -688,9 +712,10 @@ Object.defineProperty(this, 'playNextSong', {
             await start();
             changeGainVolume();
         } else if (parseInt(getNextSongID(nowPlayingSongID)) === 0) { // the last song
-            selectedSongID = getFirstSongID();
-            showPauseIcon(false);
-            printAudioInformation();
+            //selectedSongID = getFirstSongID();
+            //showPauseIcon(false);
+            //printAudioInformation();
+            // do nothing
         } else { //play next song
             selectedSongID = getNextSongID(nowPlayingSongID);
             //printAudioInformation();
@@ -711,7 +736,10 @@ Object.defineProperty(this, 'getNextSongID', {
             if (parseInt(key) === rows.length - 1) return 0; // if it's the last element in table, return 0. because there's no nextSong.
             if (parseInt(key) === 0) continue; // ignore first row. it's for title.
             if (rows[key].cells[0].innerText === id) {
-                return rows[parseInt(key) + 1].cells[0].innerText;
+                const nextSongID = rows[parseInt(key) + 1].cells[0].innerText;
+                console.log(nextSongID);
+                return nextSongID;
+                //return rows[parseInt(key) + 1].cells[0].innerText;
             }
         }
     }
@@ -737,15 +765,20 @@ Object.defineProperty(this, 'getRandomSongID', {
 });
 
 
-function showPauseIcon(show) {
-    if (show) {
-        audioPauseButton.classList.remove("hidden");
-        startBtn.classList.add("hidden");
-    } else {
-        audioPauseButton.classList.add("hidden");
-        startBtn.classList.remove("hidden");
+Object.defineProperty(this, "showPauseIcon", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: (show) => {
+        if (show) {
+            audioPauseButton.classList.remove("hidden");
+            startBtn.classList.add("hidden");
+        } else {
+            audioPauseButton.classList.add("hidden");
+            startBtn.classList.remove("hidden");
+        }
     }
-}
+});
 
 
 /***************** INITIALIZATION **********************/
@@ -774,11 +807,14 @@ Object.defineProperty(this, 'initAudioContext', {
 });
 
 
-function initAudioSource() {
+function initAudioBufferSourceNode() {
     try {
         //create buffer source once again
         audioBufferSourceNode = audioCtx.createBufferSource();
         audioBufferSourceNode.buffer = decodedAudioBuffer;
+
+        // buffer duration
+        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
 
         // connect audio source with gain node
         audioBufferSourceNode.connect(gainNode);
@@ -791,18 +827,16 @@ function initAudioSource() {
 
 /*****************  CORE MODULES **********************/
 // Audio
-class Audio {
+// class Audio {
+//
+//     constructor(gainNode, source) {
+//         this.gainNode = gainNode;
+//         this.source = source;
+//     }
+// }
 
-    constructor(gainNode, source) {
-        this.gainNode = gainNode;
-        this.source = source;
-    }
-}
 
-
-class Player {
-
-}
+let PlayerController =  {}
 
 /*****************  **********************/
 
@@ -828,7 +862,7 @@ function changeAudioPlaybackPosition() {
 
     //calculate exact position in audio source
     audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
-    console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
+    console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
 
     // start & stop audio source
     seekAudioPlaybackPosition();
@@ -838,11 +872,11 @@ function changeAudioPlaybackPosition() {
 function seekAudioPlaybackPosition() {
     if (isPlaying) { //in playing
         audioBufferSourceNode.stop(0);
-        initAudioSource();
+        initAudioBufferSourceNode();
         audioStartAt = Date.now() - audioPausedAt;
         audioBufferSourceNode.start(0, audioPausedAt / 1000);
     } else { //in pause, only initialize audio source
-        initAudioSource();
+        initAudioBufferSourceNode();
         //audioBufferSourceNode.start(0, audioPausedAt / 1000);
     }
 }
@@ -943,6 +977,10 @@ displayTime();
 
 function doOnEnded() {
 
+    // reset
+    audioPlaybackPositionRatio = 0.0;
+
+    // reset
     audioPlaybackPositionDisplayDecimal.textContent = "0";
     audioPlayBackProgressCounter.textContent = "00:00:00";
     audioPlaybackPositionControlSlider.value = 0;
@@ -1013,11 +1051,11 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
 
     // if (audioCtx.state === "running") {
     //     audioBufferSourceNode.stop(0);
-    //     initAudioSource();
+    //     initAudioBufferSourceNode();
     //     audioStartAt = Date.now() - audioPausedAt;
     //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
     // } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
-    //     initAudioSource();
+    //     initAudioBufferSourceNode();
     //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
     // }
     seekAudioPlaybackPosition();
@@ -1446,35 +1484,49 @@ async function uploadSongButton(evt) {
 
 /***************** PLAYER BUTTONS (REWIND & SKIP) **********************/
 
+// abstract player buttons
+let playerButtons = {};
 let audioSkipButton = document.querySelector("#audioSkipButton");
-audioSkipButton.onclick = () => skipSong();
+audioSkipButton.onclick = () => playerButtons.skipSong();
+let audioRewindButton = document.querySelector("#audioRewindButton");
+//audioRewindButton.onclick = () => rewindSong();
 
-Object.defineProperty(this, "skipSong", {
+Object.defineProperty(playerButtons, "setNextSong", {
     enumerable: false,
     configurable: false,
-    value: async () => {
-        if (isPlaying) {// in play
-            if (parseInt(getNextSongID(selectedSongID)) === 0) return; // do nothing, if it's the last song.
-            playNextSong();
-        } else { // in pause
-            if (audioRepeatPlay) {
-                // do nothing if audioRepeatPlay === true
-            } else if (audioRandomPlay) {
-                selectedSongID = getRandomSongID();
-                printAudioInformation();
-            } else if (parseInt(getNextSongID(selectedSongID) === 0)) {
-                // do nothing, if it's the last song.
-            } else { // in pause. //if no song has been played so far or in pause.
-                selectedSongID = getNextSongID(selectedSongID);
-                printAudioInformation();
-            }
+    writable: false,
+    value: () => {
+        if (audioRepeatPlay) {
+            // do nothing if audioRepeatPlay === true
+        } else if (audioRandomPlay) {
+            selectedSongID = getRandomSongID();
+            printAudioInformation();
+        } else if (parseInt(getNextSongID(selectedSongID)) !== 0) { //if it's NOT the last song
+            selectedSongID = getNextSongID(selectedSongID);
+            printAudioInformation();
+        } else {
+            console.log("we are on the last song in the list");
         }
     }
 });
 
 
-let audioRewindButton = document.querySelector("#audioRewindButton");
-//audioRewindButton.onclick = () => rewindSong();
+Object.defineProperty(playerButtons, "skipSong", {
+    enumerable: false,
+    configurable: false,
+    value: async () => {
+
+        if (isPlaying) { // in play
+            //TODO: we need here "if" for repeat, random, etc like in else
+            // => no, we do it in playNextSong(). is it good?
+            playNextSong();
+
+        } else { // in pause
+            playerButtons.setNextSong();
+        }
+    }
+});
+
 
 
 /***************** PLAYER BUTTONS (REPEAT&RANDOM) **********************/
@@ -1484,11 +1536,11 @@ let audioRepeatPlayStatusDisplay = document.querySelector("#audioRepeatPlayStatu
 let audioRandomPlayStatusDisplay = document.querySelector("#audioRandomPlayStatusDisplay");
 let audioRepeatPlayButton = document.querySelector("#audioRepeatPlayButton");
 let audioRandomPlayButton = document.querySelector("#audioRandomPlayButton");
-audioRepeatPlayButton.onclick = () => setAudioRepeatPlay();
-audioRandomPlayButton.onclick = () => setAudioRandomPlay();
+audioRepeatPlayButton.onclick = () => playerButtons.setAudioRepeatPlay();
+audioRandomPlayButton.onclick = () => playerButtons.setAudioRandomPlay();
 
 
-Object.defineProperty(this, "setAudioRepeatPlay", {
+Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
     enumerable: false,
     writable: false,
     value: () => {
@@ -1509,7 +1561,7 @@ Object.defineProperty(this, "setAudioRepeatPlay", {
 });
 
 
-Object.defineProperty(this, "setAudioRandomPlay", {
+Object.defineProperty(playerButtons, "setAudioRandomPlay", {
     enumerable: false,
     writable: false,
     value: () => {
