@@ -547,8 +547,14 @@ async function start() {
 
         // pause when audio is being played.  -> stop playing audio
         if (isPlaying) {
+
+            // if (audioRepeatPlay) { // in repeat mode, repeat.
+            //     // go through here and goes to
+            //
+            // } else {
+
             // pause(stop)
-            audioBufferSourceNode.stop(0);
+                audioBufferSourceNode.stop(0);
 
             // audioPlaybackPosition for re-start
             //audioPlaybackPosition = audioCtx.currentTime - playbackStartAudioContextTimeStamp;
@@ -560,6 +566,7 @@ async function start() {
             isPlaying = false;
             showPauseIcon(false);
             return;
+            // }
 
         } else { // start again when audio is NOT being played. => start playing audio
 
@@ -579,10 +586,6 @@ async function start() {
                 audioBufferSourceNode.start(0); //this should be .start(0, audioPausedAt/1000)? no if requered?
             }
             console.log("audioStartAt/1000: " + (audioStartAt / 1000));
-
-            //audioBufferSourceNode.start(0, audioPlaybackPosition);
-            //playbackStartAudioContextTimeStamp = audioCtx.currentTime;
-            //console.log("playbackStartAudioContextTimeStamp: " + playbackStartAudioContextTimeStamp);
 
             isPlaying = true;
             showPauseIcon(true);
@@ -673,11 +676,18 @@ async function start() {
 }
 
 
-Object.defineProperty(this, "rePlay", {
+Object.defineProperty(this, "rePlaySong", {
     enumerable: false,
     configurable: false,
     writable: false,
     value: async () => {
+
+        // in playing
+        if (isPlaying){
+            audioBufferSourceNode.disconnect();
+            await audioCtx.close();
+        }
+
         // initialize audio context
         if (audioCtx.state === "closed") initAudioContext();
 
@@ -691,59 +701,14 @@ Object.defineProperty(this, "rePlay", {
         isPlaying = true;
         showPauseIcon(true);
         printAudioInformation();
-
-        //nowPlayingSongID = selectedSongID; // no we don't need this.
     }
 });
 
 
-Object.defineProperty(this, 'playNextSong', {
-    enumerable: false,
-    configurable: false,
-    value: async function () {
-
-        if (audioRepeatPlay) { //repeat play
-            //if (isPlaying) return;  // do nothing if a song is now playing.
-            //await rePlay();
-            await start();
-        } else if (audioRandomPlay) { // random play
-            selectedSongID = getRandomSongID();
-            //printAudioInformation();
-            await start();
-            changeGainVolume();
-        } else if (parseInt(getNextSongID(nowPlayingSongID)) === 0) { // the last song
-            //selectedSongID = getFirstSongID();
-            //showPauseIcon(false);
-            //printAudioInformation();
-            // do nothing
-        } else { //play next song
-            selectedSongID = getNextSongID(nowPlayingSongID);
-            //printAudioInformation();
-            await start();
-            changeGainVolume();
-        }
-
-    }
-});
 
 
-// get next song id. return 0 for the next song of the last song.
-Object.defineProperty(this, 'getNextSongID', {
-    enumerable: false,
-    configurable: false,
-    value: (id) => {
-        for (const key in Array.prototype.slice.call(rows)) {
-            if (parseInt(key) === rows.length - 1) return 0; // if it's the last element in table, return 0. because there's no nextSong.
-            if (parseInt(key) === 0) continue; // ignore first row. it's for title.
-            if (rows[key].cells[0].innerText === id) {
-                const nextSongID = rows[parseInt(key) + 1].cells[0].innerText;
-                console.log(nextSongID);
-                return nextSongID;
-                //return rows[parseInt(key) + 1].cells[0].innerText;
-            }
-        }
-    }
-});
+
+
 
 
 // get song id randomly
@@ -836,7 +801,132 @@ function initAudioBufferSourceNode() {
 // }
 
 
-let PlayerController =  {}
+/***************** PLAYER CONTROLLER **********************/
+
+let playController =  {};
+
+Object.defineProperty(playController, "setNextSong", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: () => {
+        if (audioRepeatPlay) {
+            // do nothing if audioRepeatPlay === true
+        } else if (audioRandomPlay) {
+            selectedSongID = getRandomSongID();
+            printAudioInformation();
+        } else if (parseInt(playController.getNextSongID(selectedSongID)) !== 0) { //if it's NOT the last song
+            selectedSongID = playController.getNextSongID(selectedSongID);
+            printAudioInformation();
+        } else {
+            console.log("we are on the last song in the list");
+        }
+    }
+});
+
+
+Object.defineProperty(playController, 'playNextSong', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async function () {
+        if (audioRepeatPlay) { //repeat play
+            await rePlaySong();
+        } else if (audioRandomPlay) { // random play
+            selectedSongID = getRandomSongID();
+            await start();
+            changeGainVolume();
+        } else if (parseInt(playController.getNextSongID(nowPlayingSongID)) === 0) { // the last song
+            // do nothing
+        } else { //play next song
+            selectedSongID = playController.getNextSongID(nowPlayingSongID);
+            await start();
+            changeGainVolume();
+        }
+    }
+});
+
+
+Object.defineProperty(playController, 'playPreviousSong', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async function () {
+        if (audioRepeatPlay) { //repeat play
+            await rePlaySong();
+        } else if (audioRandomPlay) { // random play
+            selectedSongID = getRandomSongID();
+            await start();
+            changeGainVolume();
+        } else if (parseInt(playController.getPreviousSongID(nowPlayingSongID)) === 0) { // the first song
+            // do nothing
+        } else { //play previous song
+            selectedSongID = playController.getPreviousSongID(nowPlayingSongID);
+            await start();
+            changeGainVolume();
+        }
+    }
+});
+
+
+Object.defineProperty(playController, 'setPreviousSong', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async function () {
+        if (audioRepeatPlay) {
+            // do nothing if audioRepeatPlay === true
+        } else if (audioRandomPlay) {
+            selectedSongID = getRandomSongID();
+            printAudioInformation();
+        } else if (parseInt(playController.getPreviousSongID(selectedSongID)) !== 0) { //if it's NOT the last song
+            selectedSongID = playController.getPreviousSongID(selectedSongID);
+            printAudioInformation();
+        } else {
+            console.log("we are on the first song in the list");
+        }
+    }
+});
+
+
+// get next song id. return 0 for the next song of the last song.
+Object.defineProperty(playController, 'getNextSongID', {
+    enumerable: false,
+    configurable: false,
+    value: (id) => {
+        for (const key in Array.prototype.slice.call(rows)) {
+            if (parseInt(key) === rows.length - 1) return 0; // if it's the last element in table, return 0. because there's no nextSong.
+            if (parseInt(key) === 0) continue; // ignore the first row. it's for title.
+            if (rows[key].cells[0].innerText === id) {
+                const nextSongID = rows[parseInt(key) + 1].cells[0].innerText;
+                console.log(nextSongID);
+                return nextSongID;
+                //return rows[parseInt(key) + 1].cells[0].innerText;
+            }
+        }
+    }
+});
+
+
+//get previous song id. return 0 for the previous song of the first song.
+Object.defineProperty(playController, 'getPreviousSongID', {
+    enumerable: false,
+    configurable: false,
+    value: (id) => {
+        for (const key in Array.prototype.slice.call(rows)) {
+
+            if (parseInt(key) === 0) continue; // ignore the first row. it's for title.
+
+            if (rows[key].cells[0].innerText === id) {
+                const previousSongID = rows[parseInt(key) - 1].cells[0].innerText;
+                console.log(previousSongID);
+                return (parseInt(key) === 1) ? 0 : previousSongID; //if it's the first song in the table, return 0. because there's not previous song
+            }
+        }
+    }
+});
+
+
 
 /*****************  **********************/
 
@@ -960,7 +1050,7 @@ function displayTime() {
                     isPlaying = false;
                     doOnEnded();
 
-                    playNextSong();
+                    playController.playNextSong();
                 }
 
             }
@@ -1489,44 +1579,35 @@ let playerButtons = {};
 let audioSkipButton = document.querySelector("#audioSkipButton");
 audioSkipButton.onclick = () => playerButtons.skipSong();
 let audioRewindButton = document.querySelector("#audioRewindButton");
-//audioRewindButton.onclick = () => rewindSong();
-
-Object.defineProperty(playerButtons, "setNextSong", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: () => {
-        if (audioRepeatPlay) {
-            // do nothing if audioRepeatPlay === true
-        } else if (audioRandomPlay) {
-            selectedSongID = getRandomSongID();
-            printAudioInformation();
-        } else if (parseInt(getNextSongID(selectedSongID)) !== 0) { //if it's NOT the last song
-            selectedSongID = getNextSongID(selectedSongID);
-            printAudioInformation();
-        } else {
-            console.log("we are on the last song in the list");
-        }
-    }
-});
+audioRewindButton.onclick = () => playerButtons.rewindSong();
 
 
 Object.defineProperty(playerButtons, "skipSong", {
     enumerable: false,
     configurable: false,
+    writable: false,
     value: async () => {
-
         if (isPlaying) { // in play
-            //TODO: we need here "if" for repeat, random, etc like in else
-            // => no, we do it in playNextSong(). is it good?
-            playNextSong();
-
+            playController.playNextSong();
         } else { // in pause
-            playerButtons.setNextSong();
+            playController.setNextSong();
         }
     }
 });
 
+
+Object.defineProperty(playerButtons, "rewindSong", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: () => {
+        if (isPlaying) { // in play
+            playController.playPreviousSong();
+        } else { // in pause
+            playController.setPreviousSong();
+        }
+    }
+});
 
 
 /***************** PLAYER BUTTONS (REPEAT&RANDOM) **********************/
