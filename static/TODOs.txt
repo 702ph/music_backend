@@ -56,20 +56,20 @@ testing issues...4
 [X] show album & title
 
 [x] fix seek in pause
-[] refactor seek (maybe in class)
+[] refactor seek (maybe in class) => no class is allowed. maybe in let audio = {}
 
-[] clear audio context after play (onended)
+[X] clear audio context after play
+[] clear audio context after play automatically (onended)
 
-[] play next song automatically at end
+[X] play next song automatically at end
 [X] implement for repeat button
 [X] implement for random button
-[] fix repeat play
-[] fix random play
-
-[] fix: TypeError: Cannot read property 'id' of undefined
+[X] fix repeat play
+[X] fix random play
+[X] fix: TypeError: Cannot read property 'id' of undefined
 
 [X] implement for forward button
-[] implement for back button
+[X] implement for back button
 
 [x] implement clickable progressbar
 [] improve clickable progressbar behaviour (when back)
@@ -78,6 +78,7 @@ testing issues...4
 [x] add volume controller (new version)
 
 [] remove classes
+[] separate function for start/pause
 
 ----
 05
