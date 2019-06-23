@@ -849,28 +849,28 @@ function seekAudioPlaybackPosition() {
 
 
 // suspend/resume the audioContext
-susresBtn.onclick = function () {
-
-    if (audioCtx.state === 'running') {
-        audioCtx.suspend().then(function () {
-            susresBtn.textContent = 'Resume context';
-        });
-    } else if (audioCtx.state === 'suspended') {
-        audioCtx.resume().then(function () {
-            susresBtn.textContent = 'Suspend context';
-        });
-    }
-};
+// susresBtn.onclick = function () {
+//
+//     if (audioCtx.state === 'running') {
+//         audioCtx.suspend().then(function () {
+//             susresBtn.textContent = 'Resume context';
+//         });
+//     } else if (audioCtx.state === 'suspended') {
+//         audioCtx.resume().then(function () {
+//             susresBtn.textContent = 'Suspend context';
+//         });
+//     }
+// };
 
 
 // close the audio context
-stopBtn.onclick = function () {
-    audioCtx.close().then(function () {
-        startBtn.removeAttribute('disabled');
-        susresBtn.setAttribute('disabled', 'disabled');
-        stopBtn.setAttribute('disabled', 'disabled');
-    });
-};
+// stopBtn.onclick = function () {
+//     audioCtx.close().then(function () {
+//         startBtn.removeAttribute('disabled');
+//         susresBtn.setAttribute('disabled', 'disabled');
+//         stopBtn.setAttribute('disabled', 'disabled');
+//     });
+// };
 
 
 // change gain volume
