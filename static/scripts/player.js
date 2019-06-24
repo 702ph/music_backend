@@ -45,7 +45,6 @@ Object.defineProperty(this, 'initAudioContext', {
             AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
 
-
             gainNode = audioCtx.createGain();
             audioBufferSourceNode = audioCtx.createBufferSource();
         } catch (error) {
@@ -1234,6 +1233,7 @@ Object.defineProperty(this, 'getFirstSongID', {
     }
 });
 
+
 // get song info
 Object.defineProperty(this, 'getSongInfo', {
     enumerable: false,
@@ -1376,6 +1376,26 @@ Object.defineProperty(this, 'changeGainVolume', {
 audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 
+let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
+let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
+audioPlayBackVolumeController.addEventListener("click", (e) => {
+    const ratio = (e.pageX - (audioPlayBackVolumeController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackVolumeController.clientWidth;
+    console.log("volume ratio:" + ratio);
+    audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
+
+    // if gainNode is not initialized, return.
+    if (gainNode === undefined) return;
+
+    const maxGain = 3;
+
+    //change display
+    audioVolumeDisplay.innerText = maxGain * ratio;
+
+    //change volume
+    gainNode.gain.value = maxGain * ratio;
+});
+
+
 /***************** PLAY BACK POSITION CONTROL  **********************/
 
 //play back position
@@ -1471,26 +1491,6 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
 
     // start & stop audio source
     seekAudioPlaybackPosition();
-});
-
-
-let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
-let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
-audioPlayBackVolumeController.addEventListener("click", (e) => {
-    const ratio = (e.pageX - (audioPlayBackVolumeController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackVolumeController.clientWidth;
-    console.log("volume ratio:" + ratio);
-    audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
-
-    // if gainNode is not initialized, return.
-    if (gainNode === undefined) return;
-
-    const maxGain = 3;
-
-    //change display
-    audioVolumeDisplay.innerText = maxGain * ratio;
-
-    //change volume
-    gainNode.gain.value = maxGain * ratio;
 });
 
 
