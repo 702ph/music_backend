@@ -1013,7 +1013,7 @@ Object.defineProperty(this, 'changeGainVolume', {
 audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 
-let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
+//let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
 let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
 let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgressCounter");
 
@@ -1029,16 +1029,10 @@ function displayTime() {
 
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
-                //audioPlayBackProgressCounter.textContent = timeConverter.secToHourString(audioPlaybackPositionAutoUpdate);
-                //audioPlayBackProgressCounter.textContent = convertSecToHourString(audioPlaybackPositionAutoUpdate);
 
-                // time converter p24
-                //TimeConverter.setTime(audioPlaybackPositionAutoUpdate);
-                //audioPlayBackProgressCounter.textContent = TimeConverter.getTime();
-
-                // time converter p60
-                TimeConverterP60.time = audioPlaybackPositionAutoUpdate;
-                audioPlayBackProgressCounter.textContent = TimeConverterP60.time;
+                // time converter
+                timeConverter.setTime(audioPlaybackPositionAutoUpdate);
+                audioPlayBackProgressCounter.textContent = timeConverter.getTime();
 
 
                 let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
@@ -1052,7 +1046,6 @@ function displayTime() {
                 if (audioPlaybackPositionAutoUpdate > audioBufferSourceDuration) {
                     isPlaying = false;
                     doOnEnded();
-
                     playController.playNextSong();
                 }
 
@@ -1089,9 +1082,8 @@ function doOnEnded() {
 
 /***************** TIME CONVERTER **********************/
 
-
-//2.pdf, p24
-Object.defineProperty(this, "TimeConverterAsClassLikeFunctionP24", {
+// approach on 2.pdf, p24
+Object.defineProperty(this, "TimeConverter", {
     enumerable: false,
     configurable: false,
     writable: false,
@@ -1114,7 +1106,7 @@ Object.defineProperty(this, "TimeConverterAsClassLikeFunctionP24", {
         }
     }
 });
-//const TimeConverter = TimeConverterAsClassLikeFunctionP24();
+const timeConverter = TimeConverter();
 
 
 
