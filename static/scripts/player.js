@@ -5,11 +5,6 @@
  */
 
 
-// for future implementation
-function Controller() {
-}
-
-
 let songSelector;
 let rows;
 
@@ -758,17 +753,6 @@ function initAudioBufferSourceNode() {
         console.log(e);
     }
 }
-
-
-/*****************  CORE MODULES **********************/
-// Audio
-// class Audio {
-//
-//     constructor(gainNode, source) {
-//         this.gainNode = gainNode;
-//         this.source = source;
-//     }
-// }
 
 
 /***************** PLAYER CONTROLLER **********************/
