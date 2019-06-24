@@ -40,6 +40,10 @@ Object.defineProperty(this, "printAudioInformation", {
 });
 
 
+
+/***************** DRAG & DROP **********************/
+
+
 //prevent drag and drop on document
 document.ondrop = (event) => {
     event.stopPropagation();
@@ -140,6 +144,9 @@ async function handleFileDropped(evt) {
 }
 
 
+
+/***************** TABLE EDITING **********************/
+
 //edit table contents
 let inTableEditMode = false
 let originalRows;
@@ -148,11 +155,7 @@ editStartBtn.onclick = () => editTable();
 Object.defineProperty(this, 'editTable', {
     enumerable: false,
     configurable: false,
-    value: async function () {  //TODO: have to be async??
-
-        //get table
-        //let songSelector = document.querySelector("#songSelectorTable");
-        //let rows = songSelector.children[0].rows; //<tr> in <table>
+    value: async function () {
 
         // if in table edit mode, finish the mode and send changes to server.
         if (inTableEditMode) {
@@ -163,9 +166,12 @@ Object.defineProperty(this, 'editTable', {
             // convert to Json
             const json = convertToJson(rows);
 
-            //TODO: we need here try and catch
             //send to server
-            postTableContents(json);
+            try {
+                await postTableContents(json);
+            } catch (e) {
+                console.log(e);
+            }
 
             //reset button value
             editStartBtn.value = "🖋";
@@ -200,7 +206,6 @@ Object.defineProperty(this, 'editTable', {
 
 /*
     accept song map in array and convert to json.
-    TODO: this method can be refactored.
  */
 Object.defineProperty(this, 'convertToJson', {
     enumerable: false,
@@ -345,6 +350,9 @@ Object.defineProperty(this, 'removeHighlightsFromTable', {
 });
 
 
+
+
+
 //cancel delete songs
 let deleteCancelBtn = document.querySelector("#deleteCancelButton");
 deleteCancelBtn.onclick = () => cancelDeleteSongs();
@@ -354,8 +362,6 @@ Object.defineProperty(this, 'cancelDeleteSongs', {
     value: function () {
 
         //remove color
-        //let songSelector = document.querySelector("#songSelectorTable");
-        //let rows = songSelector.children[0].rows; //<tr> in <table>
         removeHighlightsFromTable(rows);
 
         //reset visibility
@@ -379,12 +385,6 @@ Object.defineProperty(this, 'cancelEditTable', {
     enumerable: false,
     configurable: false,
     value: function () {
-        //get table
-        //let songSelector = document.querySelector("#songSelectorTable");
-
-        //<tr> in <table>
-        //let rows = songSelector.children[0].rows;
-
 
         //recovery previous contents. (override current table with previous contents )
         Array.prototype.slice.call(rows).forEach((row, rindex) => {
@@ -392,7 +392,6 @@ Object.defineProperty(this, 'cancelEditTable', {
                 cell.innerText = originalRows[rindex][cindex];
             });
         });
-
 
         //set to non editable
         setTableContentsNonEditable(rows);
@@ -409,7 +408,8 @@ Object.defineProperty(this, 'cancelEditTable', {
 });
 
 
-/***************** TABLE **********************/
+
+/***************** TABLE (SONG SELECT) **********************/
 
 //get element in table
 document.addEventListener('click', function (e) {
@@ -498,8 +498,8 @@ document.addEventListener('click', function (event) {
 });
 
 
-/*****************  **********************/
 
+/*****************  CONTROL AUDIO CONTEXT **********************/
 
 let audioCtx;
 let startBtn = document.querySelector('#startAudioContext');
@@ -543,17 +543,8 @@ async function start() {
         // pause when audio is being played.  -> stop playing audio
         if (isPlaying) {
 
-            // if (audioRepeatPlay) { // in repeat mode, repeat.
-            //     // go through here and goes to
-            //
-            // } else {
-
             // pause(stop)
             audioBufferSourceNode.stop(0);
-
-            // audioPlaybackPosition for re-start
-            //audioPlaybackPosition = audioCtx.currentTime - playbackStartAudioContextTimeStamp;
-            //console.log("audioPlaybackPosition: " + audioPlaybackPosition);
 
             audioPausedAt = Date.now() - audioStartAt;
             console.log("audioPausedAt/1000: " + (audioPausedAt / 1000));
@@ -571,7 +562,6 @@ async function start() {
             initAudioBufferSourceNode();
 
             if (0 < audioPausedAt) {
-                //if (audioPausedAt === undefined){
                 audioStartAt = Date.now() - audioPausedAt;
                 audioBufferSourceNode.start(0, audioPausedAt / 1000);
             } else {
@@ -603,9 +593,6 @@ async function start() {
     try {
         initAudioContext();
 
-        //gainNode = audioCtx.createGain();
-        //audioBufferSourceNode = audioCtx.createBufferSource();
-
         //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
         //await Promise to be solved
         audioArrayBuffer = await loadSongFromURL(selectedSongID);
@@ -615,7 +602,6 @@ async function start() {
         //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
         decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
-        //audioBufferSourceNode.buffer = null;
         audioBufferSourceNode.buffer = decodedAudioBuffer;
         audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
         console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
@@ -1272,13 +1258,6 @@ Object.defineProperty(this, 'postTableContents', {
             body: json,
         });
 
-        //show response json
-        /*
-        const result = (response.json()).then(j => {
-            return j
-        });
-        */
-
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
         const result = await response.json();
@@ -1408,7 +1387,7 @@ Object.defineProperty(this, 'getConfirmedItemsInTable', {
 });
 
 
-// get selected items
+// confirm selected items (=== bold selected item's letter)
 Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
     enumerable: false,
     configurable: false,
