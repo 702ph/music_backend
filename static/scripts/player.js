@@ -5,6 +5,8 @@
  */
 
 
+/***************** INITIALIZATION **********************/
+
 let songSelector;
 let rows;
 
@@ -23,26 +25,79 @@ window.addEventListener('load', async function () {
     // set songID
     selectedSongID = getFirstSongID(rows);
 
-    //TODO: this will be omitted.
+    //TODO: this will be removed.
     document.querySelector("#songIDInput").value = selectedSongID;
 
     printAudioInformation();
 });
 
 
-Object.defineProperty(this, "printAudioInformation", {
+//init audio context on load
+Object.defineProperty(this, 'initAudioContext', {
     enumerable: false,
-    writable: false,
-    value: () => {
-        const songInfo = getSongInfo(selectedSongID);
-        audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
+    configurable: false,
+    value: async function () {
+        // if it already exists, do nothing.
+        if (!audioCtx === undefined) return;
+
+        // create web audio context
+        try {
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+
+            gainNode = audioCtx.createGain();
+            audioBufferSourceNode = audioCtx.createBufferSource();
+        } catch (error) {
+            console.log(error);
+        }
+
     }
 });
 
 
+function initAudioBufferSourceNode() {
+    try {
+        //create buffer source once again
+        audioBufferSourceNode = audioCtx.createBufferSource();
+        audioBufferSourceNode.buffer = decodedAudioBuffer;
+
+        // buffer duration
+        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
+
+        // connect audio source with gain node
+        audioBufferSourceNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+
+/***************** CORE VARIABLES  **********************/
+
+let audioCtx;
+let startBtn = document.querySelector('#startAudioContext');
+let susresBtn = document.querySelector('#suspendAudioContext');
+let stopBtn = document.querySelector('#stopAudioContext');
+let timeDisplay = document.querySelector('#counter');
+
+susresBtn.setAttribute('disabled', 'disabled');
+stopBtn.setAttribute('disabled', 'disabled');
+let isPlaying = false;
+let selectedSongID;
+let nowPlayingSongID;
+
+let gainNode;
+let audioBufferSourceNode;
+let audioArrayBuffer;
+let decodedAudioBuffer;
+let audioBufferSourceDuration;
+let audioPausedAt = undefined;
+let audioStartAt = 0;
+
 
 /***************** DRAG & DROP **********************/
-
 
 //prevent drag and drop on document
 document.ondrop = (event) => {
@@ -142,7 +197,6 @@ async function handleFileDropped(evt) {
     //reset style
     handleDragLeave();
 }
-
 
 
 /***************** TABLE EDITING **********************/
@@ -350,9 +404,6 @@ Object.defineProperty(this, 'removeHighlightsFromTable', {
 });
 
 
-
-
-
 //cancel delete songs
 let deleteCancelBtn = document.querySelector("#deleteCancelButton");
 deleteCancelBtn.onclick = () => cancelDeleteSongs();
@@ -406,7 +457,6 @@ Object.defineProperty(this, 'cancelEditTable', {
         inTableEditMode = false;
     }
 });
-
 
 
 /***************** TABLE (SONG SELECT) **********************/
@@ -498,633 +548,7 @@ document.addEventListener('click', function (event) {
 });
 
 
-
-/*****************  CONTROL AUDIO CONTEXT **********************/
-
-let audioCtx;
-let startBtn = document.querySelector('#startAudioContext');
-let susresBtn = document.querySelector('#suspendAudioContext');
-let stopBtn = document.querySelector('#stopAudioContext');
-let audioPauseButton = document.querySelector("#audioPauseButton");
-let timeDisplay = document.querySelector('#counter');
-
-susresBtn.setAttribute('disabled', 'disabled');
-stopBtn.setAttribute('disabled', 'disabled');
-let isPlaying = false; //TODO: can be replaced by audioContext.state -> no.
-let selectedSongID;
-let nowPlayingSongID;
-
-let gainNode;
-let audioBufferSourceNode;
-let audioArrayBuffer;
-let decodedAudioBuffer;
-let audioBufferSourceDuration;
-//let audioPlaybackPosition = 0;
-let audioPausedAt = undefined;
-let audioStartAt = 0;
-
-
-audioPauseButton.onclick = () => start();
-startBtn.onclick = () => start();
-
-
-async function start() {
-    startBtn.setAttribute('disabled', 'disabled');
-    susresBtn.removeAttribute('disabled');
-    stopBtn.removeAttribute('disabled');
-
-    //debug
-    console.log(selectedSongID);
-    console.log(nowPlayingSongID);
-
-    // if nowPlayingSongID = selectedSongID are the same, no new song was selected during the playback.
-    if (nowPlayingSongID === selectedSongID) {
-
-        // pause when audio is being played.  -> stop playing audio
-        if (isPlaying) {
-
-            // pause(stop)
-            audioBufferSourceNode.stop(0);
-
-            audioPausedAt = Date.now() - audioStartAt;
-            console.log("audioPausedAt/1000: " + (audioPausedAt / 1000));
-
-            isPlaying = false;
-            showPauseIcon(false);
-            return;
-            // }
-
-        } else { // start again when audio is NOT being played. => start playing audio
-
-            if (audioCtx.state === "closed") initAudioContext();
-
-            // re-init audio source
-            initAudioBufferSourceNode();
-
-            if (0 < audioPausedAt) {
-                audioStartAt = Date.now() - audioPausedAt;
-                audioBufferSourceNode.start(0, audioPausedAt / 1000);
-            } else {
-                // for the very(? really?) first time -> because audioPauseAt is 0, it works?
-                // i mean it also should be Date.now() - audioPausedAt
-                audioStartAt = Date.now();
-                audioBufferSourceNode.start(0); //this should be .start(0, audioPausedAt/1000)? no if requered?
-            }
-            console.log("audioStartAt/1000: " + (audioStartAt / 1000));
-
-            isPlaying = true;
-            showPauseIcon(true);
-            return;
-        }
-    }
-
-
-    //comes here if selectedSongID has changed during play or it is for the first time to play audio
-    // If a new audio file is selected to play, the existing audio context must be closed.
-    if (audioCtx !== undefined) {  //for the very first time
-        if (audioCtx.state !== "closed") { // only close it if it is not "closed". if you try to close while is it already closed you will get error.
-            //audioBufferSourceNode.disconnect();
-            await audioCtx.close();
-            showPauseIcon(false);
-        }
-    }
-
-    // comes here means it is for the very first time to play audio or a new song was selected to play.
-    try {
-        initAudioContext();
-
-        //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
-        //await Promise to be solved
-        audioArrayBuffer = await loadSongFromURL(selectedSongID);
-        console.log(audioArrayBuffer.byteLength);
-
-        // set audio buffer
-        //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
-        //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
-        decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
-        audioBufferSourceNode.buffer = decodedAudioBuffer;
-        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
-        console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
-
-        //preparation
-        audioBufferSourceNode.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        //play
-        audioStartAt = Date.now();
-        //playbackStartAudioContextTimeStamp = audioCtx.currentTime; //preciser than Date.now()
-        audioBufferSourceNode.start(0);
-
-        isPlaying = true;
-        showPauseIcon(true);
-        printAudioInformation();
-        nowPlayingSongID = selectedSongID;
-
-    } catch (error) {
-        console.log(error);
-    }
-
-    // report the state of the audio context to the
-    // console, when it changes
-    audioCtx.onstatechange = function () {
-        console.log("audio context state changed: " +audioCtx.state);
-    }
-
-}
-
-
-Object.defineProperty(this, "rePlaySong", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: async () => {
-
-        // in playing
-        if (isPlaying) {
-            audioBufferSourceNode.disconnect();
-            await audioCtx.close();
-        }
-
-        // initialize audio context
-        if (audioCtx.state === "closed") initAudioContext();
-
-        // initialize audio source Buffer
-        initAudioBufferSourceNode();
-
-        //play
-        audioStartAt = Date.now();
-        audioBufferSourceNode.start(0);
-
-        isPlaying = true;
-        showPauseIcon(true);
-        printAudioInformation();
-    }
-});
-
-
-// get song id randomly
-Object.defineProperty(this, 'getRandomSongID', {
-    enumerable: false,
-    configurable: false,
-    value: () => {
-        while (true) {
-            const randomPosition = Math.floor(Math.random() * (rows.length - 1)) + 1;
-            const randomSongID = rows[randomPosition].cells[0].innerText;
-
-            // return only if the both IDs are different.
-            if (parseInt(nowPlayingSongID) !== parseInt(randomSongID)) {
-                console.log(randomPosition, randomSongID);
-                return randomSongID;
-            }
-        }
-    }
-});
-
-
-Object.defineProperty(this, "showPauseIcon", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: (show) => {
-        if (show) {
-            audioPauseButton.classList.remove("hidden");
-            startBtn.classList.add("hidden");
-        } else {
-            audioPauseButton.classList.add("hidden");
-            startBtn.classList.remove("hidden");
-        }
-    }
-});
-
-
-/***************** INITIALIZATION **********************/
-
-//init audio context on load
-Object.defineProperty(this, 'initAudioContext', {
-    enumerable: false,
-    configurable: false,
-    value: async function () {
-        // if it already exists, do nothing.
-        if (!audioCtx === undefined) return;
-
-        // create web audio context
-        try {
-            AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-
-
-            gainNode = audioCtx.createGain();
-            audioBufferSourceNode = audioCtx.createBufferSource();
-        } catch (error) {
-            console.log(error);
-        }
-
-    }
-});
-
-
-function initAudioBufferSourceNode() {
-    try {
-        //create buffer source once again
-        audioBufferSourceNode = audioCtx.createBufferSource();
-        audioBufferSourceNode.buffer = decodedAudioBuffer;
-
-        // buffer duration
-        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
-
-        // connect audio source with gain node
-        audioBufferSourceNode.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-    } catch (e) {
-        console.log(e);
-    }
-}
-
-
-/***************** PLAYER CONTROLLER **********************/
-
-let playController = {};
-
-Object.defineProperty(playController, "setNextSong", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: () => {
-        if (audioRepeatPlay) {
-            // do nothing if audioRepeatPlay === true
-        } else if (audioRandomPlay) {
-            selectedSongID = getRandomSongID();
-            printAudioInformation();
-        } else if (parseInt(playController.getNextSongID(selectedSongID)) !== 0) { //if it's NOT the last song
-            selectedSongID = playController.getNextSongID(selectedSongID);
-            printAudioInformation();
-        } else {
-            console.log("we are on the last song in the list");
-        }
-    }
-});
-
-
-Object.defineProperty(playController, 'playNextSong', {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: async function () {
-        if (audioRepeatPlay) { //repeat play
-            await rePlaySong();
-        } else if (audioRandomPlay) { // random play
-            selectedSongID = getRandomSongID();
-            await start();
-            changeGainVolume();
-        } else if (parseInt(playController.getNextSongID(nowPlayingSongID)) === 0) { // the last song
-            // do nothing
-        } else { //play next song
-            selectedSongID = playController.getNextSongID(nowPlayingSongID);
-            await start();
-            changeGainVolume();
-        }
-    }
-});
-
-
-Object.defineProperty(playController, 'playPreviousSong', {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: async function () {
-        if (audioRepeatPlay) { //repeat play
-            await rePlaySong();
-        } else if (audioRandomPlay) { // random play
-            selectedSongID = getRandomSongID();
-            await start();
-            changeGainVolume();
-        } else if (parseInt(playController.getPreviousSongID(nowPlayingSongID)) === 0) { // the first song
-            // do nothing
-        } else { //play previous song
-            selectedSongID = playController.getPreviousSongID(nowPlayingSongID);
-            await start();
-            changeGainVolume();
-        }
-    }
-});
-
-
-Object.defineProperty(playController, 'setPreviousSong', {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: async function () {
-        if (audioRepeatPlay) {
-            // do nothing if audioRepeatPlay === true
-        } else if (audioRandomPlay) {
-            selectedSongID = getRandomSongID();
-            printAudioInformation();
-        } else if (parseInt(playController.getPreviousSongID(selectedSongID)) !== 0) { //if it's NOT the last song
-            selectedSongID = playController.getPreviousSongID(selectedSongID);
-            printAudioInformation();
-        } else {
-            console.log("we are on the first song in the list");
-        }
-    }
-});
-
-
-// get next song id. return 0 for the next song of the last song.
-Object.defineProperty(playController, 'getNextSongID', {
-    enumerable: false,
-    configurable: false,
-    value: (id) => {
-        for (const key in Array.prototype.slice.call(rows)) {
-            if (parseInt(key) === rows.length - 1) return 0; // if it's the last element in table, return 0. because there's no nextSong.
-            if (parseInt(key) === 0) continue; // ignore the first row. it's for title.
-            if (rows[key].cells[0].innerText === id) {
-                const nextSongID = rows[parseInt(key) + 1].cells[0].innerText;
-                console.log(nextSongID);
-                return nextSongID;
-                //return rows[parseInt(key) + 1].cells[0].innerText;
-            }
-        }
-    }
-});
-
-
-//get previous song id. return 0 for the previous song of the first song.
-Object.defineProperty(playController, 'getPreviousSongID', {
-    enumerable: false,
-    configurable: false,
-    value: (id) => {
-        for (const key in Array.prototype.slice.call(rows)) {
-
-            if (parseInt(key) === 0) continue; // ignore the first row. it's for title.
-
-            if (rows[key].cells[0].innerText === id) {
-                const previousSongID = rows[parseInt(key) - 1].cells[0].innerText;
-                console.log(previousSongID);
-                return (parseInt(key) === 1) ? 0 : previousSongID; //if it's the first song in the table, return 0. because there's not previous song
-            }
-        }
-    }
-});
-
-
-/*****************  **********************/
-
-
-
-//play back position
-let audioPlaybackPositionRatio;
-//let playbackStartAudioContextTimeStamp;
-let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
-let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
-
-// initial setup
-audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
-audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
-
-function changeAudioPlaybackPosition() {
-
-    // get ratio
-    audioPlaybackPositionRatio = parseFloat(audioPlaybackPositionControlSlider.value);
-
-    // set ratio to display
-    audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
-
-    //calculate exact position in audio source
-    audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
-    console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
-
-    // start & stop audio source
-    seekAudioPlaybackPosition();
-}
-
-
-function seekAudioPlaybackPosition() {
-    if (isPlaying) { //in playing
-        audioBufferSourceNode.stop(0);
-        initAudioBufferSourceNode();
-        audioStartAt = Date.now() - audioPausedAt;
-        audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    } else { //in pause, only initialize audio source
-        initAudioBufferSourceNode();
-        //audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    }
-}
-
-
-// //suspend/resume the audioContext
-// susresBtn.onclick = function () {
-//
-//     if (audioCtx.state === 'running') {
-//         audioCtx.suspend().then(function () {
-//             susresBtn.textContent = 'Resume context';
-//         });
-//     } else if (audioCtx.state === 'suspended') {
-//         audioCtx.resume().then(function () {
-//             susresBtn.textContent = 'Suspend context';
-//         });
-//     }
-// };
-//
-//
-// //close the audio context
-// stopBtn.onclick = function () {
-//     audioCtx.close().then(function () {
-//         startBtn.removeAttribute('disabled');
-//         susresBtn.setAttribute('disabled', 'disabled');
-//         stopBtn.setAttribute('disabled', 'disabled');
-//     });
-// };
-
-
-// change gain volume
-let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
-let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
-audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
-
-Object.defineProperty(this, 'changeGainVolume', {
-    enumerable: false,
-    configurable: false,
-    value: function () {
-        // if gainNode is not initialized, return.
-        if (gainNode === undefined) return;
-
-        //change display
-        audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
-
-        //change volume
-        gainNode.gain.value = audioVolumeControlSlider.value;
-        console.log(audioVolumeControlSlider.value);
-    }
-});
-audioVolumeControlSlider.onchange = () => changeGainVolume();
-
-
-//let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
-let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
-let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgressCounter");
-
-function displayTime() {
-    if (audioCtx && audioCtx.state !== 'closed') {
-        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
-
-        if (isPlaying) {
-            if (onMouseDown) {
-                // do nothing
-
-            } else {
-
-                let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
-                audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
-
-                // time converter
-                timeConverter.setTime(audioPlaybackPositionAutoUpdate);
-                audioPlayBackProgressCounter.textContent = timeConverter.getTime();
-
-
-                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
-                audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
-                audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
-
-                //purple progress bar
-                audioPlayBackProgressBar.style = "width: " + audioPlaybackPositionRatioAutoUpdate * 100 + "%";
-
-                // on ended
-                if (audioPlaybackPositionAutoUpdate > audioBufferSourceDuration) {
-                    isPlaying = false;
-                    doOnEnded();
-                    playController.playNextSong();
-                }
-
-            }
-        }
-
-    } else {
-        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
-    }
-    requestAnimationFrame(displayTime);
-}
-
-displayTime();
-
-
-function doOnEnded() {
-
-    // pause button
-    showPauseIcon(false);
-
-    // reset
-    audioPlaybackPositionRatio = 0.0;
-
-    // reset
-    audioPlaybackPositionDisplayDecimal.textContent = "0";
-    audioPlayBackProgressCounter.textContent = "00:00:00";
-    audioPlaybackPositionControlSlider.value = 0;
-    audioPlaybackPositionDisplay.textContent = "0";
-    audioPlayBackProgressBar.style = "width: 0%";
-
-    //close audio context
-    audioBufferSourceNode.disconnect();
-    audioCtx.close();
-
-}
-
-
-
-/***************** TIME CONVERTER **********************/
-
-// approach on 2.pdf, p24
-Object.defineProperty(this, "TimeConverter", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: () => { //function
-        let t; // this variable is NOT accessible from outside
-        return {
-            setTime: (time) => {
-                t = {
-                    hour: Math.floor(time / 3600),
-                    min: Math.floor(time / 60 % 60),
-                    sec: Math.floor((time % 60) % 60),
-                    };
-                },
-            getTime: () => {
-                const hour = t.hour > 9 ? t.hour : "0" + t.hour;
-                const min = t.min > 9 ? t.min : "0" + t.min;
-                const sec = t.sec > 9 ? t.sec : "0" + t.sec;
-                return hour + ":" + min + ":" + sec;
-            }
-        }
-    }
-});
-const timeConverter = TimeConverter();
-
-
-
-/*****************  **********************/
-
-
-// detect mousedown & up
-let onMouseDown = false;
-window.addEventListener("mousedown", () => {
-    onMouseDown = true;
-    console.log("mouseDown");
-}, false);
-
-window.addEventListener("mouseup", () => {
-    onMouseDown = false;
-    console.log("mouseup");
-}, false);
-
-
-//progress bar and progress bar controller
-let audioPlayBackProgressBarController = document.querySelector("#audioPlayBackProgressBarController");
-let audioPlayBackProgressBar = document.querySelector("#audioPlayBackProgressBar");
-
-audioPlayBackProgressBarController.addEventListener("click", (e) => {
-    const ratio = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
-    console.log("ratio:" + ratio);
-    audioPlayBackProgressBar.style = "width: " + ratio * 100 + "%";
-
-    //calculate exact position in audio source
-    audioPausedAt = (audioBufferSourceDuration * ratio) * 1000;
-    console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
-
-    // start & stop audio source
-    //TODO: be refactored by (isPlayign) variable.
-    //TODO: extract method.
-
-    // if (audioCtx.state === "running") {
-    //     audioBufferSourceNode.stop(0);
-    //     initAudioBufferSourceNode();
-    //     audioStartAt = Date.now() - audioPausedAt;
-    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    // } else if (audioCtx.state === "suspended") { //TODO: refactor. not needed actually. we dont suspend audio context anymore.
-    //     initAudioBufferSourceNode();
-    //     audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    // }
-    seekAudioPlaybackPosition();
-});
-
-
-let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
-let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
-audioPlayBackVolumeController.addEventListener("click", (e) => {
-    const ratio = (e.pageX - (audioPlayBackVolumeController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackVolumeController.clientWidth;
-    console.log("volume ratio:" + ratio);
-    audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
-
-    // if gainNode is not initialized, return.
-    if (gainNode === undefined) return;
-
-    const maxGain = 3;
-
-    //change display
-    audioVolumeDisplay.innerText = maxGain * ratio;
-
-    //change volume
-    gainNode.gain.value = maxGain * ratio;
-});
-
+/***************** TABLE CONTENTS **********************/
 
 //display song list on in table
 Object.defineProperty(this, 'displaySongList', {
@@ -1170,103 +594,7 @@ Object.defineProperty(this, 'displaySongList', {
 });
 
 
-Object.defineProperty(this, 'getSongList', {
-    enumerable: false,
-    configurable: false,
-    value: async function () {
-        const resource = "/songs";
-
-        let response = await fetch(resource, {
-            method: 'GET',
-            credentials: "include", //https://chaika.hatenablog.com/entry/2019/01/08/123000
-            headers: {Accept: "application/json"}
-        });
-        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
-        let result = await response.json();
-        return result;
-    }
-});
-
-
-//retrieve song from server
-Object.defineProperty(this, 'loadSongFromURL', {
-    enumerable: false,
-    configurable: false,
-    value: async function (songID) {
-        const resource = "/songs/" + songID;
-        let response = await fetch(resource, {
-            method: "GET",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
-            headers: {
-                "Accept": "audio/*"
-            }
-        });
-
-        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
-
-        let arrayBuffer = await response.arrayBuffer();
-        return arrayBuffer;
-    }
-});
-
-
-//post song to server
-Object.defineProperty(this, 'postSong', {
-    enumerable: false,
-    configurable: false,
-    value: async function (formData) {
-
-        const resource = "/songs";
-        let response = await fetch(resource, {
-            method: "POST",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
-            body: formData,
-        });
-
-        //TODO: this works?? shoulb be after (!response.ok) and with await?
-        //show response json
-        /*
-        const result = (response.json()).then(j => {
-            return j
-        });
-         */
-
-        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
-
-        const result = await response.json();
-        console.log(result);
-
-        return result;
-    }
-});
-
-
-//post table contents to server
-Object.defineProperty(this, 'postTableContents', {
-    enumerable: false,
-    configurable: false,
-    value: async function (json) {
-
-        const resource = "/songs";
-        let response = await fetch(resource, {
-            method: "POST",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
-            headers: {
-                'Accept': 'application/json',
-                "Content-Type": "application/json"
-            },
-            body: json,
-        });
-
-        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
-
-        const result = await response.json();
-        console.log(result);
-
-        return result;
-    }
-});
-
+/***************** TABLE (SONG DELETION)  **********************/
 
 // delete confirm
 let inDeleteConfirmedState = false;
@@ -1288,7 +616,7 @@ deleteConfirmBtn.onclick = () => {
 
     } else {
         // confirm
-        confirmSelectedItemsInTable02(rows);
+        confirmSelectedItemsInTable(rows);
 
         // if there are no confirmed items, return
         if (getConfirmedItemsInTable(rows).length === 0) return;
@@ -1313,11 +641,6 @@ Object.defineProperty(this, 'deleteSongs', {
 
         //get buttons
         let deleteBtn = document.querySelector("#deleteButton");
-
-        //get table
-        //let songSelector = document.querySelector("#songSelectorTable");
-        //let rows = songSelector.children[0].rows; //<tr> in <table>
-
 
         //if it's not in delete song mode, change mode to it.
         if (!inDeleteSongMode) {
@@ -1388,7 +711,7 @@ Object.defineProperty(this, 'getConfirmedItemsInTable', {
 
 
 // confirm selected items (=== bold selected item's letter)
-Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
+Object.defineProperty(this, 'confirmSelectedItemsInTable', {
     enumerable: false,
     configurable: false,
     value: function (rows) {
@@ -1404,35 +727,7 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable02', {
 });
 
 
-// get id for the first item
-Object.defineProperty(this, 'getFirstSongID', {
-    enumerable: false,
-    configurable: false,
-    value: function () {
-        return rows[1].cells[0].innerText;
-    }
-});
-
-// get song info
-Object.defineProperty(this, 'getSongInfo', {
-    enumerable: false,
-    configurable: false,
-    value: (id) => {
-        for (const tr of Array.prototype.slice.call(rows)) {
-            if (tr.cells[0].innerText === id) {
-                return {
-                    id: tr.cells[0].innerText,
-                    title: tr.cells[1].innerText,
-                    artist: tr.cells[2].innerText,
-                    album: tr.cells[3].innerText,
-                    year: tr.cells[4].innerText,
-                    genre: tr.cells[5].innerText
-                }
-            }
-        }
-    }
-});
-
+/***************** SERVER COMMUNICATION **********************/
 
 //send delete request to server
 Object.defineProperty(this, 'deleteSong', {
@@ -1456,18 +751,114 @@ Object.defineProperty(this, 'deleteSong', {
 });
 
 
+//retrieve song from server
+Object.defineProperty(this, 'loadSongFromURL', {
+    enumerable: false,
+    configurable: false,
+    value: async function (songID) {
+        const resource = "/songs/" + songID;
+        let response = await fetch(resource, {
+            method: "GET",
+            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                "Accept": "audio/*"
+            }
+        });
+
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        let arrayBuffer = await response.arrayBuffer();
+        return arrayBuffer;
+    }
+});
+
+
+//post song to server
+Object.defineProperty(this, 'postSong', {
+    enumerable: false,
+    configurable: false,
+    value: async function (formData) {
+
+        const resource = "/songs";
+        let response = await fetch(resource, {
+            method: "POST",
+            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            body: formData,
+        });
+
+
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
+
+        return result;
+    }
+});
+
+
+Object.defineProperty(this, 'getSongList', {
+    enumerable: false,
+    configurable: false,
+    value: async function () {
+        const resource = "/songs";
+
+        let response = await fetch(resource, {
+            method: 'GET',
+            credentials: "include", //https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {Accept: "application/json"}
+        });
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+        let result = await response.json();
+        return result;
+    }
+});
+
+
+//post table contents to server
+Object.defineProperty(this, 'postTableContents', {
+    enumerable: false,
+    configurable: false,
+    value: async function (json) {
+
+        const resource = "/songs";
+        let response = await fetch(resource, {
+            method: "POST",
+            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                'Accept': 'application/json',
+                "Content-Type": "application/json"
+            },
+            body: json,
+        });
+
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        const result = await response.json();
+        console.log(result);
+
+        return result;
+    }
+});
+
+
+Object.defineProperty(this, "getLyrics", {
+    enumerable: false,
+    writable: false,
+    value: (songInfo) => {
+    }
+});
+
+
+/***************** UPLOAD BUTTON **********************/
+
 const selectFileBtn = document.querySelector("#selectFileButton");
 const selectFileLabel = document.querySelector("#selectFileLabel");
-//selectFileBtn.onchange = () => uploadSongButton(); // not possible to carry parameters??
 selectFileBtn.addEventListener('change', uploadSongButton, false); //doesn't work with define property ??
 
 // upload file with button
 //TODO: partly overlapped with which for drag and drop
 async function uploadSongButton(evt) {
-
-    console.log("hello unloadSong02()");
-    console.log(selectFileLabel);
-
 
     //assign file from dialog
     //only first file
@@ -1481,9 +872,7 @@ async function uploadSongButton(evt) {
         dropZoneMessage.innerHTML = "file is empty";
         return false;
     }
-
     console.log(file);
-
 
     //prepare data to upload
     let formData = new FormData();
@@ -1608,6 +997,605 @@ Object.defineProperty(playerButtons, "setAudioRandomPlay", {
 
     }
 });
+
+/***************** PLAYER BUTTONS (PAUSE) **********************/
+
+let audioPauseButton = document.querySelector("#audioPauseButton");
+
+Object.defineProperty(this, "showPauseIcon", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: (show) => {
+        if (show) {
+            audioPauseButton.classList.remove("hidden");
+            startBtn.classList.add("hidden");
+        } else {
+            audioPauseButton.classList.add("hidden");
+            startBtn.classList.remove("hidden");
+        }
+    }
+});
+
+
+/***************** AUDIO CONTEXT  **********************/
+
+audioPauseButton.onclick = () => start();
+startBtn.onclick = () => start();
+
+async function start() {
+    startBtn.setAttribute('disabled', 'disabled');
+    susresBtn.removeAttribute('disabled');
+    stopBtn.removeAttribute('disabled');
+
+    //debug
+    console.log(selectedSongID);
+    console.log(nowPlayingSongID);
+
+    // if nowPlayingSongID = selectedSongID are the same, no new song was selected during the playback.
+    if (nowPlayingSongID === selectedSongID) {
+
+        // pause when audio is being played.  -> stop playing audio
+        if (isPlaying) {
+
+            // pause(stop)
+            audioBufferSourceNode.stop(0);
+
+            audioPausedAt = Date.now() - audioStartAt;
+            console.log("audioPausedAt/1000: " + (audioPausedAt / 1000));
+
+            isPlaying = false;
+            showPauseIcon(false);
+            return;
+            // }
+
+        } else { // start again when audio is NOT being played. => start playing audio
+
+            if (audioCtx.state === "closed") initAudioContext();
+
+            // re-init audio source
+            initAudioBufferSourceNode();
+
+            if (0 < audioPausedAt) {
+                audioStartAt = Date.now() - audioPausedAt;
+                audioBufferSourceNode.start(0, audioPausedAt / 1000);
+            } else {
+                // for the very(? really?) first time -> because audioPauseAt is 0, it works?
+                // i mean it also should be Date.now() - audioPausedAt
+                audioStartAt = Date.now();
+                audioBufferSourceNode.start(0); //this should be .start(0, audioPausedAt/1000)? no if requered?
+            }
+            console.log("audioStartAt/1000: " + (audioStartAt / 1000));
+
+            isPlaying = true;
+            showPauseIcon(true);
+            return;
+        }
+    }
+
+
+    //comes here if selectedSongID has changed during play or it is for the first time to play audio
+    // If a new audio file is selected to play, the existing audio context must be closed.
+    if (audioCtx !== undefined) {  //for the very first time
+        if (audioCtx.state !== "closed") { // only close it if it is not "closed". if you try to close while is it already closed you will get error.
+            //audioBufferSourceNode.disconnect();
+            await audioCtx.close();
+            showPauseIcon(false);
+        }
+    }
+
+    // comes here means it is for the very first time to play audio or a new song was selected to play.
+    try {
+        initAudioContext();
+
+        //https://sbfl.net/blog/2016/07/13/simplifying-async-code-with-promise-and-async-await/
+        //await Promise to be solved
+        audioArrayBuffer = await loadSongFromURL(selectedSongID);
+        console.log(audioArrayBuffer.byteLength);
+
+        // set audio buffer
+        //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
+        //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
+        decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
+        audioBufferSourceNode.buffer = decodedAudioBuffer;
+        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
+        console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
+
+        //preparation
+        audioBufferSourceNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        //play
+        audioStartAt = Date.now();
+        //playbackStartAudioContextTimeStamp = audioCtx.currentTime; //preciser than Date.now()
+        audioBufferSourceNode.start(0);
+
+        isPlaying = true;
+        showPauseIcon(true);
+        printAudioInformation();
+        nowPlayingSongID = selectedSongID;
+
+    } catch (error) {
+        console.log(error);
+    }
+
+    // report the state of the audio context to the
+    // console, when it changes
+    audioCtx.onstatechange = function () {
+        console.log("audio context state changed: " + audioCtx.state);
+    }
+
+}
+
+
+Object.defineProperty(this, "rePlaySong", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async () => {
+
+        // in playing
+        if (isPlaying) {
+            audioBufferSourceNode.disconnect();
+            await audioCtx.close();
+        }
+
+        // initialize audio context
+        if (audioCtx.state === "closed") initAudioContext();
+
+        // initialize audio source Buffer
+        initAudioBufferSourceNode();
+
+        //play
+        audioStartAt = Date.now();
+        audioBufferSourceNode.start(0);
+
+        isPlaying = true;
+        showPauseIcon(true);
+        printAudioInformation();
+    }
+});
+
+
+/***************** PLAYER CONTROLLER **********************/
+
+let playController = {};
+
+Object.defineProperty(playController, "setNextSong", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: () => {
+        if (audioRepeatPlay) {
+            // do nothing if audioRepeatPlay === true
+        } else if (audioRandomPlay) {
+            selectedSongID = getRandomSongID();
+            printAudioInformation();
+        } else if (parseInt(playController.getNextSongID(selectedSongID)) !== 0) { //if it's NOT the last song
+            selectedSongID = playController.getNextSongID(selectedSongID);
+            printAudioInformation();
+        } else {
+            console.log("we are on the last song in the list");
+        }
+    }
+});
+
+
+Object.defineProperty(playController, 'playNextSong', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async function () {
+        if (audioRepeatPlay) { //repeat play
+            await rePlaySong();
+        } else if (audioRandomPlay) { // random play
+            selectedSongID = getRandomSongID();
+            await start();
+            changeGainVolume();
+        } else if (parseInt(playController.getNextSongID(nowPlayingSongID)) === 0) { // the last song
+            // do nothing
+        } else { //play next song
+            selectedSongID = playController.getNextSongID(nowPlayingSongID);
+            await start();
+            changeGainVolume();
+        }
+    }
+});
+
+
+Object.defineProperty(playController, 'playPreviousSong', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async function () {
+        if (audioRepeatPlay) { //repeat play
+            await rePlaySong();
+        } else if (audioRandomPlay) { // random play
+            selectedSongID = getRandomSongID();
+            await start();
+            changeGainVolume();
+        } else if (parseInt(playController.getPreviousSongID(nowPlayingSongID)) === 0) { // the first song
+            // do nothing
+        } else { //play previous song
+            selectedSongID = playController.getPreviousSongID(nowPlayingSongID);
+            await start();
+            changeGainVolume();
+        }
+    }
+});
+
+
+// get id for the first item
+Object.defineProperty(this, 'getFirstSongID', {
+    enumerable: false,
+    configurable: false,
+    value: function () {
+        return rows[1].cells[0].innerText;
+    }
+});
+
+// get song info
+Object.defineProperty(this, 'getSongInfo', {
+    enumerable: false,
+    configurable: false,
+    value: (id) => {
+        for (const tr of Array.prototype.slice.call(rows)) {
+            if (tr.cells[0].innerText === id) {
+                return {
+                    id: tr.cells[0].innerText,
+                    title: tr.cells[1].innerText,
+                    artist: tr.cells[2].innerText,
+                    album: tr.cells[3].innerText,
+                    year: tr.cells[4].innerText,
+                    genre: tr.cells[5].innerText
+                }
+            }
+        }
+    }
+});
+
+
+Object.defineProperty(playController, 'setPreviousSong', {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: async function () {
+        if (audioRepeatPlay) {
+            // do nothing if audioRepeatPlay === true
+        } else if (audioRandomPlay) {
+            selectedSongID = getRandomSongID();
+            printAudioInformation();
+        } else if (parseInt(playController.getPreviousSongID(selectedSongID)) !== 0) { //if it's NOT the last song
+            selectedSongID = playController.getPreviousSongID(selectedSongID);
+            printAudioInformation();
+        } else {
+            console.log("we are on the first song in the list");
+        }
+    }
+});
+
+
+// get next song id. return 0 for the next song of the last song.
+Object.defineProperty(playController, 'getNextSongID', {
+    enumerable: false,
+    configurable: false,
+    value: (id) => {
+        for (const key in Array.prototype.slice.call(rows)) {
+            if (parseInt(key) === rows.length - 1) return 0; // if it's the last element in table, return 0. because there's no nextSong.
+            if (parseInt(key) === 0) continue; // ignore the first row. it's for title.
+            if (rows[key].cells[0].innerText === id) {
+                const nextSongID = rows[parseInt(key) + 1].cells[0].innerText;
+                console.log(nextSongID);
+                return nextSongID;
+                //return rows[parseInt(key) + 1].cells[0].innerText;
+            }
+        }
+    }
+});
+
+
+//get previous song id. return 0 for the previous song of the first song.
+Object.defineProperty(playController, 'getPreviousSongID', {
+    enumerable: false,
+    configurable: false,
+    value: (id) => {
+        for (const key in Array.prototype.slice.call(rows)) {
+
+            if (parseInt(key) === 0) continue; // ignore the first row. it's for title.
+
+            if (rows[key].cells[0].innerText === id) {
+                const previousSongID = rows[parseInt(key) - 1].cells[0].innerText;
+                console.log(previousSongID);
+                return (parseInt(key) === 1) ? 0 : previousSongID; //if it's the first song in the table, return 0. because there's not previous song
+            }
+        }
+    }
+});
+
+
+// get song id randomly
+Object.defineProperty(this, 'getRandomSongID', {
+    enumerable: false,
+    configurable: false,
+    value: () => {
+        while (true) {
+            const randomPosition = Math.floor(Math.random() * (rows.length - 1)) + 1;
+            const randomSongID = rows[randomPosition].cells[0].innerText;
+
+            // return only if the both IDs are different.
+            if (parseInt(nowPlayingSongID) !== parseInt(randomSongID)) {
+                console.log(randomPosition, randomSongID);
+                return randomSongID;
+            }
+        }
+    }
+});
+
+
+Object.defineProperty(this, "printAudioInformation", {
+    enumerable: false,
+    writable: false,
+    value: () => {
+        const songInfo = getSongInfo(selectedSongID);
+        audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
+    }
+});
+
+
+Object.defineProperty(this, "printLyrics", {
+    enumerable: false,
+    writable: false,
+    value: () => {
+        getLyrics(getSongInfo(nowPlayingSongID));
+    }
+});
+
+
+/***************** VOLUME CONTROL  **********************/
+
+// change gain volume
+let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
+let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
+audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
+
+Object.defineProperty(this, 'changeGainVolume', {
+    enumerable: false,
+    configurable: false,
+    value: function () {
+        // if gainNode is not initialized, return.
+        if (gainNode === undefined) return;
+
+        //change display
+        audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
+
+        //change volume
+        gainNode.gain.value = audioVolumeControlSlider.value;
+        console.log(audioVolumeControlSlider.value);
+    }
+});
+audioVolumeControlSlider.onchange = () => changeGainVolume();
+
+
+/***************** PLAY BACK POSITION CONTROL  **********************/
+
+//play back position
+let audioPlaybackPositionRatio;
+//let playbackStartAudioContextTimeStamp;
+let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
+let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
+
+// initial setup
+audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
+audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
+
+function changeAudioPlaybackPosition() {
+
+    // get ratio
+    audioPlaybackPositionRatio = parseFloat(audioPlaybackPositionControlSlider.value);
+
+    // set ratio to display
+    audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
+
+    //calculate exact position in audio source
+    audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
+    console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
+
+    // start & stop audio source
+    seekAudioPlaybackPosition();
+}
+
+
+function seekAudioPlaybackPosition() {
+    if (isPlaying) { //in playing
+        audioBufferSourceNode.stop(0);
+        initAudioBufferSourceNode();
+        audioStartAt = Date.now() - audioPausedAt;
+        audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    } else { //in pause, only initialize audio source
+        initAudioBufferSourceNode();
+        //audioBufferSourceNode.start(0, audioPausedAt / 1000);
+    }
+}
+
+
+// //suspend/resume the audioContext
+// susresBtn.onclick = function () {
+//
+//     if (audioCtx.state === 'running') {
+//         audioCtx.suspend().then(function () {
+//             susresBtn.textContent = 'Resume context';
+//         });
+//     } else if (audioCtx.state === 'suspended') {
+//         audioCtx.resume().then(function () {
+//             susresBtn.textContent = 'Suspend context';
+//         });
+//     }
+// };
+//
+//
+// //close the audio context
+// stopBtn.onclick = function () {
+//     audioCtx.close().then(function () {
+//         startBtn.removeAttribute('disabled');
+//         susresBtn.setAttribute('disabled', 'disabled');
+//         stopBtn.setAttribute('disabled', 'disabled');
+//     });
+// };
+
+
+// detect mousedown & up
+let onMouseDown = false;
+window.addEventListener("mousedown", () => {
+    onMouseDown = true;
+    console.log("mouseDown");
+}, false);
+
+window.addEventListener("mouseup", () => {
+    onMouseDown = false;
+    console.log("mouseup");
+}, false);
+
+
+//progress bar and progress bar controller
+let audioPlayBackProgressBarController = document.querySelector("#audioPlayBackProgressBarController");
+let audioPlayBackProgressBar = document.querySelector("#audioPlayBackProgressBar");
+
+audioPlayBackProgressBarController.addEventListener("click", (e) => {
+    const ratio = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
+    console.log("ratio:" + ratio);
+    audioPlayBackProgressBar.style = "width: " + ratio * 100 + "%";
+
+    //calculate exact position in audio source
+    audioPausedAt = (audioBufferSourceDuration * ratio) * 1000;
+    console.log("changeAudioPlaybackPosition(): " + audioPausedAt);
+
+    // start & stop audio source
+    seekAudioPlaybackPosition();
+});
+
+
+let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
+let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
+audioPlayBackVolumeController.addEventListener("click", (e) => {
+    const ratio = (e.pageX - (audioPlayBackVolumeController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackVolumeController.clientWidth;
+    console.log("volume ratio:" + ratio);
+    audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
+
+    // if gainNode is not initialized, return.
+    if (gainNode === undefined) return;
+
+    const maxGain = 3;
+
+    //change display
+    audioVolumeDisplay.innerText = maxGain * ratio;
+
+    //change volume
+    gainNode.gain.value = maxGain * ratio;
+});
+
+
+/***************** PLAY BACK POSITION DISPLAY & PROCESS ON PLAY END  **********************/
+
+
+//let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
+let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
+let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgressCounter");
+
+function displayTime() {
+    if (audioCtx && audioCtx.state !== 'closed') {
+        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
+
+        if (isPlaying) {
+            if (onMouseDown) {
+                // do nothing
+
+            } else {
+
+                let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
+                audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
+
+                // time converter
+                timeConverter.setTime(audioPlaybackPositionAutoUpdate);
+                audioPlayBackProgressCounter.textContent = timeConverter.getTime();
+
+
+                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
+                audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
+                audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
+
+                //purple progress bar
+                audioPlayBackProgressBar.style = "width: " + audioPlaybackPositionRatioAutoUpdate * 100 + "%";
+
+                // on ended
+                if (audioPlaybackPositionAutoUpdate > audioBufferSourceDuration) {
+                    isPlaying = false;
+                    doOnPlayEnded();
+                    playController.playNextSong();
+                }
+
+            }
+        }
+
+    } else {
+        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
+    }
+    requestAnimationFrame(displayTime);
+}
+
+displayTime();
+
+
+Object.defineProperty(this, "doOnPlayEnded", {
+    writable: false,
+    enumerable: false,
+    configurable: false,
+    value: async () => {
+        // pause button
+        showPauseIcon(false);
+
+        // reset
+        audioPlaybackPositionRatio = 0.0;
+
+        // reset
+        audioPlaybackPositionDisplayDecimal.textContent = "0";
+        audioPlayBackProgressCounter.textContent = "00:00:00";
+        audioPlaybackPositionControlSlider.value = 0;
+        audioPlaybackPositionDisplay.textContent = "0";
+        audioPlayBackProgressBar.style = "width: 0%";
+
+        //close audio context
+        audioBufferSourceNode.disconnect();
+        await audioCtx.close();
+    }
+});
+
+/***************** TIME CONVERTER **********************/
+
+// approach on 2.pdf, p24
+Object.defineProperty(this, "TimeConverter", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: () => { //function
+        let t; // this variable is NOT accessible from outside
+        return {
+            setTime: (time) => {
+                t = {
+                    hour: Math.floor(time / 3600),
+                    min: Math.floor(time / 60 % 60),
+                    sec: Math.floor((time % 60) % 60),
+                };
+            },
+            getTime: () => {
+                const hour = t.hour > 9 ? t.hour : "0" + t.hour;
+                const min = t.min > 9 ? t.min : "0" + t.min;
+                const sec = t.sec > 9 ? t.sec : "0" + t.sec;
+                return hour + ":" + min + ":" + sec;
+            }
+        }
+    }
+});
+const timeConverter = TimeConverter();
 
 
 /***************** BUTTON **********************/
