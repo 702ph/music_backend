@@ -593,30 +593,6 @@ async function start() {
         }
     }
 
-    // else {
-    //     if (audioCtx.state === "closed") initAudioContext();
-    //
-    //     // re-init audio source
-    //     initAudioBufferSourceNode();
-    //
-    //     if (0 < audioPausedAt) {
-    //         audioStartAt = Date.now() - audioPausedAt;
-    //         audioBufferSourceNode.start(0, audioPausedAt / 1000);
-    //     }
-    //     console.log("audioStartAt/1000: " + (audioStartAt / 1000));
-    //
-    // }
-
-
-    // else {
-    //     // comes here if selectedSongID has changed during play
-    //     await audioCtx.close();
-    // }
-    //TODO: extract above method like:
-    // const control = () = {
-    //    if (!isPlaying) start();
-    //    else stop();
-    // };
 
     //comes here if selectedSongID has changed during play or it is for the first time to play audio
     // If a new audio file is selected to play, the existing audio context must be closed.
@@ -670,7 +646,7 @@ async function start() {
     // report the state of the audio context to the
     // console, when it changes
     audioCtx.onstatechange = function () {
-        console.log(audioCtx.state);
+        console.log("audio context state changed: " +audioCtx.state);
     }
 
 }
@@ -965,7 +941,7 @@ function seekAudioPlaybackPosition() {
 }
 
 
-// suspend/resume the audioContext
+// //suspend/resume the audioContext
 // susresBtn.onclick = function () {
 //
 //     if (audioCtx.state === 'running') {
@@ -978,9 +954,9 @@ function seekAudioPlaybackPosition() {
 //         });
 //     }
 // };
-
-
-// close the audio context
+//
+//
+// //close the audio context
 // stopBtn.onclick = function () {
 //     audioCtx.close().then(function () {
 //         startBtn.removeAttribute('disabled');
@@ -1063,6 +1039,9 @@ displayTime();
 
 function doOnEnded() {
 
+    // pause button
+    showPauseIcon(false);
+
     // reset
     audioPlaybackPositionRatio = 0.0;
 
@@ -1076,6 +1055,7 @@ function doOnEnded() {
     //close audio context
     audioBufferSourceNode.disconnect();
     audioCtx.close();
+
 }
 
 

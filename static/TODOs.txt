@@ -80,7 +80,9 @@ testing issues...4
 [] remove classes
 [] separate function for start/pause
 
-[] refactor timeconverter
+[x] refactor timeconverter
+
+[] reflect play back position to start at the first time
 
 ----
 05
