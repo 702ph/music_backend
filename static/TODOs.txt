@@ -56,7 +56,6 @@ testing issues...4
 [X] show album & title
 
 [x] fix seek in pause
-[] refactor seek (maybe in class) => no class is allowed. maybe in let audio = {}
 
 [X] clear audio context after play
 [X] clear audio context after play automatically (onended) => implemented. butnot with onended.
@@ -72,16 +71,16 @@ testing issues...4
 [X] implement for back button
 
 [x] implement clickable progressbar
-[] improve clickable progressbar behaviour (when back)
 [x] implement time counter
 
 [x] add volume controller (new version)
 
-[] remove classes
-[] separate function for start/pause
-
+[X] remove classes
 [x] refactor timeconverter
 
+[] improve clickable progressbar behaviour (when back)
+[] separate function for start/pause
+[] refactor seek (maybe in class) => no class is allowed. maybe in let audio = {}
 [] reflect play back position to start at the first time
 
 ----
