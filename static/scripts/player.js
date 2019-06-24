@@ -1090,33 +1090,6 @@ function doOnEnded() {
 /***************** TIME CONVERTER **********************/
 
 
-
-// convert second to hh:mm:ss
-// class TimeConverterAsClass {
-//     secToHour(time) {
-//         const hour = Math.floor(time / 3600);
-//         const min = Math.floor(time / 60 % 60);
-//         const sec = Math.floor((time % 60) % 60);
-//
-//         return {
-//             hour: hour,
-//             min: min,
-//             sec: sec
-//         }
-//     }
-//
-//     secToHourString(time) {
-//         const t = this.secToHour(time);
-//         const hour = t.hour > 9 ? t.hour : "0" + t.hour;
-//         const min = t.min > 9 ? t.min : "0" + t.min;
-//         const sec = t.sec > 9 ? t.sec : "0" + t.sec;
-//         return hour + ":" + min + ":" + sec;
-//     }
-// }
-//
-// const timeConverter = new TimeConverter();
-
-
 //2.pdf, p24
 Object.defineProperty(this, "TimeConverterAsClassLikeFunctionP24", {
     enumerable: false,
@@ -1142,50 +1115,6 @@ Object.defineProperty(this, "TimeConverterAsClassLikeFunctionP24", {
     }
 });
 //const TimeConverter = TimeConverterAsClassLikeFunctionP24();
-
-
-//p. 60
-Object.defineProperty(this, "TimeConverterP60", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: { // object
-        t: {}, // this property IS accessible from outside
-        set time(time) { // works like computed property in swift
-            this.t = {
-                hour: Math.floor(time / 3600),
-                min: Math.floor(time / 60 % 60),
-                sec: Math.floor((time % 60) % 60),
-            }
-        },
-        get time() { // works like computed property in swift
-            const hour = this.t.hour > 9 ? this.t.hour : "0" + this.t.hour;
-            const min = this.t.min > 9 ? this.t.min : "0" + this.t.min;
-            const sec = this.t.sec > 9 ? this.t.sec : "0" + this.t.sec;
-            return hour + ":" + min + ":" + sec;
-        }
-    }
-});
-
-
-
-// as a normal function
-Object.defineProperty(this, "convertSecToHourString", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: (time) => {
-        const t = {
-            hour: Math.floor(time / 3600),
-            min: Math.floor(time / 60 % 60),
-            sec: Math.floor((time % 60) % 60),
-        };
-        const hour = t.hour > 9 ? t.hour : "0" + t.hour;
-        const min = t.min > 9 ? t.min : "0" + t.min;
-        const sec = t.sec > 9 ? t.sec : "0" + t.sec;
-        return hour + ":" + min + ":" + sec;
-    }
-});
 
 
 
