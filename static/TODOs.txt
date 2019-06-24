@@ -49,28 +49,46 @@ testing issues...4
 --------------------
 04
 
-[] prevent from several music being played at one time.
-introducing : nowPlaying:boolean?
+[X] prevent from several music being played at one time
+[X] or while other is being played.
 
 [X] start/pause icon change
-[] show ablum & title
+[X] show album & title
 
-[] fix seek in pause
-[] refactor seek (maybe in class)
+[x] fix seek in pause
 
-[] clear audio context after play
+[X] clear audio context after play
+[X] clear audio context after play automatically (onended) => implemented. butnot with onended.
 
-[] implement for forward button
-[] implement for back button
-[] implement for repeat button
-[] implement for random button
+[X] play next song automatically at end
+[X] implement for repeat button
+[X] implement for random button
+[X] fix repeat play
+[X] fix random play
+[X] fix: TypeError: Cannot read property 'id' of undefined
+
+[X] implement for forward button
+[X] implement for back button
 
 [x] implement clickable progressbar
-[] fix clickable progressbar behaviour (when back)
 [x] implement time counter
+
+[x] add volume controller (new version)
+
+[X] remove classes
+[x] refactor timeconverter
+
+[] improve clickable progressbar behaviour (when back)
+[] separate function for start/pause
+[] refactor seek (maybe in class) => no class is allowed. maybe in let audio = {}
+[] reflect play back position to start at the first time
 
 ----
 05
+
+[] print lyrics?
+
+[] replace requestAnimationFrame with setTimeout or something.
 
 [] log-in function
 [] server side: try, catch

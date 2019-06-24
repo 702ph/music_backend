@@ -13,7 +13,7 @@
 <body>
 
 <div id="audioController">
-    <Label> audio position (prototype implementation) </Label>
+    <Label> audio position </Label>
     <br>
     <input class="range" type="range" id="audioPlaybackPositionControlSlider" min="0.0" max="1.0" step="0.01"
            value="0.0">
@@ -30,14 +30,20 @@
     <br>
     <br>
 
-    <Label> audio volume (prototype implementation) </Label>
+    <Label> audio volume (not linked with purple one)</Label>
     <br>
     <input class="range" type="range" id="audioVolumeControlSlider" min="0.0" max="3.0" step="0.05" value="1.5">
     <br>
     Position:
     <output id="audioVolumeDisplay"></output>
 
+    <br>
+    <br>
+    Repeat: <span id="audioRepeatPlayStatusDisplay">OFF</span>
+    <br>
+    Random: <span id="audioRandomPlayStatusDisplay">OFF</span>
 </div>
+
 
 <div class="mediaplayer">
     <header>
@@ -48,8 +54,8 @@
         </div>
         <div>
             <div class="volume">
-                <div class="volumeBG"></div>
-                <div class="volumeLine"></div>
+                <div class="volumeBG" id="audioPlayBackVolumeController"></div>
+                <div class="volumeLine" id="audioPlayBackVolumeBar"></div>
                 <img class="volumeIcon" src="images/volumeButton.png"/>
             </div>
         </div>
@@ -59,12 +65,12 @@
             <img src="images/Arctic_Monkeys.jpg" alt=""/>
         </div>
         <div class="player">
-            <img class="buttons repeat" src="images/loopButton.png"/>
-            <img class="buttons fast-backward" src="images/rewindButton.png"/>
+            <img class="buttons repeat" src="images/loopButton.png" id="audioRepeatPlayButton"/>
+            <img class="buttons fast-backward" src="images/rewindButton.png" id="audioRewindButton"/>
             <img class="buttons play" src="images/playButton.png" id="startAudioContext"/>
             <img class="buttons pause hidden" src="images/pauseButton.png" id="audioPauseButton"/>
-            <img class="buttons fast-forward" src="images/skipButton.png"/>
-            <img class="buttons random" src="images/randomButton.png" alt=""/>
+            <img class="buttons fast-forward" src="images/skipButton.png" id="audioSkipButton"/>
+            <img class="buttons random" src="images/randomButton.png" alt="" id="audioRandomPlayButton"/>
         </div>
     </main>
         <footer>
@@ -80,7 +86,7 @@
 
 
     <div id="drop_zone_container">
-        <div id="drop_zone">Drop file here!</div>
+        <div id="drop_zone">Drop mp3 here!</div>
         <span class="space_top" id="drop_zone_message"></span>
     </div>
     <div>
