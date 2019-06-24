@@ -1029,7 +1029,17 @@ function displayTime() {
 
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
-                audioPlayBackProgressCounter.textContent = timeConverter.secToHourString(audioPlaybackPositionAutoUpdate);
+                //audioPlayBackProgressCounter.textContent = timeConverter.secToHourString(audioPlaybackPositionAutoUpdate);
+                //audioPlayBackProgressCounter.textContent = convertSecToHourString(audioPlaybackPositionAutoUpdate);
+
+                // time converter p24
+                //TimeConverter.setTime(audioPlaybackPositionAutoUpdate);
+                //audioPlayBackProgressCounter.textContent = TimeConverter.getTime();
+
+                // time converter p60
+                TimeConverterP60.time = audioPlaybackPositionAutoUpdate;
+                audioPlayBackProgressCounter.textContent = TimeConverterP60.time;
+
 
                 let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
                 audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
@@ -1076,8 +1086,13 @@ function doOnEnded() {
 }
 
 
+
+/***************** TIME CONVERTER **********************/
+
+
+
 // convert second to hh:mm:ss
-// class TimeConverter {
+// class TimeConverterAsClass {
 //     secToHour(time) {
 //         const hour = Math.floor(time / 3600);
 //         const min = Math.floor(time / 60 % 60);
@@ -1102,21 +1117,22 @@ function doOnEnded() {
 // const timeConverter = new TimeConverter();
 
 
-/***************** TIME CONVERTER **********************/
-
-// convert second to hh:mm:ss
-Object.defineProperty(this, "TimeConverter", {
+//2.pdf, p24
+Object.defineProperty(this, "TimeConverterAsClassLikeFunctionP24", {
     enumerable: false,
     configurable: false,
     writable: false,
-    value: () => {
+    value: () => { //function
+        let t; // this variable is NOT accessible from outside
         return {
-            secToHourString: (time) => {
-                const t = {
+            setTime: (time) => {
+                t = {
                     hour: Math.floor(time / 3600),
                     min: Math.floor(time / 60 % 60),
                     sec: Math.floor((time % 60) % 60),
-                };
+                    };
+                },
+            getTime: () => {
                 const hour = t.hour > 9 ? t.hour : "0" + t.hour;
                 const min = t.min > 9 ? t.min : "0" + t.min;
                 const sec = t.sec > 9 ? t.sec : "0" + t.sec;
@@ -1125,7 +1141,52 @@ Object.defineProperty(this, "TimeConverter", {
         }
     }
 });
-const timeConverter = TimeConverter();
+//const TimeConverter = TimeConverterAsClassLikeFunctionP24();
+
+
+//p. 60
+Object.defineProperty(this, "TimeConverterP60", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: { // object
+        t: {}, // this property IS accessible from outside
+        set time(time) { // works like computed property in swift
+            this.t = {
+                hour: Math.floor(time / 3600),
+                min: Math.floor(time / 60 % 60),
+                sec: Math.floor((time % 60) % 60),
+            }
+        },
+        get time() { // works like computed property in swift
+            const hour = this.t.hour > 9 ? this.t.hour : "0" + this.t.hour;
+            const min = this.t.min > 9 ? this.t.min : "0" + this.t.min;
+            const sec = this.t.sec > 9 ? this.t.sec : "0" + this.t.sec;
+            return hour + ":" + min + ":" + sec;
+        }
+    }
+});
+
+
+
+// as a normal function
+Object.defineProperty(this, "convertSecToHourString", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: (time) => {
+        const t = {
+            hour: Math.floor(time / 3600),
+            min: Math.floor(time / 60 % 60),
+            sec: Math.floor((time % 60) % 60),
+        };
+        const hour = t.hour > 9 ? t.hour : "0" + t.hour;
+        const min = t.min > 9 ? t.min : "0" + t.min;
+        const sec = t.sec > 9 ? t.sec : "0" + t.sec;
+        return hour + ":" + min + ":" + sec;
+    }
+});
+
 
 
 /*****************  **********************/

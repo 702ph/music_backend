@@ -85,6 +85,8 @@ testing issues...4
 ----
 05
 
+[] replace requestAnimationFrame with setTimeout or something.
+
 [] log-in function
 [] server side: try, catch
 [] clean up server code
