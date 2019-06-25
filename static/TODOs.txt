@@ -76,21 +76,36 @@ testing issues...4
 [x] add volume controller (new version)
 
 [X] remove classes
-[x] refactor timeconverter
+[x] refactor time converter
 
-[] improve clickable progressbar behaviour (when back)
-[] separate function for start/pause
+[X] print lyrics?
+
 [] refactor seek (maybe in class) => no class is allowed. maybe in let audio = {}
-[] reflect play back position to start at the first time
+[] reflect play back position to start at the first time => this is complicated. we have to load audiobuffer to get duration.
+
+[] separate function for start/pause
+[] start -> play
+[] replay
+[] resume (from pause)
 
 ----
 05
 
-[] print lyrics?
+[] improve clickable progressbar behaviour (when back)
 
-[] replace requestAnimationFrame with setTimeout or something.
-
+[] hide static
 [] log-in function
+
+[] audio visualization?
+
+
+[] replace requestAnimationFrame with setTimeout or something and then it liter?
+
+[] defineProperty with prototype?
+https://www.sejuku.net/blog/25328
+
+[] close audio context if pause is more than 10 minutes?
+
 [] server side: try, catch
 [] clean up server code
 

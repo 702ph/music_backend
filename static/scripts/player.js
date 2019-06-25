@@ -29,6 +29,7 @@ window.addEventListener('load', async function () {
     document.querySelector("#songIDInput").value = selectedSongID;
 
     printAudioInformation();
+    printLyrics(getSongInfo(selectedSongID));
 });
 
 
@@ -44,6 +45,7 @@ Object.defineProperty(this, 'initAudioContext', {
         try {
             AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
+            AudioVisualizer.analyser = audioCtx.createAnalyser();
 
             gainNode = audioCtx.createGain();
             audioBufferSourceNode = audioCtx.createBufferSource();
@@ -63,17 +65,40 @@ function initAudioBufferSourceNode() {
 
         // buffer duration
         audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
+        console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
 
         // connect audio source with gain node
-        audioBufferSourceNode.connect(gainNode);
+        //audioBufferSourceNode.connect(gainNode);
+        //gainNode.connect(audioCtx.destination);
+
+        // connect audio source with analyser, then with gain node
+        audioBufferSourceNode.connect(AudioVisualizer.analyser);
+        AudioVisualizer.analyser.connect(gainNode);
         gainNode.connect(audioCtx.destination);
+
+        // audio analyser settings
+        AudioVisualizer.analyser.fftSize = AudioVisualizer.FFT_SIZE;
+        AudioVisualizer.analyser.minDecibels = AudioVisualizer.MIN_DECIBELS;
+        AudioVisualizer.analyser.maxDecibels = AudioVisualizer.MAX_DECIBELS;
+        AudioVisualizer.analyser.smoothingTimeConstant = AudioVisualizer.SMOOTHING;
+
+        // get frequencyBinCount
+        AudioVisualizer.bufferLength = AudioVisualizer.analyser.frequencyBinCount;
+        console.log(AudioVisualizer.bufferLength);
+
+        // prepare array
+        AudioVisualizer.dataArray = new Uint8Array(AudioVisualizer.bufferLength);
+
+        // clear previous analyzer
+        canvasCtx.clearRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
+
     } catch (e) {
         console.log(e);
     }
 }
 
 
-/***************** CORE VARIABLES  **********************/
+/***************** CORE VARIABLES etc **********************/
 
 let audioCtx;
 let startBtn = document.querySelector('#startAudioContext');
@@ -849,6 +874,19 @@ Object.defineProperty(this, "getLyrics", {
 });
 
 
+Object.defineProperty(this, 'queryLyrics', {
+    value: async function (songInfo) {
+        const apikey = "9rKTnZBFvEFwSc6eZHA7a7G7mXsrMyIgu7R4L015Lzv9MG8Af4J3OoI0TJ8VB8xs";
+        const resource = "https://orion.apiseeds.com/api/music/lyric/" + songInfo.artist + "/" + songInfo.title + "?apikey=" + apikey;
+
+        let response = await fetch(resource, {method: 'GET', headers: {"Accept": "application/json"}});
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        return response.json();
+    }
+});
+
+
 /***************** UPLOAD BUTTON **********************/
 
 const selectFileBtn = document.querySelector("#selectFileButton");
@@ -922,6 +960,9 @@ Object.defineProperty(playerButtons, "skipSong", {
     configurable: false,
     writable: false,
     value: async () => {
+        //clear lyrics text
+        lyricsText.value = "lyrics here";
+
         if (isPlaying) { // in play
             playController.playNextSong();
         } else { // in pause
@@ -936,6 +977,9 @@ Object.defineProperty(playerButtons, "rewindSong", {
     configurable: false,
     writable: false,
     value: () => {
+        //clear lyrics text
+        lyricsText.value = "lyrics here";
+
         if (isPlaying) { // in play
             playController.playPreviousSong();
         } else { // in pause
@@ -1017,7 +1061,7 @@ Object.defineProperty(this, "showPauseIcon", {
 });
 
 
-/***************** AUDIO CONTEXT  **********************/
+/***************** AUDIO CONTEXT MAIN  **********************/
 
 audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
@@ -1068,6 +1112,7 @@ async function start() {
 
             isPlaying = true;
             showPauseIcon(true);
+            printLyrics(getSongInfo(nowPlayingSongID));
             return;
         }
     }
@@ -1092,17 +1137,13 @@ async function start() {
         audioArrayBuffer = await loadSongFromURL(selectedSongID);
         console.log(audioArrayBuffer.byteLength);
 
-        // set audio buffer
+        // decode audio array buffer
         //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
         decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
-        audioBufferSourceNode.buffer = decodedAudioBuffer;
-        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
-        console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
 
-        //preparation
-        audioBufferSourceNode.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
+
+        initAudioBufferSourceNode();
 
         //play
         audioStartAt = Date.now();
@@ -1113,6 +1154,7 @@ async function start() {
         showPauseIcon(true);
         printAudioInformation();
         nowPlayingSongID = selectedSongID;
+        printLyrics(getSongInfo(nowPlayingSongID));
 
     } catch (error) {
         console.log(error);
@@ -1152,6 +1194,123 @@ Object.defineProperty(this, "rePlaySong", {
         isPlaying = true;
         showPauseIcon(true);
         printAudioInformation();
+    }
+});
+
+
+/******************** AUDIO VISUALIZER ****************************/
+
+let AudioVisualizer = {};
+
+Object.defineProperties(AudioVisualizer, {
+        "analyser": {
+            enumerable: false,
+            configurable: false,
+            writable: true
+        },
+        "bufferLength": {
+            enumerable: false,
+            configurable: false,
+            writable: true
+        },
+        "dataArray": {
+            enumerable: false,
+            configurable: false,
+            writable: true
+        },
+        "CANVAS_WIDTH": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 640
+        },
+        "CANVAS_HEIGHT": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 360
+        },
+        "FFT_SIZE": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 2048
+        },
+        "SMOOTHING": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 0.8
+        },
+        "MIN_DECIBELS": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: -140
+        },
+        "MAX_DECIBELS": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 0
+        },
+        "canvas": {
+            enumerable: false,
+            configurable: false,
+            writable: true,
+            value: document.querySelector("#visualizer")
+        },
+    }
+);
+
+AudioVisualizer.canvas.width = AudioVisualizer.CANVAS_WIDTH;
+AudioVisualizer.canvas.height = AudioVisualizer.CANVAS_HEIGHT;
+let canvasCtx = AudioVisualizer.canvas.getContext("2d");
+
+Object.defineProperty(AudioVisualizer, "draw", {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: () => {
+            AudioVisualizer.analyser.getByteFrequencyData(AudioVisualizer.dataArray);
+
+            canvasCtx.fillStyle = "rgb(0, 0, 0)";
+            canvasCtx.fillRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
+
+            for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
+                let value = AudioVisualizer.dataArray[i];
+                let percent = value / 256;
+                let height = AudioVisualizer.CANVAS_HEIGHT * percent;
+                let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
+                let barWidth = AudioVisualizer.CANVAS_WIDTH / AudioVisualizer.bufferLength;
+                let hue = i / AudioVisualizer.bufferLength * 360;
+                canvasCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
+                canvasCtx.fillRect(i * barWidth, offset, barWidth, height);
+            }
+        }
+    }
+);
+
+
+Object.defineProperty(AudioVisualizer, "draw_old", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: () => {
+        canvasCtx.fillStyle = "rgb(0, 0, 0)";
+        canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        let barWidth = (CANVAS_WIDTH / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i] / 2;
+
+            canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+            canvasCtx.fillRect(x, CANVAS_HEIGHT - barHeight / 2, barWidth, barHeight);
+
+            x += barWidth + 1;
+        }
     }
 });
 
@@ -1331,6 +1490,7 @@ Object.defineProperty(this, 'getRandomSongID', {
     }
 });
 
+/************************ AUDIO INFORMATION  *****************************/
 
 Object.defineProperty(this, "printAudioInformation", {
     enumerable: false,
@@ -1342,11 +1502,22 @@ Object.defineProperty(this, "printAudioInformation", {
 });
 
 
+let lyricsText = document.querySelector("#lyricsText");
+
 Object.defineProperty(this, "printLyrics", {
-    enumerable: false,
     writable: false,
-    value: () => {
-        getLyrics(getSongInfo(nowPlayingSongID));
+    writable: false,
+    configurable: false,
+    enumerable: false,
+    value: async (songInfo) => {
+        try {
+            const lyrics = await queryLyrics(songInfo);
+            console.log(lyrics);
+            lyricsText.value = lyrics.result.track.text;
+        } catch (error) {
+            console.log(error);
+            lyricsText.value = "no lyrics found in database";
+        }
     }
 });
 
@@ -1416,9 +1587,16 @@ function changeAudioPlaybackPosition() {
     // set ratio to display
     audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
 
-    //calculate exact position in audio source
-    audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
-    console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
+
+    // it's just after the page load, if audioBufferSourceDuration undefined
+    if (audioBufferSourceDuration === undefined) {
+
+    } else {
+        //calculate exact position in audio source
+        audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
+        console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
+    }
+
 
     // start & stop audio source
     seekAudioPlaybackPosition();
@@ -1494,10 +1672,8 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
 });
 
 
-/***************** PLAY BACK POSITION DISPLAY & PROCESS ON PLAY END  **********************/
+/***************** PLAY BACK POSITION DISPLAY, VISUALIZER UPDATE & PROCESS ON PLAY END  **********************/
 
-
-//let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
 let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
 let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgressCounter");
 
@@ -1507,9 +1683,13 @@ function displayTime() {
 
         if (isPlaying) {
             if (onMouseDown) {
-                // do nothing
+                // not update during on mouse down
 
             } else {
+
+                //visualizer
+                //draw();
+                AudioVisualizer.draw();
 
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
@@ -1569,6 +1749,7 @@ Object.defineProperty(this, "doOnPlayEnded", {
     }
 });
 
+
 /***************** TIME CONVERTER **********************/
 
 // approach on 2.pdf, p24
@@ -1614,8 +1795,7 @@ $(window).on('load', function () { // makes sure the whole site is loaded
     $('#status').fadeOut(); // will first fade out the loading animation
     $('#preloader').delay(500).fadeOut('slow'); // will fade out the white DIV that covers the website.
     checkTouchScreen();
-})
-
+});
 
 
 

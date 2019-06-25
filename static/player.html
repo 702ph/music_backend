@@ -95,10 +95,17 @@
             <input type="file" name="inputFile" id="selectFileButton" accept="audio/mpeg">
         </label>
     </div>
+
+    <br>
+    <div>
+        <textarea readonly = "readonly" id="lyricsText">Lyrics here...</textarea>
+    </div>
+
+
 </div>
 
-<div class="space musicList hidden" id="showList">
 
+<div class="space musicList hidden" id="showList">
 
     <div>
         <button class="playerButtons" id="suspendAudioContext">Pause(DO NOT CLICK!)</button>
@@ -127,7 +134,19 @@
         <div class="padding" id="songSelectorTable"></div>
         <div class="margin" id="tableDebug"></div>
     </div>
+
+    <div>
+        visualizer:
+        <canvas id="visualizer"></canvas>
+    </div>
+
+
 </div>
+
+
+
+
+
 <div id="preloader">
   <div id="status">
      <div class="spinner">
@@ -139,6 +158,8 @@
     </div>
   </div>
 </div>
+
+
 </body>
 <script src="scripts/player.js"></script>
 </html>
