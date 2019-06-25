@@ -45,11 +45,10 @@ Object.defineProperty(this, 'initAudioContext', {
         try {
             AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
-            analyser = audioCtx.createAnalyser();
+            AudioVisualizer.analyser = audioCtx.createAnalyser();
 
             gainNode = audioCtx.createGain();
             audioBufferSourceNode = audioCtx.createBufferSource();
-
         } catch (error) {
             console.log(error);
         }
@@ -66,10 +65,33 @@ function initAudioBufferSourceNode() {
 
         // buffer duration
         audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
+        console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
 
         // connect audio source with gain node
-        audioBufferSourceNode.connect(gainNode);
+        //audioBufferSourceNode.connect(gainNode);
+        //gainNode.connect(audioCtx.destination);
+
+        // connect audio source with analyser, then with gain node
+        audioBufferSourceNode.connect(AudioVisualizer.analyser);
+        AudioVisualizer.analyser.connect(gainNode);
         gainNode.connect(audioCtx.destination);
+
+        // audio analyser settings
+        AudioVisualizer.analyser.fftSize = AudioVisualizer.FFT_SIZE;
+        AudioVisualizer.analyser.minDecibels = AudioVisualizer.MIN_DECIBELS;
+        AudioVisualizer.analyser.maxDecibels = AudioVisualizer.MAX_DECIBELS;
+        AudioVisualizer.analyser.smoothingTimeConstant = AudioVisualizer.SMOOTHING;
+
+        // get frequencyBinCount
+        AudioVisualizer.bufferLength = AudioVisualizer.analyser.frequencyBinCount;
+        console.log(AudioVisualizer.bufferLength);
+
+        // prepare array
+        AudioVisualizer.dataArray = new Uint8Array(AudioVisualizer.bufferLength);
+
+        // clear previous analyzer
+        canvasCtx.clearRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
+
     } catch (e) {
         console.log(e);
     }
@@ -1115,34 +1137,13 @@ async function start() {
         audioArrayBuffer = await loadSongFromURL(selectedSongID);
         console.log(audioArrayBuffer.byteLength);
 
-        // set audio buffer
+        // decode audio array buffer
         //because audioArrayBuffer is a Promise Object, you have to wait till it's set to resolved.
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
         decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
-        audioBufferSourceNode.buffer = decodedAudioBuffer;
-        audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
-        console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
 
-        //preparation
-        //audioBufferSourceNode.connect(gainNode);
-        //gainNode.connect(audioCtx.destination);
 
-        //preparation with analyser
-        https://developer.mozilla.org/ja/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API#Creating_a_frequency_bar_graph
-            audioBufferSourceNode.connect(analyser);
-        analyser.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        analyser.fftSize = FFT_SIZE;
-        analyser.minDecibels = -140;
-        analyser.maxDecibels = 0;
-        analyser.smoothingTimeConstant = SMOOTHING;
-
-        bufferLength = analyser.frequencyBinCount;
-        console.log(bufferLength);
-        dataArray = new Uint8Array(bufferLength);
-        canvasCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
+        initAudioBufferSourceNode();
 
         //play
         audioStartAt = Date.now();
@@ -1197,43 +1198,112 @@ Object.defineProperty(this, "rePlaySong", {
 });
 
 
-/******************** ANALYSER ****************************/
+/******************** AUDIO VISUALIZER ****************************/
 
-// analyser
+let AudioVisualizer = {};
 
-let AudioVisualizer = new Object();
+Object.defineProperties(AudioVisualizer, {
+        "analyser": {
+            enumerable: false,
+            configurable: false,
+            writable: true
+        },
+        "bufferLength": {
+            enumerable: false,
+            configurable: false,
+            writable: true
+        },
+        "dataArray": {
+            enumerable: false,
+            configurable: false,
+            writable: true
+        },
+        "CANVAS_WIDTH": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 640
+        },
+        "CANVAS_HEIGHT": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 360
+        },
+        "FFT_SIZE": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 2048
+        },
+        "SMOOTHING": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 0.8
+        },
+        "MIN_DECIBELS": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: -140
+        },
+        "MAX_DECIBELS": {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: 0
+        },
+        "canvas": {
+            enumerable: false,
+            configurable: false,
+            writable: true,
+            value: document.querySelector("#visualizer")
+        },
+    }
+);
 
-let analyser;
-let bufferLength;
-let dataArray;
+AudioVisualizer.canvas.width = AudioVisualizer.CANVAS_WIDTH;
+AudioVisualizer.canvas.height = AudioVisualizer.CANVAS_HEIGHT;
+let canvasCtx = AudioVisualizer.canvas.getContext("2d");
 
-let canvas = document.querySelector("#visualizer");
-// const CANVAS_WIDTH = 512;
-// const CANVAS_HEIGHT = 288;
-const CANVAS_WIDTH = 640;
-const CANVAS_HEIGHT = 360;
+Object.defineProperty(AudioVisualizer, "draw", {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: () => {
+            AudioVisualizer.analyser.getByteFrequencyData(AudioVisualizer.dataArray);
 
-canvas.width = CANVAS_WIDTH;
-canvas.height = CANVAS_HEIGHT;
-let canvasCtx = canvas.getContext("2d");
+            canvasCtx.fillStyle = "rgb(0, 0, 0)";
+            canvasCtx.fillRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
 
-//const FFT_SIZE = 256;
-const FFT_SIZE = 2048;
-const SMOOTHING = 0.8
+            for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
+                let value = AudioVisualizer.dataArray[i];
+                let percent = value / 256;
+                let height = AudioVisualizer.CANVAS_HEIGHT * percent;
+                let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
+                let barWidth = AudioVisualizer.CANVAS_WIDTH / AudioVisualizer.bufferLength;
+                let hue = i / AudioVisualizer.bufferLength * 360;
+                canvasCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
+                canvasCtx.fillRect(i * barWidth, offset, barWidth, height);
+            }
+        }
+    }
+);
 
 
-function draw01() {
-
-    if (isPlaying) {
-        //drawVisual = requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
+Object.defineProperty(AudioVisualizer, "draw_old", {
+    enumerable: false,
+    configurable: false,
+    writable: false,
+    value: () => {
         canvasCtx.fillStyle = "rgb(0, 0, 0)";
         canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         let barWidth = (CANVAS_WIDTH / bufferLength) * 2.5;
         let barHeight;
         let x = 0;
 
-        for (var i = 0; i < bufferLength; i++) {
+        for (let i = 0; i < bufferLength; i++) {
             barHeight = dataArray[i] / 2;
 
             canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
@@ -1242,54 +1312,7 @@ function draw01() {
             x += barWidth + 1;
         }
     }
-}
-
-
-function draw() {
-
-    analyser.getByteFrequencyData(dataArray);
-
-    //let width = Math.floor(1 / dataArray.length, 10);
-
-    canvasCtx.fillStyle = "rgb(0, 0, 0)";
-    canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    for (let i = 0; i < bufferLength; i++) {
-        let value = dataArray[i];
-        let percent = value / 256;
-        let height = CANVAS_HEIGHT * percent;
-        let offset = CANVAS_HEIGHT - height - 1;
-        let barWidth = CANVAS_WIDTH / bufferLength;
-        let hue = i / bufferLength * 360;
-        canvasCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
-        canvasCtx.fillRect(i * barWidth, offset, barWidth, height);
-    }
-}
-
-
-Object.defineProperty(AudioVisualizer, "draw", {
-        enumerable: false,
-        configurable: false,
-        writable: false,
-        value: () => {
-            analyser.getByteFrequencyData(dataArray);
-
-            canvasCtx.fillStyle = "rgb(0, 0, 0)";
-            canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-            for (let i = 0; i < bufferLength; i++) {
-                let value = dataArray[i];
-                let percent = value / 256;
-                let height = CANVAS_HEIGHT * percent;
-                let offset = CANVAS_HEIGHT - height - 1;
-                let barWidth = CANVAS_WIDTH / bufferLength;
-                let hue = i / bufferLength * 360;
-                canvasCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
-                canvasCtx.fillRect(i * barWidth, offset, barWidth, height);
-            }
-        }
-    }
-);
+});
 
 
 /***************** PLAYER CONTROLLER **********************/
