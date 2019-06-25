@@ -323,6 +323,9 @@ main .player .buttons.fast-forward:hover {
 main .player .buttons.repeat:hover {
     opacity: 1;
 }
+main .player .buttons.pause:hover {
+    opacity: 1;
+}
 
 /*===============================================*/
 /*                  FOOTER                       */
