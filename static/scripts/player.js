@@ -29,6 +29,7 @@ window.addEventListener('load', async function () {
     document.querySelector("#songIDInput").value = selectedSongID;
 
     printAudioInformation();
+    printLyrics(getSongInfo(selectedSongID));
 });
 
 
@@ -44,9 +45,11 @@ Object.defineProperty(this, 'initAudioContext', {
         try {
             AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
+            analyser = audioCtx.createAnalyser();
 
             gainNode = audioCtx.createGain();
             audioBufferSourceNode = audioCtx.createBufferSource();
+
         } catch (error) {
             console.log(error);
         }
@@ -73,7 +76,7 @@ function initAudioBufferSourceNode() {
 }
 
 
-/***************** CORE VARIABLES  **********************/
+/***************** CORE VARIABLES etc **********************/
 
 let audioCtx;
 let startBtn = document.querySelector('#startAudioContext');
@@ -849,6 +852,19 @@ Object.defineProperty(this, "getLyrics", {
 });
 
 
+Object.defineProperty(this, 'queryLyrics', {
+    value: async function (songInfo) {
+        const apikey = "9rKTnZBFvEFwSc6eZHA7a7G7mXsrMyIgu7R4L015Lzv9MG8Af4J3OoI0TJ8VB8xs";
+        const resource = "https://orion.apiseeds.com/api/music/lyric/" + songInfo.artist + "/" + songInfo.title + "?apikey=" + apikey;
+
+        let response = await fetch(resource, {method: 'GET', headers: {"Accept": "application/json"}});
+        if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+        return response.json();
+    }
+});
+
+
 /***************** UPLOAD BUTTON **********************/
 
 const selectFileBtn = document.querySelector("#selectFileButton");
@@ -922,6 +938,9 @@ Object.defineProperty(playerButtons, "skipSong", {
     configurable: false,
     writable: false,
     value: async () => {
+        //clear lyrics text
+        lyricsText.value = "lyrics here";
+
         if (isPlaying) { // in play
             playController.playNextSong();
         } else { // in pause
@@ -936,6 +955,9 @@ Object.defineProperty(playerButtons, "rewindSong", {
     configurable: false,
     writable: false,
     value: () => {
+        //clear lyrics text
+        lyricsText.value = "lyrics here";
+
         if (isPlaying) { // in play
             playController.playPreviousSong();
         } else { // in pause
@@ -1017,7 +1039,7 @@ Object.defineProperty(this, "showPauseIcon", {
 });
 
 
-/***************** AUDIO CONTEXT  **********************/
+/***************** AUDIO CONTEXT MAIN  **********************/
 
 audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
@@ -1068,6 +1090,7 @@ async function start() {
 
             isPlaying = true;
             showPauseIcon(true);
+            printLyrics(getSongInfo(nowPlayingSongID));
             return;
         }
     }
@@ -1101,8 +1124,25 @@ async function start() {
         console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
 
         //preparation
-        audioBufferSourceNode.connect(gainNode);
+        //audioBufferSourceNode.connect(gainNode);
+        //gainNode.connect(audioCtx.destination);
+
+        //preparation with analyser
+        https://developer.mozilla.org/ja/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API#Creating_a_frequency_bar_graph
+            audioBufferSourceNode.connect(analyser);
+        analyser.connect(gainNode);
         gainNode.connect(audioCtx.destination);
+
+        analyser.fftSize = FFT_SIZE;
+        analyser.minDecibels = -140;
+        analyser.maxDecibels = 0;
+        analyser.smoothingTimeConstant = SMOOTHING;
+
+        bufferLength = analyser.frequencyBinCount;
+        console.log(bufferLength);
+        dataArray = new Uint8Array(bufferLength);
+        canvasCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
 
         //play
         audioStartAt = Date.now();
@@ -1113,6 +1153,7 @@ async function start() {
         showPauseIcon(true);
         printAudioInformation();
         nowPlayingSongID = selectedSongID;
+        printLyrics(getSongInfo(nowPlayingSongID));
 
     } catch (error) {
         console.log(error);
@@ -1154,6 +1195,101 @@ Object.defineProperty(this, "rePlaySong", {
         printAudioInformation();
     }
 });
+
+
+/******************** ANALYSER ****************************/
+
+// analyser
+
+let AudioVisualizer = new Object();
+
+let analyser;
+let bufferLength;
+let dataArray;
+
+let canvas = document.querySelector("#visualizer");
+// const CANVAS_WIDTH = 512;
+// const CANVAS_HEIGHT = 288;
+const CANVAS_WIDTH = 640;
+const CANVAS_HEIGHT = 360;
+
+canvas.width = CANVAS_WIDTH;
+canvas.height = CANVAS_HEIGHT;
+let canvasCtx = canvas.getContext("2d");
+
+//const FFT_SIZE = 256;
+const FFT_SIZE = 2048;
+const SMOOTHING = 0.8
+
+
+function draw01() {
+
+    if (isPlaying) {
+        //drawVisual = requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+        canvasCtx.fillStyle = "rgb(0, 0, 0)";
+        canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        let barWidth = (CANVAS_WIDTH / bufferLength) * 2.5;
+        let barHeight;
+        let x = 0;
+
+        for (var i = 0; i < bufferLength; i++) {
+            barHeight = dataArray[i] / 2;
+
+            canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+            canvasCtx.fillRect(x, CANVAS_HEIGHT - barHeight / 2, barWidth, barHeight);
+
+            x += barWidth + 1;
+        }
+    }
+}
+
+
+function draw() {
+
+    analyser.getByteFrequencyData(dataArray);
+
+    //let width = Math.floor(1 / dataArray.length, 10);
+
+    canvasCtx.fillStyle = "rgb(0, 0, 0)";
+    canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    for (let i = 0; i < bufferLength; i++) {
+        let value = dataArray[i];
+        let percent = value / 256;
+        let height = CANVAS_HEIGHT * percent;
+        let offset = CANVAS_HEIGHT - height - 1;
+        let barWidth = CANVAS_WIDTH / bufferLength;
+        let hue = i / bufferLength * 360;
+        canvasCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
+        canvasCtx.fillRect(i * barWidth, offset, barWidth, height);
+    }
+}
+
+
+Object.defineProperty(AudioVisualizer, "draw", {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: () => {
+            analyser.getByteFrequencyData(dataArray);
+
+            canvasCtx.fillStyle = "rgb(0, 0, 0)";
+            canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+            for (let i = 0; i < bufferLength; i++) {
+                let value = dataArray[i];
+                let percent = value / 256;
+                let height = CANVAS_HEIGHT * percent;
+                let offset = CANVAS_HEIGHT - height - 1;
+                let barWidth = CANVAS_WIDTH / bufferLength;
+                let hue = i / bufferLength * 360;
+                canvasCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
+                canvasCtx.fillRect(i * barWidth, offset, barWidth, height);
+            }
+        }
+    }
+);
 
 
 /***************** PLAYER CONTROLLER **********************/
@@ -1331,6 +1467,7 @@ Object.defineProperty(this, 'getRandomSongID', {
     }
 });
 
+/************************ AUDIO INFORMATION  *****************************/
 
 Object.defineProperty(this, "printAudioInformation", {
     enumerable: false,
@@ -1342,11 +1479,22 @@ Object.defineProperty(this, "printAudioInformation", {
 });
 
 
+let lyricsText = document.querySelector("#lyricsText");
+
 Object.defineProperty(this, "printLyrics", {
-    enumerable: false,
     writable: false,
-    value: () => {
-        getLyrics(getSongInfo(nowPlayingSongID));
+    writable: false,
+    configurable: false,
+    enumerable: false,
+    value: async (songInfo) => {
+        try {
+            const lyrics = await queryLyrics(songInfo);
+            console.log(lyrics);
+            lyricsText.value = lyrics.result.track.text;
+        } catch (error) {
+            console.log(error);
+            lyricsText.value = "no lyrics found in database";
+        }
     }
 });
 
@@ -1416,9 +1564,16 @@ function changeAudioPlaybackPosition() {
     // set ratio to display
     audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
 
-    //calculate exact position in audio source
-    audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
-    console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
+
+    // it's just after the page load, if audioBufferSourceDuration undefined
+    if (audioBufferSourceDuration === undefined) {
+
+    } else {
+        //calculate exact position in audio source
+        audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
+        console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
+    }
+
 
     // start & stop audio source
     seekAudioPlaybackPosition();
@@ -1494,10 +1649,8 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
 });
 
 
-/***************** PLAY BACK POSITION DISPLAY & PROCESS ON PLAY END  **********************/
+/***************** PLAY BACK POSITION DISPLAY, VISUALIZER UPDATE & PROCESS ON PLAY END  **********************/
 
-
-//let audioSourcePlaybackTimeDisplay = document.querySelector("#audioSourcePlaybackTimeDisplay");
 let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
 let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgressCounter");
 
@@ -1507,9 +1660,13 @@ function displayTime() {
 
         if (isPlaying) {
             if (onMouseDown) {
-                // do nothing
+                // not update during on mouse down
 
             } else {
+
+                //visualizer
+                //draw();
+                AudioVisualizer.draw();
 
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
                 audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
@@ -1569,6 +1726,7 @@ Object.defineProperty(this, "doOnPlayEnded", {
     }
 });
 
+
 /***************** TIME CONVERTER **********************/
 
 // approach on 2.pdf, p24
@@ -1614,8 +1772,7 @@ $(window).on('load', function () { // makes sure the whole site is loaded
     $('#status').fadeOut(); // will first fade out the loading animation
     $('#preloader').delay(500).fadeOut('slow'); // will fade out the white DIV that covers the website.
     checkTouchScreen();
-})
-
+});
 
 
 
