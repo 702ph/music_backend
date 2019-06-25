@@ -87,7 +87,11 @@ function initAudioBufferSourceNode() {
         console.log(AudioVisualizer.bufferLength);
 
         // prepare array
-        AudioVisualizer.dataArray = new Uint8Array(AudioVisualizer.bufferLength);
+        AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.bufferLength);
+        AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.bufferLength);
+
+        //AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
+        //AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
 
         // clear previous analyzer
         canvasCtx.clearRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
@@ -1142,7 +1146,6 @@ async function start() {
         //https://developer.mozilla.org/ja/docs/Web/API/AudioContext/decodeAudioData
         decodedAudioBuffer = await audioCtx.decodeAudioData(audioArrayBuffer);
 
-
         initAudioBufferSourceNode();
 
         //play
@@ -1213,7 +1216,12 @@ Object.defineProperties(AudioVisualizer, {
             configurable: false,
             writable: true
         },
-        "dataArray": {
+        "frequencyDataArray": {
+            enumerable: false,
+            configurable: false,
+            writable: true
+        },
+        "timeDataArray": {
             enumerable: false,
             configurable: false,
             writable: true
@@ -1272,13 +1280,15 @@ Object.defineProperty(AudioVisualizer, "draw", {
         configurable: false,
         writable: false,
         value: () => {
-            AudioVisualizer.analyser.getByteFrequencyData(AudioVisualizer.dataArray);
-
+            // clear canvas
             canvasCtx.fillStyle = "rgb(0, 0, 0)";
             canvasCtx.fillRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
 
+            //draw chart for the frequency domain
+            AudioVisualizer.analyser.getByteFrequencyData(AudioVisualizer.frequencyDataArray);
+
             for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
-                let value = AudioVisualizer.dataArray[i];
+                let value = AudioVisualizer.frequencyDataArray[i];
                 let percent = value / 256;
                 let height = AudioVisualizer.CANVAS_HEIGHT * percent;
                 let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
@@ -1286,6 +1296,19 @@ Object.defineProperty(AudioVisualizer, "draw", {
                 let hue = i / AudioVisualizer.bufferLength * 360;
                 canvasCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
                 canvasCtx.fillRect(i * barWidth, offset, barWidth, height);
+            }
+
+            //draw chart for the time domain
+            AudioVisualizer.analyser.getByteTimeDomainData(AudioVisualizer.timeDataArray);
+
+            for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
+                let value = AudioVisualizer.timeDataArray[i];
+                let percent = value / 256;
+                let height = AudioVisualizer.CANVAS_HEIGHT * percent;
+                let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
+                let barWidth = AudioVisualizer.CANVAS_WIDTH / AudioVisualizer.bufferLength;
+                canvasCtx.fillStyle = 'white';
+                canvasCtx.fillRect(i * barWidth, offset, 1, 2);
             }
         }
     }

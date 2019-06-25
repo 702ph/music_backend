@@ -96,7 +96,7 @@ testing issues...4
 [] hide static
 [] log-in function
 
-[] audio visualization?
+[X] audio visualization?
 
 
 [] replace requestAnimationFrame with setTimeout or something and then it liter?
