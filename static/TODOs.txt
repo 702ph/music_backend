@@ -91,9 +91,9 @@ testing issues...4
 ----
 05
 
-[] improve clickable progressbar behaviour (when back)
+[] improve clickable progressbar behaviour (when going back)
 
-[] hide static
+[] hide /static/
 [] log-in function
 
 [X] audio visualization?
