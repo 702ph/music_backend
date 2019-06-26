@@ -77,6 +77,7 @@
             <img class="buttons random" src="images/randomButton.png" alt="" id="audioRandomPlayButton"/>
         </div>
     </main>
+
         <footer>
             <div class="title" id="audioInformationFrame">
                 <p id="audioInformation">Arctic Monkeys - The view from the afternoon</p>
@@ -86,8 +87,10 @@
                     <div class="bgStart" id="audioPlayBackProgressBar"></div>
                     <div class="bg" id="audioPlayBackProgressBarController"></div>
                 </div>
-                <div class="time" id="audioPlayBackProgressCounter">00:00:00</div>
+                
             </div>
+            <div class="time" id="audioPlayBackProgressCounter">00:00:00</div>
+        </div>
     </footer>
 
 
@@ -97,28 +100,42 @@
     </div>
     <div>
         <label for="selectFileButton" id="selectFileLabel">
-            or click here
+            OR CLICK HERE
             <input type="file" name="inputFile" id="selectFileButton" accept="audio/mpeg">
         </label>
     </div>
 
     <br>
-    <div>
-        <textarea readonly = "readonly" id="lyricsText">Lyrics here...</textarea>
+
+        <div>
+        <a class="lyricsButton" href="#popup1">SHOW LYRICS</a>
     </div>
 
+    <div id="popup1" class="overlay">
+        <div class="popup">
+            <a class="close" href="#">&times;</a>
+            <div class="content">
+                <textarea rows="50" cols="90" readonly="readonly" id="lyricsText">Lyrics here...</textarea>
+            </div>
+        </div>
+    </div>
+    <!--
+    <div>
+        <textarea readonly="readonly" id="lyricsText">Lyrics here...</textarea>
+    </div>
+    -->
 
 </div>
 
 
 <div class="space musicList hidden" id="showList">
 
-    <div class="box" id="edit_buttons">
+    <div id="edit_buttons">
         <input type="button" class="playerButtons" id="editStartButton" value="EDIT">
         <input type="button" class="playerButtons" id="editCancelButton" value="CANCEL">
     </div>
 
-    <div class="box right" id="delete_buttons">
+    <div id="delete_buttons">
         <input type="button" class="playerButtons" id="deleteButton" value="CUT">
         <input type="button" class="playerButtons" id="deleteConfirmButton" value="CONFIRM">
         <input type="button" class="playerButtons" id="deleteCancelButton" value="CANCEL">
@@ -131,15 +148,15 @@
 </div>
 
 <div id="preloader">
-  <div id="status">
-     <div class="spinner">
-      <div class="rect1"></div>
-      <div class="rect2"></div>
-      <div class="rect3"></div>
-      <div class="rect4"></div>
-      <div class="rect5"></div>
+    <div id="status">
+        <div class="spinner">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+        </div>
     </div>
-  </div>
 </div>
 
 

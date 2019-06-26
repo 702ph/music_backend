@@ -78,11 +78,8 @@ table {
     float: left;
 }
 
-.box {
-     float: left;
-     width: auto;
-     margin-right: 3.33333%;
-     box-sizing: border-box;
+.fullHeight {
+    height: 90%;
 }
 
 body {
