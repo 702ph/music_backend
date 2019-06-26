@@ -1281,7 +1281,7 @@ Object.defineProperty(AudioVisualizer, "draw", {
         writable: false,
         value: () => {
             // clear canvas
-            canvasCtx.fillStyle = "rgb(0, 0, 0)";
+            canvasCtx.fillStyle = "rgba(0, 0, 0, 0)";
             canvasCtx.fillRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
 
             //draw chart for the frequency domain

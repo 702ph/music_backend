@@ -281,7 +281,7 @@ main .player .buttons.fast-forward {
     transform: translateY(-50%);
     width: 50px;
     height: 50px;
-    opacity: 0.7;
+    opacity: 0.5;
 }
 
 main .player .buttons.random {
@@ -321,6 +321,10 @@ main .player .buttons.fast-forward:hover {
 }
 
 main .player .buttons.repeat:hover {
+    opacity: 1;
+}
+
+main .player .buttons.pause:hover {
     opacity: 1;
 }
 
