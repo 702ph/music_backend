@@ -258,7 +258,7 @@ Object.defineProperty(this, 'editTable', {
             }
 
             //reset button value
-            editStartBtn.value = "🖋";
+            editStartBtn.value = "EDIT";
 
             //reset visibility
             editCancelBtn.style.visibility = "hidden";
@@ -275,7 +275,7 @@ Object.defineProperty(this, 'editTable', {
             editCancelBtn.style.visibility = "visible";
 
             //change button value
-            editStartBtn.value = "edit finish";
+            editStartBtn.value = "EDIT FINISH";
 
 
             //save current table contents
@@ -450,8 +450,8 @@ Object.defineProperty(this, 'cancelDeleteSongs', {
         deleteConfirmBtn.style.visibility = "hidden";
 
         //reset button text
-        deleteBtn.value = "✂";
-        deleteConfirmBtn.value = "Confirm";
+        deleteBtn.value = "CUT";
+        deleteConfirmBtn.value = "CONFIRM";
 
         // set mode
         inDeleteSongMode = false;
@@ -478,7 +478,7 @@ Object.defineProperty(this, 'cancelEditTable', {
         setTableContentsNonEditable(rows);
 
         //reset button value
-        editStartBtn.value = "🖋";
+        editStartBtn.value = "EDIT";
 
         //reset visibility
         editCancelBtn.style.visibility = "hidden";
@@ -642,7 +642,7 @@ deleteConfirmBtn.onclick = () => {
         inDeleteConfirmedState = false;
 
         // change button
-        deleteConfirmBtn.value = "Confirm";
+        deleteConfirmBtn.value = "CONFIRM";
 
     } else {
         // confirm
@@ -655,7 +655,7 @@ deleteConfirmBtn.onclick = () => {
         inDeleteConfirmedState = true;
 
         // change button
-        deleteConfirmBtn.value = "Unconfirm";
+        deleteConfirmBtn.value = "UNCONFIRM";
     }
 };
 
@@ -677,7 +677,7 @@ Object.defineProperty(this, 'deleteSongs', {
 
             //set mode and button text
             inDeleteSongMode = true;
-            deleteBtn.value = "Finish";
+            deleteBtn.value = "FINISH";
 
             //change visibility
             deleteCancelBtn.style.visibility = "visible";
@@ -708,7 +708,7 @@ Object.defineProperty(this, 'deleteSongs', {
             deleteConfirmBtn.style.visibility = "hidden";
 
             //reset button text
-            deleteBtn.value = "✂";
+            deleteBtn.value = "CUT";
 
             // set mode
             inDeleteSongMode = false;
@@ -1824,6 +1824,8 @@ function showHideListFunction() {
         x.style.display = "block";
     }
 }
+
+/**************** PRELOADER ********************/
 
 $(window).on('load', function () { // makes sure the whole site is loaded
     $('#status').fadeOut(); // will first fade out the loading animation

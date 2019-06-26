@@ -107,33 +107,22 @@
 
 <div class="space musicList hidden" id="showList">
 
-    <div id="edit_buttons">
+    <div class="box" id="edit_buttons">
         <input type="button" class="playerButtons" id="editStartButton" value="EDIT">
-        <input type="button" id="editCancelButton" value="CANCEL">
+        <input type="button" class="playerButtons" id="editCancelButton" value="CANCEL">
     </div>
 
-    <div id="delete_buttons">
-        <input type="button" id="deleteButton" value="✂">
-        <input type="button" id="deleteConfirmButton" value="Confirm">
-        <input type="button" id="deleteCancelButton" value="Cancel">
+    <div class="box right" id="delete_buttons">
+        <input type="button" class="playerButtons" id="deleteButton" value="CUT">
+        <input type="button" class="playerButtons" id="deleteConfirmButton" value="CONFIRM">
+        <input type="button" class="playerButtons" id="deleteCancelButton" value="CANCEL">
     </div>
 
     <div>
         <div class="padding" id="songSelectorTable"></div>
         <div class="margin" id="tableDebug"></div>
     </div>
-
-    <div>
-        visualizer:
-        <canvas id="visualizer"></canvas>
-    </div>
-
-
 </div>
-
-
-
-
 
 <div id="preloader">
   <div id="status">
