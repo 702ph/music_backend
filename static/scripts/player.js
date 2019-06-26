@@ -1516,27 +1516,42 @@ Object.defineProperty(this, 'getRandomSongID', {
     }
 });
 
+
 /************************ AUDIO INFORMATION  *****************************/
 
 let audioInformationScrollX = 0;
-Object.defineProperty(this, "printAudioInformation", {
+
+Object.defineProperty(this, "scrollAudioInformation", {
     enumerable: false,
     writable: false,
     value: () => {
-        const songInfo = getSongInfo(selectedSongID); //TODO: is called many times. refactor?
-        //audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
 
-        audioInformation.scrollLeft = ++ audioInformationScrollX;
+        audioInformation.scrollLeft = ++audioInformationScrollX;
         if(audioInformationScrollX < audioInformation.scrollLeft - audioInformation.clientWidth ){
-            setTimeout();
+            setTimeout("scrollAudioInformation()", 20);
+        } else {
+            audioInformationScrollX = 0;
+            audioInformation.scrollLeft = 0;
+            setTimeout("scrollAudioInformation()", 20);
         }
 
     }
 });
 
 
-let lyricsText = document.querySelector("#lyricsText");
+Object.defineProperty(this, "printAudioInformation", {
+    enumerable: false,
+    writable: false,
+    value: () => {
+        const songInfo = getSongInfo(selectedSongID);
+        audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
 
+        //scrollAudioInformation();
+    }
+});
+
+
+let lyricsText = document.querySelector("#lyricsText");
 Object.defineProperty(this, "printLyrics", {
     writable: false,
     writable: false,

@@ -91,9 +91,9 @@ testing issues...4
 ----
 05
 
-[] remove not-in-used components
+[X] remove not-in-used components in HTML
 
-[] audio information durchlaufen lassen
+[X] let audio information text scroll horizontally (zuerst mit css)
 [] improve clickable progressbar behaviour (when going back)
 
 [] hide /static/
