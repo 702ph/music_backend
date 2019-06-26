@@ -99,6 +99,8 @@ testing issues...4
 [] hide /static/
 [] log-in function
 
+[] volume on/off button
+
 [X] audio visualization?
 
 [] play next song by using sourceBufferNode.onended

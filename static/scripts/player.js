@@ -30,6 +30,8 @@ window.addEventListener('load', async function () {
 
     printAudioInformation();
     printLyrics(getSongInfo(selectedSongID));
+
+    displayTime();
 });
 
 
@@ -967,7 +969,7 @@ Object.defineProperty(playerButtons, "skipSong", {
     writable: false,
     value: async () => {
         //clear lyrics text
-        lyricsText.value = "lyrics here";
+        //lyricsText.value = "lyrics here";
 
         if (isPlaying) { // in play
             playController.playNextSong();
@@ -984,7 +986,7 @@ Object.defineProperty(playerButtons, "rewindSong", {
     writable: false,
     value: () => {
         //clear lyrics text
-        lyricsText.value = "lyrics here";
+        //lyricsText.value = "lyrics here";
 
         if (isPlaying) { // in play
             playController.playPreviousSong();
@@ -1009,6 +1011,7 @@ audioRandomPlayButton.onclick = () => playerButtons.setAudioRandomPlay();
 Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
     enumerable: false,
     writable: false,
+    configurable: false,
     value: () => {
         if (audioRepeatPlay) {
             audioRepeatPlay = false;
@@ -1030,6 +1033,7 @@ Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
 Object.defineProperty(playerButtons, "setAudioRandomPlay", {
     enumerable: false,
     writable: false,
+    configurable: false,
     value: () => {
         if (audioRandomPlay) {
             audioRandomPlay = false;
@@ -1233,19 +1237,19 @@ Object.defineProperties(AudioVisualizer, {
             enumerable: false,
             configurable: false,
             writable: false,
-            value: 640
+            value: 220 /*650*/
         },
         "CANVAS_HEIGHT": {
             enumerable: false,
             configurable: false,
             writable: false,
-            value: 360
+            value: 150 /*360*/
         },
         "FFT_SIZE": {
             enumerable: false,
             configurable: false,
             writable: false,
-            value: 2048
+            value: 32 /*2048*/
         },
         "SMOOTHING": {
             enumerable: false,
@@ -1284,6 +1288,8 @@ Object.defineProperty(AudioVisualizer, "draw", {
         writable: false,
         value: () => {
             // clear canvas
+
+            //canvasCtx.fillStyle = "rgba(0, 0, 0, 0)";
             canvasCtx.fillStyle = "rgb(34, 34, 34)";
             canvasCtx.fillRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
 
@@ -1302,43 +1308,21 @@ Object.defineProperty(AudioVisualizer, "draw", {
             }
 
             //draw chart for the time domain
-            AudioVisualizer.analyser.getByteTimeDomainData(AudioVisualizer.timeDataArray);
 
-            for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
-                let value = AudioVisualizer.timeDataArray[i];
-                let percent = value / 256;
-                let height = AudioVisualizer.CANVAS_HEIGHT * percent;
-                let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
-                let barWidth = AudioVisualizer.CANVAS_WIDTH / AudioVisualizer.bufferLength;
-                canvasCtx.fillStyle = 'white';
-                canvasCtx.fillRect(i * barWidth, offset, 1, 2);
-            }
+            // AudioVisualizer.analyser.getByteTimeDomainData(AudioVisualizer.timeDataArray);
+            // for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
+            //     let value = AudioVisualizer.timeDataArray[i];
+            //     let percent = value / 256;
+            //     let height = AudioVisualizer.CANVAS_HEIGHT * percent;
+            //     let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
+            //     let barWidth = AudioVisualizer.CANVAS_WIDTH / AudioVisualizer.bufferLength;
+            //     canvasCtx.fillStyle = 'white';
+            //     canvasCtx.fillRect(i * barWidth, offset, 1, 2);
+            // }
+
         }
     }
 );
-
-
-Object.defineProperty(AudioVisualizer, "draw_old", {
-    enumerable: false,
-    configurable: false,
-    writable: false,
-    value: () => {
-        canvasCtx.fillStyle = "rgb(0, 0, 0)";
-        canvasCtx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        let barWidth = (CANVAS_WIDTH / bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i] / 2;
-
-            canvasCtx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
-            canvasCtx.fillRect(x, CANVAS_HEIGHT - barHeight / 2, barWidth, barHeight);
-
-            x += barWidth + 1;
-        }
-    }
-});
 
 
 /***************** PLAYER CONTROLLER **********************/
@@ -1527,7 +1511,7 @@ Object.defineProperty(this, "scrollAudioInformation", {
     value: () => {
 
         audioInformation.scrollLeft = ++audioInformationScrollX;
-        if(audioInformationScrollX < audioInformation.scrollLeft - audioInformation.clientWidth ){
+        if (audioInformationScrollX < audioInformation.scrollLeft - audioInformation.clientWidth) {
             setTimeout("scrollAudioInformation()", 20);
         } else {
             audioInformationScrollX = 0;
@@ -1572,11 +1556,6 @@ Object.defineProperty(this, "printLyrics", {
 
 /***************** VOLUME CONTROL  **********************/
 
-// change gain volume
-let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
-let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
-audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
-
 Object.defineProperty(this, 'changeGainVolume', {
     enumerable: false,
     configurable: false,
@@ -1592,7 +1571,6 @@ Object.defineProperty(this, 'changeGainVolume', {
         console.log(audioVolumeControlSlider.value);
     }
 });
-audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 
 let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
@@ -1617,39 +1595,7 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
 
 /***************** PLAY BACK POSITION CONTROL  **********************/
 
-//play back position
 let audioPlaybackPositionRatio;
-//let playbackStartAudioContextTimeStamp;
-let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
-let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
-
-// initial setup
-audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
-audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
-
-function changeAudioPlaybackPosition() {
-
-    // get ratio
-    audioPlaybackPositionRatio = parseFloat(audioPlaybackPositionControlSlider.value);
-
-    // set ratio to display
-    audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
-
-
-    // it's just after the page load, if audioBufferSourceDuration undefined
-    if (audioBufferSourceDuration === undefined) {
-
-    } else {
-        //calculate exact position in audio source
-        audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
-        console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
-    }
-
-
-    // start & stop audio source
-    seekAudioPlaybackPosition();
-}
-
 
 function seekAudioPlaybackPosition() {
     if (isPlaying) { //in playing
@@ -1659,34 +1605,8 @@ function seekAudioPlaybackPosition() {
         audioBufferSourceNode.start(0, audioPausedAt / 1000);
     } else { //in pause, only initialize audio source
         initAudioBufferSourceNode();
-        //audioBufferSourceNode.start(0, audioPausedAt / 1000);
     }
 }
-
-
-// //suspend/resume the audioContext
-// susresBtn.onclick = function () {
-//
-//     if (audioCtx.state === 'running') {
-//         audioCtx.suspend().then(function () {
-//             susresBtn.textContent = 'Resume context';
-//         });
-//     } else if (audioCtx.state === 'suspended') {
-//         audioCtx.resume().then(function () {
-//             susresBtn.textContent = 'Suspend context';
-//         });
-//     }
-// };
-//
-//
-// //close the audio context
-// stopBtn.onclick = function () {
-//     audioCtx.close().then(function () {
-//         startBtn.removeAttribute('disabled');
-//         susresBtn.setAttribute('disabled', 'disabled');
-//         stopBtn.setAttribute('disabled', 'disabled');
-//     });
-// };
 
 
 // detect mousedown & up
@@ -1707,8 +1627,9 @@ let audioPlayBackProgressBarController = document.querySelector("#audioPlayBackP
 let audioPlayBackProgressBar = document.querySelector("#audioPlayBackProgressBar");
 
 audioPlayBackProgressBarController.addEventListener("click", (e) => {
+//audioPlayBackProgressBar.addEventListener("click", (e) => {
     const ratio = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
-    console.log("ratio:" + ratio);
+    console.log("purple bar ratio:" + ratio);
     audioPlayBackProgressBar.style = "width: " + ratio * 100 + "%";
 
     //calculate exact position in audio source
@@ -1720,39 +1641,39 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
 });
 
 
-/***************** PLAY BACK POSITION DISPLAY, VISUALIZER UPDATE & PROCESS ON PLAY END  **********************/
+/***************** PLAY BACK POSITION DISPLAY & VISUALIZER UPDATE, PROCESS ON PLAY END  **********************/
 
-let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
 let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgressCounter");
 
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
-        //timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
+        // we can know here audio contex current time
+        //const currentTime = audioCtx.currentTime.toFixed(3)
 
         if (isPlaying) {
             if (onMouseDown) {
-                // not update during on mouse down
+                // do not update during "on mouse down"
 
             } else {
-
                 //visualizer
-                //draw();
                 AudioVisualizer.draw();
 
+                // audio playback position in second
                 let audioPlaybackPositionAutoUpdate = ((Date.now() - audioStartAt) / 1000);
-                audioPlaybackPositionDisplayDecimal.textContent = audioPlaybackPositionAutoUpdate.toString();
 
-                // time converter
+                // calculate play back position in ratio
+                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
+
+                // update slider position, display (debug)
+                //updateAudioPlaybackPositionDisplayAndController(audioPlaybackPositionRatioAutoUpdate);
+                //updateAudioPlaybackPositionDisplayDecimal(audioPlaybackPositionAutoUpdate);
+
+                // update purple progress bar position
+                updateAudioPlayBackProgressBar(audioPlaybackPositionRatioAutoUpdate);
+
+                // time converter (playback position in second to hour)
                 timeConverter.setTime(audioPlaybackPositionAutoUpdate);
                 audioPlayBackProgressCounter.textContent = timeConverter.getTime();
-
-
-                let audioPlaybackPositionRatioAutoUpdate = audioPlaybackPositionAutoUpdate / audioBufferSourceDuration;
-                audioPlaybackPositionControlSlider.value = audioPlaybackPositionRatioAutoUpdate;
-                audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatioAutoUpdate;
-
-                //purple progress bar
-                audioPlayBackProgressBar.style = "width: " + audioPlaybackPositionRatioAutoUpdate * 100 + "%";
 
                 // on ended
                 if (audioPlaybackPositionAutoUpdate > audioBufferSourceDuration) {
@@ -1765,13 +1686,20 @@ function displayTime() {
         }
 
     } else {
-        //timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
-        // if audio context is closed, we are here.
+        // we are here when audio context is in "closed".
     }
     requestAnimationFrame(displayTime);
 }
 
-displayTime();
+
+function updateAudioPlayBackProgressBar(ratio){
+    audioPlayBackProgressBar.style = "width: " + ratio * 100 + "%";
+}
+
+function resetAudioPlayBackProgressBar(){
+    audioPlayBackProgressCounter.textContent = "00:00:00";
+    audioPlayBackProgressBar.style = "width: 0%";
+}
 
 
 Object.defineProperty(this, "doOnPlayEnded", {
@@ -1786,17 +1714,76 @@ Object.defineProperty(this, "doOnPlayEnded", {
         audioPlaybackPositionRatio = 0.0;
 
         // reset
-        audioPlaybackPositionDisplayDecimal.textContent = "0";
-        audioPlayBackProgressCounter.textContent = "00:00:00";
-        audioPlaybackPositionControlSlider.value = 0;
-        audioPlaybackPositionDisplay.textContent = "0";
-        audioPlayBackProgressBar.style = "width: 0%";
+        resetAudioPlaybackPositionDisplayAndController();
+        resetAudioPlayBackProgressBar();
 
         //close audio context
         audioBufferSourceNode.disconnect();
         await audioCtx.close();
     }
 });
+
+
+/***************** VOLUME CONTROL (DEBUG PURPOSE) **********************/
+
+// let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
+// let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
+// audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
+// audioVolumeControlSlider.onchange = () => changeGainVolume();
+
+/***************** PLAY BACK POSITION CONTROL (DEBUG PURPOSE) **********************/
+//
+// let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
+// let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
+//
+// // initial setup
+// audioPlaybackPositionDisplay.innerText = audioPlaybackPositionControlSlider.value;
+// audioPlaybackPositionControlSlider.addEventListener("change", changeAudioPlaybackPosition, false);
+//
+// function changeAudioPlaybackPosition() {
+//
+//     // get ratio
+//     audioPlaybackPositionRatio = parseFloat(audioPlaybackPositionControlSlider.value);
+//
+//     // set ratio to display
+//     audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
+//
+//
+//     // if it's just after the page load
+//     if (audioBufferSourceDuration === undefined) {
+//         //do nothing
+//     } else {
+//         //calculate exact position in audio source
+//         audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
+//         console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
+//     }
+//
+//     // start & stop audio source
+//     seekAudioPlaybackPosition();
+// }
+
+/***************** PLAY BACK POSITION DISPLAY (DEBUG PURPOSE) **********************/
+
+// let audioPlaybackPositionDisplayDecimal = document.querySelector("#audioPlaybackPositionDisplayDecimal");
+//
+// function updateAudioPlaybackPositionDisplayAndController(ratio) {
+//     // update slider position
+//     audioPlaybackPositionControlSlider.value = ratio;
+//
+//     // update display
+//     audioPlaybackPositionDisplay.innerText = ratio;
+// }
+//
+// function updateAudioPlaybackPositionDisplayDecimal(position) {
+//     audioPlaybackPositionDisplayDecimal.textContent = position.toString();
+//
+// }
+//
+// function resetAudioPlaybackPositionDisplayAndController(){
+//     audioPlaybackPositionDisplayDecimal.textContent = "0";
+//     audioPlaybackPositionControlSlider.value = 0;
+//     audioPlaybackPositionDisplay.textContent = "0";
+// }
 
 
 /***************** TIME CONVERTER **********************/

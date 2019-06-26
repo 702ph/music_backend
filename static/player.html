@@ -13,19 +13,19 @@
 <body>
 
 <div id="audioController">
+
+    <!-- DO NOT REMOVE! Maybe we still need this for debug. -->
+    <!--
     <Label> audio position </Label>
     <br>
     <input class="range" type="range" id="audioPlaybackPositionControlSlider" min="0.0" max="1.0" step="0.01"
            value="0.0">
     <br>
-    <!--
-    <meter id="timeBar" min=0.0 max=1.0 value=0.5></meter>
-    <br>
-    -->
-    Position:
+
+    Audio Position:
     <output id="audioPlaybackPositionDisplay"></output>
     <br>
-    Position(Decimal):
+    Audio Position(Decimal):
     <output id="audioPlaybackPositionDisplayDecimal"></output>
     <br>
     <br>
@@ -34,8 +34,11 @@
     <br>
     <input class="range" type="range" id="audioVolumeControlSlider" min="0.0" max="3.0" step="0.05" value="1.5">
     <br>
-    Position:
+    -->
+
+    Volume Position:
     <output id="audioVolumeDisplay"></output>
+
 
     <br>
     <br>
@@ -54,9 +57,10 @@
         </div>
         <div>
             <div class="volume">
-                <div class="volumeBG" id="audioPlayBackVolumeController"></div>
                 <div class="volumeLine" id="audioPlayBackVolumeBar"></div>
-                <img class="volumeIcon" src="images/volumeButton.png"/>
+                <div class="volumeBG" id="audioPlayBackVolumeController"></div>
+                <img class="volumeIcon hidden" src="images/volumeButton.png"/>
+                <img class="muteIcon" src="images/muteButton.png"/>
             </div>
         </div>
     </header>
@@ -79,8 +83,8 @@
             </div>
             <div class="time-tracker">
                 <div class="timer">
-                    <div class="bg" id="audioPlayBackProgressBarController"></div>
                     <div class="bgStart" id="audioPlayBackProgressBar"></div>
+                    <div class="bg" id="audioPlayBackProgressBarController"></div>
                 </div>
                 <div class="time" id="audioPlayBackProgressCounter">00:00:00</div>
             </div>
