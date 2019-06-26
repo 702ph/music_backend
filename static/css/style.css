@@ -102,7 +102,7 @@ body {
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     width: 500px;
-    height: 450px;
+    height: 500px;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
     background: radial-gradient(ellipse at center, #444 0%, #111 100%);
     box-shadow: 0 30px 20px -20px #000;
@@ -212,6 +212,12 @@ header .volume .volumeIcon {
     width: 15%;
 }
 
+header .volume .muteIcon {
+    float: left;
+    width: 11%;
+    padding-top: 2%;
+}
+
 
 
 /*===============================================*/
@@ -225,6 +231,7 @@ main {
 }
 
 main .album-art {
+    margin-top: 2%;
     float: left;
     padding: 0.5rem;
     background: #222;
@@ -232,7 +239,6 @@ main .album-art {
 }
 
 main .album-art .frame {
-    margin-top: 10%;
     width: 220px;
     height: 150px;
     box-sizing: border-box;
