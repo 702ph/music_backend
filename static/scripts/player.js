@@ -967,7 +967,7 @@ Object.defineProperty(playerButtons, "skipSong", {
     writable: false,
     value: async () => {
         //clear lyrics text
-        lyricsText.value = "lyrics here";
+        //lyricsText.value = "lyrics here";
 
         if (isPlaying) { // in play
             playController.playNextSong();
@@ -984,7 +984,7 @@ Object.defineProperty(playerButtons, "rewindSong", {
     writable: false,
     value: () => {
         //clear lyrics text
-        lyricsText.value = "lyrics here";
+        //lyricsText.value = "lyrics here";
 
         if (isPlaying) { // in play
             playController.playPreviousSong();
@@ -1284,7 +1284,8 @@ Object.defineProperty(AudioVisualizer, "draw", {
         writable: false,
         value: () => {
             // clear canvas
-            canvasCtx.fillStyle = "rgba(0, 0, 0, 0)";
+            //canvasCtx.fillStyle = "rgba(0, 0, 0, 0)";
+            canvasCtx.fillStyle = "rgb(34, 34, 34)";
             canvasCtx.fillRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
 
             //draw chart for the frequency domain
@@ -1302,17 +1303,18 @@ Object.defineProperty(AudioVisualizer, "draw", {
             }
 
             //draw chart for the time domain
-            AudioVisualizer.analyser.getByteTimeDomainData(AudioVisualizer.timeDataArray);
-
-            for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
-                let value = AudioVisualizer.timeDataArray[i];
-                let percent = value / 256;
-                let height = AudioVisualizer.CANVAS_HEIGHT * percent;
-                let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
-                let barWidth = AudioVisualizer.CANVAS_WIDTH / AudioVisualizer.bufferLength;
-                canvasCtx.fillStyle = 'white';
-                canvasCtx.fillRect(i * barWidth, offset, 1, 2);
-            }
+            //
+            // AudioVisualizer.analyser.getByteTimeDomainData(AudioVisualizer.timeDataArray);
+            //
+            // for (let i = 0; i < AudioVisualizer.bufferLength; i++) {
+            //     let value = AudioVisualizer.timeDataArray[i];
+            //     let percent = value / 256;
+            //     let height = AudioVisualizer.CANVAS_HEIGHT * percent;
+            //     let offset = AudioVisualizer.CANVAS_HEIGHT - height - 1;
+            //     let barWidth = AudioVisualizer.CANVAS_WIDTH / AudioVisualizer.bufferLength;
+            //     canvasCtx.fillStyle = 'white';
+            //     canvasCtx.fillRect(i * barWidth, offset, 1, 2);
+            // }
         }
     }
 );
