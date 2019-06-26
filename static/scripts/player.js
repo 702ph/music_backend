@@ -1620,9 +1620,7 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
 
 /***************** PLAY BACK POSITION CONTROL  **********************/
 
-//play back position
 let audioPlaybackPositionRatio;
-//let playbackStartAudioContextTimeStamp;
 let audioPlaybackPositionControlSlider = document.querySelector("#audioPlaybackPositionControlSlider");
 let audioPlaybackPositionDisplay = document.querySelector("#audioPlaybackPositionDisplay");
 
@@ -1639,15 +1637,14 @@ function changeAudioPlaybackPosition() {
     audioPlaybackPositionDisplay.innerText = audioPlaybackPositionRatio;
 
 
-    // it's just after the page load, if audioBufferSourceDuration undefined
+    // if it's just after the page load
     if (audioBufferSourceDuration === undefined) {
-
+        //do nothing
     } else {
         //calculate exact position in audio source
         audioPausedAt = (audioBufferSourceDuration * audioPlaybackPositionRatio) * 1000;
         console.log("changeAudioPlaybackPosition(), audioPausedAt:  " + audioPausedAt);
     }
-
 
     // start & stop audio source
     seekAudioPlaybackPosition();
