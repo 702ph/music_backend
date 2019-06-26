@@ -91,6 +91,9 @@ testing issues...4
 ----
 05
 
+[] remove not-in-used components
+
+[] audio information durchlaufen lassen
 [] improve clickable progressbar behaviour (when going back)
 
 [] hide /static/
@@ -98,6 +101,7 @@ testing issues...4
 
 [X] audio visualization?
 
+[] play next song by using sourceBufferNode.onended
 
 [] replace requestAnimationFrame with setTimeout or something and then it liter?
 

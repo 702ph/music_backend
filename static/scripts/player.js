@@ -26,7 +26,7 @@ window.addEventListener('load', async function () {
     selectedSongID = getFirstSongID(rows);
 
     //TODO: this will be removed.
-    document.querySelector("#songIDInput").value = selectedSongID;
+    //document.querySelector("#songIDInput").value = selectedSongID;
 
     printAudioInformation();
     printLyrics(getSongInfo(selectedSongID));
@@ -106,12 +106,14 @@ function initAudioBufferSourceNode() {
 
 let audioCtx;
 let startBtn = document.querySelector('#startAudioContext');
-let susresBtn = document.querySelector('#suspendAudioContext');
-let stopBtn = document.querySelector('#stopAudioContext');
 let timeDisplay = document.querySelector('#counter');
 
-susresBtn.setAttribute('disabled', 'disabled');
-stopBtn.setAttribute('disabled', 'disabled');
+// for debug please do not remove
+//let susresBtn = document.querySelector('#suspendAudioContext');
+//let stopBtn = document.querySelector('#stopAudioContext');
+//susresBtn.setAttribute('disabled', 'disabled');
+//stopBtn.setAttribute('disabled', 'disabled');
+
 let isPlaying = false;
 let selectedSongID;
 let nowPlayingSongID;
@@ -1515,12 +1517,19 @@ Object.defineProperty(this, 'getRandomSongID', {
 
 /************************ AUDIO INFORMATION  *****************************/
 
+let audioInformationScrollX = 0;
 Object.defineProperty(this, "printAudioInformation", {
     enumerable: false,
     writable: false,
     value: () => {
-        const songInfo = getSongInfo(selectedSongID);
-        audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
+        const songInfo = getSongInfo(selectedSongID); //TODO: is called many times. refactor?
+        //audioInformation.textContent = songInfo.id + ": " + songInfo.artist + " - " + songInfo.title;
+
+        audioInformation.scrollLeft = ++ audioInformationScrollX;
+        if(audioInformationScrollX < audioInformation.scrollLeft - audioInformation.clientWidth ){
+            setTimeout();
+        }
+
     }
 });
 
@@ -1740,7 +1749,8 @@ function displayTime() {
         }
 
     } else {
-        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
+        //timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): not playing. select song'
+        // if audio context is closed, we are here.
     }
     requestAnimationFrame(displayTime);
 }
