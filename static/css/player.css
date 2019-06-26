@@ -87,9 +87,38 @@
     background-color: #28dbd2;
 }
 
-.chooseButtonn:active {
-    position: relative;
-    top: 1px;
+.lyricsButton {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #459ec7), color-stop(1, #28dbd2));
+    background: -moz-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: -webkit-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: -o-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: -ms-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: linear-gradient(to bottom, #459ec7 5%, #28dbd2 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#459ec7', endColorstr='#28dbd2', GradientType=0);
+    background-color: #459ec7;
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+    border: 1px solid #ffffff;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 17px;
+    padding: 5px 31px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #2f6627;
+}
+
+.lyricsButton:hover {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #28dbd2), color-stop(1, #459ec7));
+    background: -moz-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: -webkit-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: -o-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: -ms-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: linear-gradient(to bottom, #28dbd2 5%, #459ec7 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#28dbd2', endColorstr='#459ec7', GradientType=0);
+    background-color: #28dbd2;
 }
 
 
@@ -183,5 +212,72 @@
 [tooltip]:not([tooltip-persistent]):before {
     pointer-events: none;
 }
+
+/*================== POP UP =======================*/
+
+.overlay {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    transition: opacity 500ms;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.overlay:target {
+    visibility: visible;
+    opacity: 1;
+}
+
+.popup {
+    margin: 70px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 5px;
+    width: 90%;
+    height: 90%;
+    position: relative;
+    transition: all 5s ease-in-out;
+}
+
+.popup h2 {
+    margin-top: 0;
+    color: #333;
+    font-family: Tahoma, Arial, sans-serif;
+}
+
+.popup .close {
+    position: absolute;
+    top: 5%;
+    right: 10%;
+    transition: all 200ms;
+    font-size: 30px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #333;
+}
+
+.popup .close:hover {
+    color: #06D85F;
+}
+
+.popup .content {
+    max-height: 100%;
+    overflow: auto;
+}
+
+@media screen and (max-width: 700px) {
+    .box {
+        width: 70%;
+    }
+
+    .popup {
+        width: 70%;
+    }
+}
+
 
 

@@ -1561,7 +1561,7 @@ Object.defineProperty(this, "printLyrics", {
         try {
             const lyrics = await queryLyrics(songInfo);
             console.log(lyrics);
-            lyricsText.value = lyrics.result.track.text;
+            lyricsText.textContent = lyrics.result.track.text;
         } catch (error) {
             console.log(error);
             lyricsText.value = "no lyrics found in database";
