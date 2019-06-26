@@ -91,12 +91,12 @@ testing issues...4
 ----
 05
 
-[] improve clickable progressbar behaviour (when back)
+[] improve clickable progressbar behaviour (when going back)
 
-[] hide static
+[] hide /static/
 [] log-in function
 
-[] audio visualization?
+[X] audio visualization?
 
 
 [] replace requestAnimationFrame with setTimeout or something and then it liter?
