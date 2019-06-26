@@ -62,7 +62,7 @@
     </header>
     <main>
         <div class="album-art">
-            <img src="images/Arctic_Monkeys.jpg" alt=""/>
+            <canvas class="album-art frame" id="visualizer"></canvas>
         </div>
         <div class="player">
             <img class="buttons repeat" src="images/loopButton.png" id="audioRepeatPlayButton"/>
@@ -107,49 +107,22 @@
 
 <div class="space musicList hidden" id="showList">
 
-
-    <!--
-    <div>
-
-        <button class="playerButtons" id="suspendAudioContext">Pause(DO NOT CLICK!)</button>
-        <button class="playerButtons" id="stopAudioContext">Stop(DO NOT CLICK!)</button>
-        <div class="space"></div>
-        <p id="counter">Current "CONTEXT" time: No context exists.</p>
-        <p id="audioSourcePlaybackTimeDisplay">Current "source" time: --.</p>
-    </div>
-    <div class="padding">
-        <input type="number" , id="songIDInput" , value="">
-    </div>
-    -->
-
-
-    <div id="edit_buttons">
-        <input type="button" id="editStartButton" value="🖋">
-        <input type="button" id="editCancelButton" value="Cancel">
+    <div class="box" id="edit_buttons">
+        <input type="button" class="playerButtons" id="editStartButton" value="EDIT">
+        <input type="button" class="playerButtons" id="editCancelButton" value="CANCEL">
     </div>
 
-    <div id="delete_buttons">
-        <input type="button" id="deleteButton" value="✂">
-        <input type="button" id="deleteConfirmButton" value="Confirm">
-        <input type="button" id="deleteCancelButton" value="Cancel">
+    <div class="box right" id="delete_buttons">
+        <input type="button" class="playerButtons" id="deleteButton" value="CUT">
+        <input type="button" class="playerButtons" id="deleteConfirmButton" value="CONFIRM">
+        <input type="button" class="playerButtons" id="deleteCancelButton" value="CANCEL">
     </div>
 
     <div>
         <div class="padding" id="songSelectorTable"></div>
         <div class="margin" id="tableDebug"></div>
     </div>
-
-    <div>
-        visualizer:
-        <canvas id="visualizer"></canvas>
-    </div>
-
-
 </div>
-
-
-
-
 
 <div id="preloader">
   <div id="status">

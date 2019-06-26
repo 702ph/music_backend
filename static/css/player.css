@@ -5,45 +5,6 @@
  */
 
 
-#audioDropPanel {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin: 10% 0;
-    padding: 0% 3% 3% 3%;
-    -webkit-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
-    width: 60%;
-    height: auto;
-    background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
-    background: radial-gradient(ellipse at center, #444 0%, #111 100%);
-    box-shadow: 0 30px 20px -20px #000;
-    box-sizing: border-box;
-    border-radius: 10px;
-}
-
-/*================== SEPERATOR AND SPACES ==================*/
-
-.space {
-    padding-bottom: 10px;
-}
-
-.space_top {
-    padding-top: 10px;
-}
-
-.padding {
-    padding: 10px;
-}
-
-.margin {
-    margin: 10px;
-}
-
-.hidden {
-    display: none;
-}
-
 /*================== COLORS ================================*/
 
 .red {
@@ -75,8 +36,8 @@
     cursor: pointer;
     color: #ffffff;
     font-family: Arial;
-    font-size: 17px;
-    padding: 5px 30px;
+    font-size: 10px;
+    padding: 5px 10px;
     text-decoration: none;
     text-shadow: 0px 1px 0px #2f6627;
     margin: 10px;
@@ -129,11 +90,6 @@
 .chooseButtonn:active {
     position: relative;
     top: 1px;
-}
-
-#editStartButton {
-    font-size: 17px;
-    padding: 5px 31px;
 }
 
 
