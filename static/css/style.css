@@ -191,11 +191,13 @@ main .album-art {
     float: left;
     padding: 0.5rem;
     background: #222;
+    border-radius: 8px;
 }
 
-main .album-art img {
+main .album-art .frame {
+    margin-top: 10%;
     width: 220px;
-    border-radius: 8px;
+    height: 150px;
     box-sizing: border-box;
 }
 
@@ -340,6 +342,10 @@ footer {
     font-family: 'Roboto', sans-serif;
     box-sizing: border-box;
 
+}
+
+#audioInformation {
+    width: 100%;
 }
 
 footer .title {
