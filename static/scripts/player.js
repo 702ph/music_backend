@@ -1074,8 +1074,9 @@ startBtn.onclick = () => start();
 
 async function start() {
     startBtn.setAttribute('disabled', 'disabled');
-    susresBtn.removeAttribute('disabled');
-    stopBtn.removeAttribute('disabled');
+    startBtn.setAttribute('disabled', 'disabled');
+    //susresBtn.removeAttribute('disabled');
+    //stopBtn.removeAttribute('disabled');
 
     //debug
     console.log(selectedSongID);
@@ -1711,7 +1712,7 @@ let audioPlayBackProgressCounter = document.querySelector("#audioPlayBackProgres
 
 function displayTime() {
     if (audioCtx && audioCtx.state !== 'closed') {
-        timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
+        //timeDisplay.textContent = 'Current CONTEXT time (not audioBufferSourceNode): ' + audioCtx.currentTime.toFixed(3);
 
         if (isPlaying) {
             if (onMouseDown) {
