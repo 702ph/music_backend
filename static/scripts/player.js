@@ -1636,16 +1636,17 @@ function changeMuteIcon(volume) {
 /***************** VOLUME MUTE BUTTON **********************/
 let volumeIcon = document.querySelector("#volumeIcon");
 let muteIcon = document.querySelector("#muteIcon");
+let volumeBeforeMute;
 
 volumeIcon.onclick = () =>{
     enableMuteIcon(true);
-    //changeGainVolume(volume) //todo: we need volume variable to save and restore the volume level.
-
+    volumeBeforeMute = gainNode.gain.value;
+    changeGainVolume(0);
 };
 
 muteIcon.onclick = () => {
     enableMuteIcon(false);
-    changeGainVolume();
+    changeGainVolume(volumeBeforeMute);
 };
 
 
@@ -1659,6 +1660,7 @@ function enableMuteIcon(enable) {
         muteIcon.classList.add("hidden");
     }
 }
+
 
 /***************** PLAY BACK POSITION CONTROL  **********************/
 
