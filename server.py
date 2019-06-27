@@ -6,7 +6,7 @@ import sqlalchemy
 import datetime
 import timestring
 
-from flask import Flask, json, jsonify, request, make_response, url_for  # なぜかrequestsでは動かない。
+from flask import Flask, json, jsonify, request, make_response, render_template, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
 from flask_restful import Api, http_status_message
 from werkzeug.utils import secure_filename, redirect
@@ -369,8 +369,11 @@ def error_handler(error):
     return response, error.code
 
 
-
 @app.route('/')
+def web_app_main_page():
+    return render_template("player.html")
+
+
 @app.route('/world')  # more routes can be defined
 def hello_world():
     h = "Hello2"
