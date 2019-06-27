@@ -1003,9 +1003,15 @@ let audioRandomPlay = false;
 let audioRepeatPlayStatusDisplay = document.querySelector("#audioRepeatPlayStatusDisplay");
 let audioRandomPlayStatusDisplay = document.querySelector("#audioRandomPlayStatusDisplay");
 let audioRepeatPlayButton = document.querySelector("#audioRepeatPlayButton");
+let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
 let audioRandomPlayButton = document.querySelector("#audioRandomPlayButton");
+let audioRandomPlayButtonActive = document.querySelector("#audioRandomPlayButtonActive");
+
 audioRepeatPlayButton.onclick = () => playerButtons.setAudioRepeatPlay();
+audioRepeatPlayButtonActive.onclick = () => playerButtons.setAudioRepeatPlay();
+
 audioRandomPlayButton.onclick = () => playerButtons.setAudioRandomPlay();
+audioRandomPlayButtonActive.onclick = () => playerButtons.setAudioRandomPlay();
 
 
 Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
@@ -1026,35 +1032,12 @@ Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
             //disable random
             audioRandomPlay = false;
             audioRandomPlayStatusDisplay.textContent = "OFF";
+            playerButtons.enableAudioRandomPlayIconStatus(false);
         }
 
     }
 });
 
-
-Object.defineProperty(playerButtons, "setAudioRandomPlay", {
-    enumerable: false,
-    writable: false,
-    configurable: false,
-    value: () => {
-        if (audioRandomPlay) {
-            audioRandomPlay = false;
-            audioRandomPlayStatusDisplay.textContent = "OFF";
-        } else {
-            // enable random
-            audioRandomPlay = true;
-            audioRandomPlayStatusDisplay.textContent = "ON";
-
-            //disable repeat
-            audioRepeatPlay = false;
-            audioRepeatPlayStatusDisplay.textContent = "OFF";
-        }
-
-    }
-});
-
-
-let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
 
 Object.defineProperty(playerButtons, "enableAudioRepeatPlayIconStatus", {
     enumerable: false,
@@ -1067,6 +1050,47 @@ Object.defineProperty(playerButtons, "enableAudioRepeatPlayIconStatus", {
         } else {
             audioRepeatPlayButton.classList.remove("hidden");
             audioRepeatPlayButtonActive.classList.add("hidden");
+        }
+    }
+});
+
+
+Object.defineProperty(playerButtons, "setAudioRandomPlay", {
+    enumerable: false,
+    writable: false,
+    configurable: false,
+    value: () => {
+        if (audioRandomPlay) {
+            audioRandomPlay = false;
+            audioRandomPlayStatusDisplay.textContent = "OFF";
+            playerButtons.enableAudioRandomPlayIconStatus(false);
+        } else {
+            // enable random
+            audioRandomPlay = true;
+            audioRandomPlayStatusDisplay.textContent = "ON";
+            playerButtons.enableAudioRandomPlayIconStatus(true);
+
+            //disable repeat
+            audioRepeatPlay = false;
+            audioRepeatPlayStatusDisplay.textContent = "OFF";
+            playerButtons.enableAudioRepeatPlayIconStatus(false);
+        }
+
+    }
+});
+
+
+Object.defineProperty(playerButtons, "enableAudioRandomPlayIconStatus", {
+    enumerable: false,
+    writable: false,
+    configurable: false,
+    value: (enable) => {
+        if (enable) {
+            audioRandomPlayButton.classList.add("hidden");
+            audioRandomPlayButtonActive.classList.remove("hidden");
+        } else {
+            audioRandomPlayButton.classList.remove("hidden");
+            audioRandomPlayButtonActive.classList.add("hidden");
         }
     }
 });
@@ -1595,7 +1619,7 @@ Object.defineProperty(this, 'changeGainVolume', {
     }
 });
 
-
+const maxGain = 3;
 let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
 let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
 audioPlayBackVolumeController.addEventListener("click", (e) => {
@@ -1611,10 +1635,8 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
     // if gainNode is not initialized, return.
     if (gainNode === undefined) return;
 
-    const maxGain = 3;
-
     //change display(debug)
-    audioVolumeDisplay.innerText = maxGain * ratio;
+    //audioVolumeDisplay.innerText = maxGain * ratio;
 
     //change volume
     //gainNode.gain.value = maxGain * ratio;
@@ -1622,15 +1644,18 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
 });
 
 
-function changePlayBackVolumeBar(width) {
-    audioPlayBackVolumeBar.style = "width: " + width + "%";
+function changePlayBackVolumeBar(percent) {
+    audioPlayBackVolumeBar.style = "width: " + percent + "%";
     //audioPlayBackVolumeBar.style.setAttribute("width", width);
 }
 
 
 function changeMuteIcon(volume) {
-    if (0 < volume) enableMuteIcon(true);
-    if (0 === volume) enableMuteIcon(false);
+    //if (0 < volume) enableMuteIcon(true);
+    if (volume <= 0) {
+        volumeBeforeMute = gainNode.gain.value;
+        enableMuteIcon(false);
+    }
 }
 
 
@@ -1642,16 +1667,17 @@ let volumeBeforeMute;
 volumeIcon.onclick = () => {
     enableMuteIcon(true);
     volumeBeforeMute = gainNode.gain.value;
+    changePlayBackVolumeBar(0);
     changeGainVolume(0);
 };
 
 muteIcon.onclick = () => {
     enableMuteIcon(false);
+    changePlayBackVolumeBar((volumeBeforeMute/maxGain)*100);
     changeGainVolume(volumeBeforeMute);
 };
 
 
-//todo: implement with contains()?
 function enableMuteIcon(enable) {
     if (enable) {
         volumeIcon.classList.add("hidden");
