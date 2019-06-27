@@ -1060,12 +1060,12 @@ Object.defineProperty(playerButtons, "enableAudioRepeatPlayIconStatus", {
     enumerable: false,
     writable: false,
     configurable: false,
-    value: (active) => {
-        if (active) {
+    value: (enable) => {
+        if (enable) {
             audioRepeatPlayButton.classList.add("hidden");
             audioRepeatPlayButtonActive.classList.remove("hidden");
         } else {
-           audioRepeatPlayButton.classList.remove("hidden");
+            audioRepeatPlayButton.classList.remove("hidden");
             audioRepeatPlayButtonActive.classList.add("hidden");
         }
     }
@@ -1579,21 +1579,19 @@ Object.defineProperty(this, "printLyrics", {
 });
 
 
-/***************** VOLUME CONTROL  **********************/
+/***************** VOLUME CONTROL BAR **********************/
 
+//todo: let do this function more task. i.e. change icon. bar.
 Object.defineProperty(this, 'changeGainVolume', {
     enumerable: false,
     configurable: false,
-    value: function () {
+    value: function (volume) {
         // if gainNode is not initialized, return.
         if (gainNode === undefined) return;
 
-        //change display
-        audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
-
         //change volume
-        gainNode.gain.value = audioVolumeControlSlider.value;
-        console.log(audioVolumeControlSlider.value);
+        gainNode.gain.value = volume;
+        console.log(gainNode.gain.value);
     }
 });
 
@@ -1601,22 +1599,66 @@ Object.defineProperty(this, 'changeGainVolume', {
 let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
 let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
 audioPlayBackVolumeController.addEventListener("click", (e) => {
+
     const ratio = (e.pageX - (audioPlayBackVolumeController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackVolumeController.clientWidth;
     console.log("volume ratio:" + ratio);
-    audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
+
+    //audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
+    changePlayBackVolumeBar(ratio * 100);
+    changeMuteIcon(ratio * 100);
 
     // if gainNode is not initialized, return.
     if (gainNode === undefined) return;
 
     const maxGain = 3;
 
-    //change display
+    //change display(debug)
     audioVolumeDisplay.innerText = maxGain * ratio;
 
     //change volume
     gainNode.gain.value = maxGain * ratio;
+    changeGainVolume(maxGain * ratio);
 });
 
+
+function changePlayBackVolumeBar(width) {
+    //audioPlayBackVolumeBar.style = "width: " + width + "%";
+    audioPlayBackVolumeBar.style.setAttribute("width", width);
+}
+
+
+function changeMuteIcon(volume) {
+    if (0 < volume) enableMuteIcon(true);
+    if (0 === volume) enableMuteIcon(false);
+}
+
+
+/***************** VOLUME MUTE BUTTON **********************/
+let volumeIcon = document.querySelector("#volumeIcon");
+let muteIcon = document.querySelector("#muteIcon");
+
+volumeIcon.onclick = () =>{
+    enableMuteIcon(true);
+    //changeGainVolume(volume) //todo: we need volume variable to save and restore the volume level.
+
+};
+
+muteIcon.onclick = () => {
+    enableMuteIcon(false);
+    changeGainVolume();
+};
+
+
+//todo: implement with contains()?
+function enableMuteIcon(enable) {
+    if (enable) {
+        volumeIcon.classList.add("hidden");
+        muteIcon.classList.remove("hidden");
+    } else {
+        volumeIcon.classList.remove("hidden");
+        muteIcon.classList.add("hidden");
+    }
+}
 
 /***************** PLAY BACK POSITION CONTROL  **********************/
 
@@ -1717,11 +1759,11 @@ function displayTime() {
 }
 
 
-function updateAudioPlayBackProgressBar(ratio){
+function updateAudioPlayBackProgressBar(ratio) {
     audioPlayBackProgressBar.style = "width: " + ratio * 100 + "%";
 }
 
-function resetAudioPlayBackProgressBar(){
+function resetAudioPlayBackProgressBar() {
     audioPlayBackProgressCounter.textContent = "00:00:00";
     audioPlayBackProgressBar.style = "width: 0%";
 }
@@ -1751,9 +1793,10 @@ Object.defineProperty(this, "doOnPlayEnded", {
 
 /***************** VOLUME CONTROL (DEBUG PURPOSE) **********************/
 
+let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
 // let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
-// let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
 // audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
+
 // audioVolumeControlSlider.onchange = () => changeGainVolume();
 
 /***************** PLAY BACK POSITION CONTROL (DEBUG PURPOSE) **********************/
