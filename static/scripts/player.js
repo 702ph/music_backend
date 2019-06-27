@@ -1622,8 +1622,8 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
 
 
 function changePlayBackVolumeBar(width) {
-    //audioPlayBackVolumeBar.style = "width: " + width + "%";
-    audioPlayBackVolumeBar.style.setAttribute("width", width);
+    audioPlayBackVolumeBar.style = "width: " + width + "%";
+    //audioPlayBackVolumeBar.style.setAttribute("width", width);
 }
 
 
