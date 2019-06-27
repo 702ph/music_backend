@@ -1016,10 +1016,12 @@ Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
         if (audioRepeatPlay) {
             audioRepeatPlay = false;
             audioRepeatPlayStatusDisplay.textContent = "OFF";
+            playerButtons.enableAudioRepeatPlayIconStatus(false);
         } else {
             //enable repeat
             audioRepeatPlay = true;
             audioRepeatPlayStatusDisplay.textContent = "ON";
+            playerButtons.enableAudioRepeatPlayIconStatus(true);
 
             //disable random
             audioRandomPlay = false;
@@ -1051,6 +1053,25 @@ Object.defineProperty(playerButtons, "setAudioRandomPlay", {
     }
 });
 
+
+let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
+
+Object.defineProperty(playerButtons, "enableAudioRepeatPlayIconStatus", {
+    enumerable: false,
+    writable: false,
+    configurable: false,
+    value: (active) => {
+        if (active) {
+            audioRepeatPlayButton.classList.add("hidden");
+            audioRepeatPlayButtonActive.classList.remove("hidden");
+        } else {
+           audioRepeatPlayButton.classList.remove("hidden");
+            audioRepeatPlayButtonActive.classList.add("hidden");
+        }
+    }
+});
+
+
 /***************** PLAYER BUTTONS (PAUSE) **********************/
 
 let audioPauseButton = document.querySelector("#audioPauseButton");
@@ -1077,8 +1098,12 @@ audioPauseButton.onclick = () => start();
 startBtn.onclick = () => start();
 
 async function start() {
+
+    //TODO: we need this?
     startBtn.setAttribute('disabled', 'disabled');
     startBtn.setAttribute('disabled', 'disabled');
+
+    //debug
     //susresBtn.removeAttribute('disabled');
     //stopBtn.removeAttribute('disabled');
 
@@ -1714,7 +1739,7 @@ Object.defineProperty(this, "doOnPlayEnded", {
         audioPlaybackPositionRatio = 0.0;
 
         // reset
-        resetAudioPlaybackPositionDisplayAndController();
+        //resetAudioPlaybackPositionDisplayAndController();
         resetAudioPlayBackProgressBar();
 
         //close audio context

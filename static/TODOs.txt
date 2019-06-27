@@ -94,28 +94,30 @@ testing issues...4
 [X] remove not-in-used components in HTML
 
 [X] let audio information text scroll horizontally (zuerst mit css)
-[] improve clickable progressbar behaviour (when going back)
+[X] improve clickable progressbar behaviour (when going back)
 
 [] hide /static/
 [] log-in function
 
 [] volume on/off button
+[] repeat on/off button
+[] random on/off button
 
 [X] audio visualization?
 
 [] play next song by using sourceBufferNode.onended
+[] close audio context if pause is more than 10 minutes?
 
-[] replace requestAnimationFrame with setTimeout or something and then it liter?
+[] replace requestAnimationFrame with setTimeout or something then it will be less belasten?
 
 [] defineProperty with prototype?
 https://www.sejuku.net/blog/25328
 
-[] close audio context if pause is more than 10 minutes?
 
 [] server side: try, catch
 [] clean up server code
 
-[] take this out of all functions: let songSelector = document.querySelector("#songSelectorTable");
+[X] take this out of all functions: let songSelector = document.querySelector("#songSelectorTable");
 let rows = songSelector.children[0].rows; //<tr> in <table>
 
 -------------------
