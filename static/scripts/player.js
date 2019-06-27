@@ -151,7 +151,8 @@ let dropZone = document.querySelector("#drop_zone");
 Object.entries({
     "dragover": handleDragOver,
     "drop": handleFileDropped,
-    "dragleave": handleDragLeave
+    "dragleave": handleDragLeave,
+    "click": uploadSongButton
 }).map(([key, value]) => {
     dropZone.addEventListener(key, value, false); //key: event name, value: function name(attention! without parenthesis )
 });
@@ -234,6 +235,83 @@ async function handleFileDropped(evt) {
     //reset style
     handleDragLeave();
 }
+
+
+/***************** UPLOAD BUTTON **********************/
+
+const selectFileBtn = document.querySelector("#selectFileButton");
+const selectFileLabel = document.querySelector("#selectFileLabel");
+selectFileBtn.addEventListener('change', uploadSongButton, false); //doesn't work with define property ??
+
+// upload file with button
+//TODO: partly overlapped with which for drag and drop
+async function uploadSongButton(evt) {
+
+    //assign file from dialog. use only the first file
+    // for <input type="button">
+    //let file = evt.target.files[0];
+
+    // or from original dialog
+    let file = await showOpenFileDialog();
+
+    //get dom
+    let dropZoneMessage = document.querySelector("#drop_zone_message");
+
+
+    if (file.size === 0) { //if file is empty, return false
+        dropZoneMessage.innerHTML = "file is empty";
+        return false;
+    }
+    console.log(file);
+
+    //prepare data to upload
+    let formData = new FormData();
+    formData.append("input_file", file); //data will be sent with this property name
+
+    //disable button while uploading to prevent from multiple click
+    selectFileBtn.disable = true;
+    selectFileLabel.innerText = "wait";
+
+    //uploading message
+    dropZoneMessage.innerHTML = "now uploading: " + file.name;
+
+    try {
+        const response = await postSong(formData);
+        console.log(response);
+
+        //renew song list
+        await displaySongList();
+        rows = songSelector.children[0].rows;
+
+    } catch (error) {
+        console.log(error);
+    }
+
+    //upload finish message
+    dropZoneMessage.innerHTML = "upload finished: " + file.name;
+
+    //enable button again
+    selectFileBtn.disabled = false;
+    selectFileLabel.innerText = "or click here";
+
+    //free memory....
+    file = null;
+    formData = new FormData();
+}
+
+
+const showOpenFileDialog = () => {
+    return new Promise( resolve => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "audio/mp3";
+
+        input.onchange = event => {
+            resolve(event.target.files[0]);
+        };
+        input.click();
+    });
+};
 
 
 /***************** TABLE EDITING **********************/
@@ -898,64 +976,6 @@ Object.defineProperty(this, 'queryLyrics', {
         return response.json();
     }
 });
-
-
-/***************** UPLOAD BUTTON **********************/
-
-const selectFileBtn = document.querySelector("#selectFileButton");
-const selectFileLabel = document.querySelector("#selectFileLabel");
-selectFileBtn.addEventListener('change', uploadSongButton, false); //doesn't work with define property ??
-
-// upload file with button
-//TODO: partly overlapped with which for drag and drop
-async function uploadSongButton(evt) {
-
-    //assign file from dialog
-    //only first file
-    let file = evt.target.files[0];
-
-    //get dom
-    let dropZoneMessage = document.querySelector("#drop_zone_message");
-
-
-    if (file.size === 0) { //if file is empty, return false
-        dropZoneMessage.innerHTML = "file is empty";
-        return false;
-    }
-    console.log(file);
-
-    //prepare data to upload
-    let formData = new FormData();
-    formData.append("input_file", file); //data will be sent with this property name
-
-    //disable button while uploading to prevent from multiple click
-    selectFileBtn.disable = true;
-    selectFileLabel.innerText = "wait";
-
-    //uploading message
-    dropZoneMessage.innerHTML = "now uploading: " + file.name;
-
-    try {
-        const response = await postSong(formData);
-        console.log(response);
-    } catch (error) {
-        console.log(error);
-    }
-
-    //upload finish message
-    dropZoneMessage.innerHTML = "upload finished: " + file.name;
-
-    //enable button again
-    selectFileBtn.disabled = false;
-    selectFileLabel.innerText = "or click here";
-
-    //free memory....
-    file = null;
-    formData = new FormData();
-
-    //renew song list
-    displaySongList();
-}
 
 
 /***************** PLAYER BUTTONS (REWIND & SKIP) **********************/
