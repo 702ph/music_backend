@@ -1595,7 +1595,7 @@ Object.defineProperty(this, 'changeGainVolume', {
     }
 });
 
-
+const maxGain = 3;
 let audioPlayBackVolumeController = document.querySelector("#audioPlayBackVolumeController");
 let audioPlayBackVolumeBar = document.querySelector("#audioPlayBackVolumeBar");
 audioPlayBackVolumeController.addEventListener("click", (e) => {
@@ -1611,10 +1611,8 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
     // if gainNode is not initialized, return.
     if (gainNode === undefined) return;
 
-    const maxGain = 3;
-
     //change display(debug)
-    audioVolumeDisplay.innerText = maxGain * ratio;
+    //audioVolumeDisplay.innerText = maxGain * ratio;
 
     //change volume
     //gainNode.gain.value = maxGain * ratio;
@@ -1622,15 +1620,18 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
 });
 
 
-function changePlayBackVolumeBar(width) {
-    audioPlayBackVolumeBar.style = "width: " + width + "%";
+function changePlayBackVolumeBar(percent) {
+    audioPlayBackVolumeBar.style = "width: " + percent + "%";
     //audioPlayBackVolumeBar.style.setAttribute("width", width);
 }
 
 
 function changeMuteIcon(volume) {
-    if (0 < volume) enableMuteIcon(true);
-    if (0 === volume) enableMuteIcon(false);
+    //if (0 < volume) enableMuteIcon(true);
+    if (volume <= 0) {
+        volumeBeforeMute = gainNode.gain.value;
+        enableMuteIcon(false);
+    }
 }
 
 
@@ -1642,16 +1643,17 @@ let volumeBeforeMute;
 volumeIcon.onclick = () => {
     enableMuteIcon(true);
     volumeBeforeMute = gainNode.gain.value;
+    changePlayBackVolumeBar(0);
     changeGainVolume(0);
 };
 
 muteIcon.onclick = () => {
     enableMuteIcon(false);
+    changePlayBackVolumeBar((volumeBeforeMute/maxGain)*100);
     changeGainVolume(volumeBeforeMute);
 };
 
 
-//todo: implement with contains()?
 function enableMuteIcon(enable) {
     if (enable) {
         volumeIcon.classList.add("hidden");
