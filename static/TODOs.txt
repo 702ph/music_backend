@@ -107,12 +107,14 @@ testing issues...4
 [X] fix bug when playing newly added song
 [X] update row variable every after adding new song
 
-[] replace "or click here" button with "Drop mp3 here!".
+[X] replace "or click here" button with "Drop mp3 here!".
 
 [] server side: try, catch
 [] clean up server code
 [] clean up javascript
+
 [] documentation
+
 
 [X] audio visualization?
 
