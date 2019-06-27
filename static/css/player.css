@@ -189,28 +189,31 @@
 
 [tooltip]:before {
 
+    /* DON'T TOUCH :) */
     content: attr(tooltip);
     position: absolute;
     opacity: 0;
 
     /* customizable */
-    transition: all 0.15s ease;
+    transition: all 0.3s ease-in-out;
     padding: 10px;
     color: #ffffff;
     border-radius: 10px;
-    box-shadow: 2px 2px 1px silver;
+    box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.5);
 }
 
 [tooltip]:hover:before {
     opacity: 1;
 
     /* customizable */
-    background: #3f3f3f;
+    background: rgba(0,0,0,0.3);
     margin-top: -50px;
     margin-left: 20px;
 }
 
 [tooltip]:not([tooltip-persistent]):before {
+
+    /* DON'T TOUCH :) */
     pointer-events: none;
 }
 
