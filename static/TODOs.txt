@@ -99,7 +99,7 @@ testing issues...4
 [] hide /static/
 [] log-in function
 
-[] volume on/off button
+[X] volume on/off button
 [] repeat on/off button
 [] random on/off button
 
