@@ -99,7 +99,7 @@ body {
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     width: 500px;
-    height: 500px;
+    height: auto;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
     background: radial-gradient(ellipse at center, #444 0%, #111 100%);
     box-shadow: 0 30px 20px -20px #000;
@@ -109,7 +109,7 @@ body {
 
 .musicList {
     position: absolute;
-    top: 121%;
+    top: 100%;
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
