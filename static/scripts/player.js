@@ -1003,9 +1003,15 @@ let audioRandomPlay = false;
 let audioRepeatPlayStatusDisplay = document.querySelector("#audioRepeatPlayStatusDisplay");
 let audioRandomPlayStatusDisplay = document.querySelector("#audioRandomPlayStatusDisplay");
 let audioRepeatPlayButton = document.querySelector("#audioRepeatPlayButton");
+let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
 let audioRandomPlayButton = document.querySelector("#audioRandomPlayButton");
+let audioRandomPlayButtonActive = document.querySelector("#audioRandomPlayButtonActive");
+
 audioRepeatPlayButton.onclick = () => playerButtons.setAudioRepeatPlay();
+audioRepeatPlayButtonActive.onclick = () => playerButtons.setAudioRepeatPlay();
+
 audioRandomPlayButton.onclick = () => playerButtons.setAudioRandomPlay();
+audioRandomPlayButtonActive.onclick = () => playerButtons.setAudioRandomPlay();
 
 
 Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
@@ -1032,8 +1038,6 @@ Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
     }
 });
 
-
-let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
 
 Object.defineProperty(playerButtons, "enableAudioRepeatPlayIconStatus", {
     enumerable: false,
@@ -1082,11 +1086,11 @@ Object.defineProperty(playerButtons, "enableAudioRandomPlayIconStatus", {
     configurable: false,
     value: (enable) => {
         if (enable) {
-            audioRepeatPlayButton.classList.add("hidden");
-            audioRepeatPlayButtonActive.classList.remove("hidden");
+            audioRandomPlayButton.classList.add("hidden");
+            audioRandomPlayButtonActive.classList.remove("hidden");
         } else {
-            audioRepeatPlayButton.classList.remove("hidden");
-            audioRepeatPlayButtonActive.classList.add("hidden");
+            audioRandomPlayButton.classList.remove("hidden");
+            audioRandomPlayButtonActive.classList.add("hidden");
         }
     }
 });
