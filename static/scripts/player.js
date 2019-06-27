@@ -1604,7 +1604,8 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
     console.log("volume ratio:" + ratio);
 
     //audioPlayBackVolumeBar.style = "width: " + ratio * 100 + "%";
-    changePlayBackVolumeBar(ratio * 100);
+    const gainAdjustment = 0.82; //TODO: must be refactored in the future.
+    changePlayBackVolumeBar(ratio * 100 * gainAdjustment);
     changeMuteIcon(ratio * 100);
 
     // if gainNode is not initialized, return.
@@ -1616,7 +1617,7 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
     audioVolumeDisplay.innerText = maxGain * ratio;
 
     //change volume
-    gainNode.gain.value = maxGain * ratio;
+    //gainNode.gain.value = maxGain * ratio;
     changeGainVolume(maxGain * ratio);
 });
 
@@ -1638,7 +1639,7 @@ let volumeIcon = document.querySelector("#volumeIcon");
 let muteIcon = document.querySelector("#muteIcon");
 let volumeBeforeMute;
 
-volumeIcon.onclick = () =>{
+volumeIcon.onclick = () => {
     enableMuteIcon(true);
     volumeBeforeMute = gainNode.gain.value;
     changeGainVolume(0);
@@ -1699,7 +1700,9 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
 //audioPlayBackProgressBar.addEventListener("click", (e) => {
     const ratio = (e.pageX - (audioPlayBackProgressBarController.getBoundingClientRect().left + window.pageXOffset)) / audioPlayBackProgressBarController.clientWidth;
     console.log("purple bar ratio:" + ratio);
-    audioPlayBackProgressBar.style = "width: " + ratio * 100 + "%";
+
+    const adjustment = 0.96; //TODO: in the future, can be refactored.
+    audioPlayBackProgressBar.style = "width: "+ (ratio * 100) + "%";
 
     //calculate exact position in audio source
     audioPausedAt = (audioBufferSourceDuration * ratio) * 1000;

@@ -428,6 +428,7 @@ footer .time-tracker .timer {
 footer .time-tracker .timer .bg {
     position: relative;
     top: 50%;
+    width: 100%;
     margin-right: 0.5rem;
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
@@ -447,10 +448,11 @@ footer .time-tracker .timer .bgStart {
     position: absolute;
     height: 0.5rem;
     border-radius: 10px;
-    width: 0%;
+    /*width: 0%;*/
     background: #a900ff;
     box-shadow: 0 0 2px 2px #a900ff;
     margin-left: 1%;
+    /*margin-right: 10%;*/
 }
 
 footer .time-tracker .time {
