@@ -7,10 +7,14 @@
 
 /***************** INITIALIZATION **********************/
 
-let songSelector;
+// let songSelector;
 let rows;
 
+let songSelector = document.querySelector("#songSelectorTable");
+// let rows = songSelector.children[0].rows; //<tr> in <table>
+
 let audioInformation = document.querySelector("#audioInformation");
+
 
 // initial processes at page load
 window.addEventListener('load', async function () {
@@ -19,7 +23,7 @@ window.addEventListener('load', async function () {
     await displaySongList();
 
     // set
-    songSelector = document.querySelector("#songSelectorTable");
+    // songSelector = document.querySelector("#songSelectorTable");
     rows = songSelector.children[0].rows; //<tr> in <table>
 
     // set songID
@@ -220,7 +224,8 @@ async function handleFileDropped(evt) {
         dropZoneMessage.innerHTML = "upload finished: " + file.name;
 
         //reload song list
-        displaySongList();
+        await displaySongList();
+        rows = songSelector.children[0].rows;
     } catch (error) {
         console.log(error);
         dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error;
@@ -518,7 +523,7 @@ document.addEventListener('click', function (e) {
                 }
 
                 //TODO: to be removed
-                document.querySelector("#songIDInput").value = selectedSongID;
+                //document.querySelector("#songIDInput").value = selectedSongID;
 
                 // for debug table
                 let tableDebug = document.querySelector('#tableDebug');
@@ -539,7 +544,7 @@ document.addEventListener('click', function (e) {
                 });
 
                 // show debug table
-                document.querySelector('#tableDebug').appendChild(ul);
+                //tableDebug.appendChild(ul);
 
                 // show in console
                 console.log(ch2);
@@ -672,9 +677,9 @@ Object.defineProperty(this, 'deleteSongs', {
     value: async function () {
 
         //get buttons
-        let deleteBtn = document.querySelector("#deleteButton");
+        //let deleteBtn = document.querySelector("#deleteButton");
 
-        //if it's not in delete song mode, change mode to it.
+        // change to delete song mode, if not in the mode.
         if (!inDeleteSongMode) {
 
             //set mode and button text
@@ -711,11 +716,11 @@ Object.defineProperty(this, 'deleteSongs', {
 
             //reset button text
             deleteBtn.value = "CUT";
+            deleteConfirmBtn.value = "CONFIRM";
 
             // set mode
             inDeleteSongMode = false;
             inDeleteConfirmedState = false;
-
         }
     }
 });
@@ -1298,7 +1303,7 @@ Object.defineProperties(AudioVisualizer, {
             enumerable: false,
             configurable: false,
             writable: false,
-            value: 32 /*2048*/
+            value: 128 /*2048*/
         },
         "SMOOTHING": {
             enumerable: false,
@@ -1411,6 +1416,7 @@ Object.defineProperty(playController, 'playNextSong', {
             changeGainVolume();
         } else if (parseInt(playController.getNextSongID(nowPlayingSongID)) === 0) { // the last song
             // do nothing
+            console.log("we are on the last song in the list");
         } else { //play next song
             selectedSongID = playController.getNextSongID(nowPlayingSongID);
             await start();
@@ -1453,24 +1459,42 @@ Object.defineProperty(this, 'getFirstSongID', {
 
 
 // get song info
-Object.defineProperty(this, 'getSongInfo', {
-    enumerable: false,
-    configurable: false,
-    value: (id) => {
-        for (const tr of Array.prototype.slice.call(rows)) {
-            if (tr.cells[0].innerText === id) {
-                return {
-                    id: tr.cells[0].innerText,
-                    title: tr.cells[1].innerText,
-                    artist: tr.cells[2].innerText,
-                    album: tr.cells[3].innerText,
-                    year: tr.cells[4].innerText,
-                    genre: tr.cells[5].innerText
-                }
+// Object.defineProperty(this, 'getSongInfo', {
+//     enumerable: false,
+//     configurable: false,
+//     value: (id) => {
+//         for (const tr of Array.prototype.slice.call(rows)) {
+//             if (tr.cells[0].innerText === id) {
+//                 return {
+//                     id: tr.cells[0].innerText,
+//                     title: tr.cells[1].innerText,
+//                     artist: tr.cells[2].innerText,
+//                     album: tr.cells[3].innerText,
+//                     year: tr.cells[4].innerText,
+//                     genre: tr.cells[5].innerText
+//                 }
+//             }
+//         }
+//     }
+// });
+
+
+function getSongInfo(id) {
+    for (const tr of Array.prototype.slice.call(rows)) {
+        if (tr.cells[0].innerText === id) {
+            const songID =
+             {
+                id: tr.cells[0].innerText,
+                title: tr.cells[1].innerText,
+                artist: tr.cells[2].innerText,
+                album: tr.cells[3].innerText,
+                year: tr.cells[4].innerText,
+                genre: tr.cells[5].innerText
             }
+            return songID;
         }
     }
-});
+}
 
 
 Object.defineProperty(playController, 'setPreviousSong', {
@@ -1673,7 +1697,7 @@ volumeIcon.onclick = () => {
 
 muteIcon.onclick = () => {
     enableMuteIcon(false);
-    changePlayBackVolumeBar((volumeBeforeMute/maxGain)*100);
+    changePlayBackVolumeBar((volumeBeforeMute / maxGain) * 100);
     changeGainVolume(volumeBeforeMute);
 };
 
@@ -1728,7 +1752,7 @@ audioPlayBackProgressBarController.addEventListener("click", (e) => {
     console.log("purple bar ratio:" + ratio);
 
     const adjustment = 0.96; //TODO: in the future, can be refactored.
-    audioPlayBackProgressBar.style = "width: "+ (ratio * 100) + "%";
+    audioPlayBackProgressBar.style = "width: " + (ratio * 100) + "%";
 
     //calculate exact position in audio source
     audioPausedAt = (audioBufferSourceDuration * ratio) * 1000;
@@ -1810,6 +1834,7 @@ Object.defineProperty(this, "doOnPlayEnded", {
 
         // reset
         audioPlaybackPositionRatio = 0.0;
+        audioPausedAt = 0.0;
 
         // reset
         //resetAudioPlaybackPositionDisplayAndController();
