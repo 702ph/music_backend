@@ -99,7 +99,7 @@ body {
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     width: 500px;
-    height: 500px;
+    height: 520px;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
     background: radial-gradient(ellipse at center, #444 0%, #111 100%);
     box-shadow: 0 30px 20px -20px #000;
@@ -448,16 +448,15 @@ footer .time-tracker .timer .bgStart {
     position: absolute;
     height: 0.5rem;
     border-radius: 10px;
-    /*width: 0%;*/
     background: #a900ff;
     box-shadow: 0 0 2px 2px #a900ff;
     margin-left: 1%;
-    /*margin-right: 10%;*/
 }
 
-footer .time-tracker .time {
-    float: left;
+footer #audioPlayBackProgressCounter {
+    float: right;
     width: 10%;
+    margin-right: 3%;
     line-height: 2rem;
 }
 
