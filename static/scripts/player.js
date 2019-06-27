@@ -1026,8 +1026,27 @@ Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
             //disable random
             audioRandomPlay = false;
             audioRandomPlayStatusDisplay.textContent = "OFF";
+            playerButtons.enableAudioRandomPlayIconStatus(false);
         }
 
+    }
+});
+
+
+let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
+
+Object.defineProperty(playerButtons, "enableAudioRepeatPlayIconStatus", {
+    enumerable: false,
+    writable: false,
+    configurable: false,
+    value: (enable) => {
+        if (enable) {
+            audioRepeatPlayButton.classList.add("hidden");
+            audioRepeatPlayButtonActive.classList.remove("hidden");
+        } else {
+            audioRepeatPlayButton.classList.remove("hidden");
+            audioRepeatPlayButtonActive.classList.add("hidden");
+        }
     }
 });
 
@@ -1040,23 +1059,24 @@ Object.defineProperty(playerButtons, "setAudioRandomPlay", {
         if (audioRandomPlay) {
             audioRandomPlay = false;
             audioRandomPlayStatusDisplay.textContent = "OFF";
+            playerButtons.enableAudioRandomPlayIconStatus(false);
         } else {
             // enable random
             audioRandomPlay = true;
             audioRandomPlayStatusDisplay.textContent = "ON";
+            playerButtons.enableAudioRandomPlayIconStatus(true);
 
             //disable repeat
             audioRepeatPlay = false;
             audioRepeatPlayStatusDisplay.textContent = "OFF";
+            playerButtons.enableAudioRepeatPlayIconStatus(false);
         }
 
     }
 });
 
 
-let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
-
-Object.defineProperty(playerButtons, "enableAudioRepeatPlayIconStatus", {
+Object.defineProperty(playerButtons, "enableAudioRandomPlayIconStatus", {
     enumerable: false,
     writable: false,
     configurable: false,
