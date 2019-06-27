@@ -60,7 +60,7 @@
                 <div class="volumeLine" id="audioPlayBackVolumeBar"></div>
                 <div class="volumeBG" id="audioPlayBackVolumeController"></div>
                 <img class="volumeIcon" src="images/volumeButton.png" id="volumeIcon"/>
-                <img class="muteIcon hidden" src="images/muteButton.png" id="muteIcon"/>
+                <img class="volumeIcon hidden" src="images/muteButton.png" id="muteIcon"/>
             </div>
         </div>
     </header>
@@ -99,16 +99,13 @@
         <div id="drop_zone">Drop mp3 here!</div>
         <span class="space_top" id="drop_zone_message"></span>
     </div>
-    <div>
+    <div class="hidden">
         <label for="selectFileButton" id="selectFileLabel">
             OR CLICK HERE
             <input type="file" name="inputFile" id="selectFileButton" accept="audio/mpeg">
         </label>
     </div>
-
-    <br>
-
-        <div>
+    <div>
         <a class="lyricsButton" href="#popup1">SHOW LYRICS</a>
     </div>
 
