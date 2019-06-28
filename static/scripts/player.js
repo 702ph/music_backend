@@ -1025,8 +1025,11 @@ Object.defineProperty(playerButtons, "rewindSong", {
 /***************** PLAYER BUTTONS (REPEAT&RANDOM) **********************/
 let audioRepeatPlay = false;
 let audioRandomPlay = false;
-let audioRepeatPlayStatusDisplay = document.querySelector("#audioRepeatPlayStatusDisplay");
-let audioRandomPlayStatusDisplay = document.querySelector("#audioRandomPlayStatusDisplay");
+
+//debug
+//let audioRepeatPlayStatusDisplay = document.querySelector("#audioRepeatPlayStatusDisplay");
+//let audioRandomPlayStatusDisplay = document.querySelector("#audioRandomPlayStatusDisplay");
+
 let audioRepeatPlayButton = document.querySelector("#audioRepeatPlayButton");
 let audioRepeatPlayButtonActive = document.querySelector("#audioRepeatPlayButtonActive");
 let audioRandomPlayButton = document.querySelector("#audioRandomPlayButton");
@@ -1046,17 +1049,17 @@ Object.defineProperty(playerButtons, "setAudioRepeatPlay", {
     value: () => {
         if (audioRepeatPlay) {
             audioRepeatPlay = false;
-            audioRepeatPlayStatusDisplay.textContent = "OFF";
+            //audioRepeatPlayStatusDisplay.textContent = "OFF";
             playerButtons.enableAudioRepeatPlayIconStatus(false);
         } else {
             //enable repeat
             audioRepeatPlay = true;
-            audioRepeatPlayStatusDisplay.textContent = "ON";
+            //audioRepeatPlayStatusDisplay.textContent = "ON";
             playerButtons.enableAudioRepeatPlayIconStatus(true);
 
             //disable random
             audioRandomPlay = false;
-            audioRandomPlayStatusDisplay.textContent = "OFF";
+            //audioRandomPlayStatusDisplay.textContent = "OFF";
             playerButtons.enableAudioRandomPlayIconStatus(false);
         }
 
@@ -1087,17 +1090,17 @@ Object.defineProperty(playerButtons, "setAudioRandomPlay", {
     value: () => {
         if (audioRandomPlay) {
             audioRandomPlay = false;
-            audioRandomPlayStatusDisplay.textContent = "OFF";
+            //audioRandomPlayStatusDisplay.textContent = "OFF";
             playerButtons.enableAudioRandomPlayIconStatus(false);
         } else {
             // enable random
             audioRandomPlay = true;
-            audioRandomPlayStatusDisplay.textContent = "ON";
+            //audioRandomPlayStatusDisplay.textContent = "ON";
             playerButtons.enableAudioRandomPlayIconStatus(true);
 
             //disable repeat
             audioRepeatPlay = false;
-            audioRepeatPlayStatusDisplay.textContent = "OFF";
+            //audioRepeatPlayStatusDisplay.textContent = "OFF";
             playerButtons.enableAudioRepeatPlayIconStatus(false);
         }
 
@@ -1869,7 +1872,7 @@ Object.defineProperty(this, "doOnPlayEnded", {
 
 /***************** VOLUME CONTROL (DEBUG PURPOSE) **********************/
 
-let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
+//let audioVolumeDisplay = document.querySelector("#audioVolumeDisplay");
 // let audioVolumeControlSlider = document.querySelector("#audioVolumeControlSlider");
 // audioVolumeDisplay.innerText = audioVolumeControlSlider.value;
 
