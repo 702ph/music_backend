@@ -333,8 +333,6 @@ def delete_song(id):
     db_cursor.close()
     db_connection.commit()  # changes will not be saved without commit
     db_connection.close()
-
-    ## TODO: zukuenftig: aktuelle Liste der Lieder zurueckgeben
     return jsonify(fetch_all)
 
 
