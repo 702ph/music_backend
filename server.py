@@ -1,8 +1,6 @@
 import os
 import sqlite3
-import mimetypes
 import io
-import sqlalchemy
 import datetime
 import timestring
 
@@ -10,8 +8,6 @@ from flask import Flask, json, jsonify, request, make_response, render_template,
 from flask_cors import CORS
 from flask_restful import Api, http_status_message
 from werkzeug.utils import secure_filename, redirect
-# from mutagen.easyid3 import EasyID3 # to import mp3 tags
-#import mutagen
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
 
@@ -29,19 +25,6 @@ app.config['JSON_SORT_KEYS'] = False
 
 api = Api(app)
 CORS(app)
-
-## for my practice
-@app.route("/db")
-def db():
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-    # cursor.execute(".table") ##query でないので実行できないようだ。
-    db_cursor.execute("select * from sqlite_master where type='table'")
-    # cursor.execute("select * from aaa")
-    fetch_all = db_cursor.fetchall()
-    db_cursor.close()
-    db_connection.close()
-    return jsonify(fetch_all)
 
 
 # return list of all column for song in json
@@ -88,7 +71,7 @@ def db_test():
         # dictionary for each row
         entry = {}
         for i_desc, val_desc in enumerate(description):
-            entry.update({val_desc[0]: row[i_desc]})  # update() adds new element to dictionary. name doesn't fit! <- what does this mean???
+            entry.update({val_desc[0]: row[i_desc]})
         entries.append(entry)
 
     db_cursor.close()
@@ -96,26 +79,6 @@ def db_test():
 
     result = jsonify(entries)
     return result
-
-
-
-"""
-@app.route("/songs/<id>", methods=["GET"])
-def get_song(id):
-    my_db = sqlite3.connect("db/music.db")
-    cursor = my_db.cursor()
-    param = (id,)
-
-    # cursor.execute("select * from s where id="+id) #everything
-    # cursor.execute("select id,title,album,year,genre,created_at from s where id="+id)
-
-    cursor.execute("select id,title,album,year,genre,created_at from s where id=?", param)
-
-    fetch_all = cursor.fetchall()
-    cursor.close()
-    my_db.close()
-    return jsonify(fetch_all)
-"""
 
 
 def allowed_file(filename):
@@ -142,14 +105,9 @@ def save_to_db(file, file_name):
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    #param = ("title", "album", "year", "genre", file, "created_at", "path",)
-    #db_cursor.execute("insert into s(title, album, year, genre, data, created_at, path) values(?, ?, ?, ?, ?, ?, ?);", param)
-
     # https://codeday.me/jp/qa/20190110/126212.html
     # binary = sqlite3.Binary(file.stream.read()) # works!
     binary = sqlite3.Binary(file.read())  # works! same!
-    #param2 = (binary,)
-    #db_cursor.execute("insert into blob_demo(data) values(?);", param2)
 
     # get mp3 tags
     mp3_infos = get_mp3_infos(binary)
@@ -198,6 +156,7 @@ def get_mp3_infos(file):
         result.update({key: value})
     """
 
+    # get tags. this one works.
     for key in mp3.ID3.valid_keys.keys():  # iterate through mp3 keys which in ID3 designated
         value = mp3.tags.get(key)[0] if mp3.tags.get(key) is not None else None  # keys in 0. position in array. sometimes key doesn't has value so None have to be returned
         id3_tags.update({key: value})
@@ -252,7 +211,7 @@ def update_db():
     db_connection.commit()
     db_connection.close()
 
-    status = True # TODO: uebergebe result von try&catch
+    status = True
     return jsonify({"update": status})
 
 
@@ -281,7 +240,6 @@ def read_from_db(id):
     db_cursor = db_connection.cursor()
 
     #execute SQL Query
-    #db_cursor.execute("select * from blob_demo where rowid=?", (id,))
     db_cursor.execute("select data from song where id=?", (id,))
     row = db_cursor.fetchone()
     file = row[0]  # get 1. row
@@ -307,10 +265,7 @@ def read_song(id):
     print(response.mimetype)
 
     #https://qiita.com/kekeho/items/58b24c2400ead44f3561
-    #mimetype = mimetypes.guess_type(file) # doesn't work
-    #print(mimetype)
     return response
-
 
 
 @app.route("/songs/<id>", methods=["DELETE"])
@@ -429,7 +384,7 @@ def login2():
 
 @app.route('/param_test', methods=['POST', 'GET'])
 def param_test():
-    p1 = request.args.get("p1", "")  ##TODO: １つのparamしか取れない！
+    p1 = request.args.get("p1", "")
     p2 = request.args.get("p2", "")
     params = {
         "p1": p1,
@@ -442,7 +397,7 @@ def param_test():
 def param_test2():
     ## method of request : https://a2c.bitbucket.io/flask/api.html#flask.request
     if request.method == 'GET':
-        p1 = request.args.get("p1", "")  ##TODO: １つのparamしか取れない！ 2つめはdefault valueである。
+        p1 = request.args.get("p1", "")
         p2 = request.args.get("p2", "")
         params = {
             "p1": p1,
@@ -451,11 +406,11 @@ def param_test2():
         return json.dumps(params)
     else:  ## POST
         content_type = request.headers["Content-Type"]
-        if content_type == "application/json":  ##check if there is application/json in header
-            print(request.values)  ## valueでheadersやdataの両方を取得できるようだが、combinedMultiDicttoとなり、展開方法がわからない。
-            print((f'request.values: {request.values}'))  # 上記に同じ
+        if content_type == "application/json":  # check if there is application/json in header
+            print(request.values)  #  value has headers and data in combinedMultiDict
+            print((f'request.values: {request.values}'))  # same as above
             return json.dumps(request.json)
-            # return request.data ##message body の中身を全て出力したいときはこちら。
+            # return request.data # to show whole message body
         else:
             return "no content type : application/json in header"
 
