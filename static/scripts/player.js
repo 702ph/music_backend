@@ -24,7 +24,7 @@ window.addEventListener('load', async function () {
 
     // set
     // songSelector = document.querySelector("#songSelectorTable");
-    rows = songSelector.children[0].rows; //<tr> in <table>
+    rows = songSelector.rows; //<tr> in <table>
 
     // set songID
     selectedSongID = getFirstSongID(rows);
@@ -226,7 +226,7 @@ async function handleFileDropped(evt) {
 
         //reload song list
         await displaySongList();
-        rows = songSelector.children[0].rows;
+        rows = songSelector.rows;
     } catch (error) {
         console.log(error);
         dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error;
@@ -281,7 +281,7 @@ async function uploadSongButton(evt) {
 
         //renew song list
         await displaySongList();
-        rows = songSelector.children[0].rows;
+        rows = songSelector.rows;
 
     } catch (error) {
         console.log(error);
@@ -682,15 +682,15 @@ Object.defineProperty(this, 'displaySongList', {
         }
 
         //create table
-        let table = document.createElement("table");
-        table.border = 1;
-        table.style = "border: 1px solid #ccc; border-collapse: collapse;";
-        table.style = "padding: 10px";
-        songSelector.appendChild(table);
+        //let table = document.createElement("table");
+        songSelector.border = 1;
+        songSelector.style = "border: 1px solid #ccc; border-collapse: collapse;";
+        songSelector.style = "padding: 10px";
+        //songSelector.appendChild(table);
 
         //insert table head ( the first row )
         const songTitle = songList[0]; // use any one for the title. songList looks like 0: {id: 25, title: "title25", artist: "ketsumeishi", album: "album25", year: 2019, …} and then 1: {id: 45, title: "title here", artist: "artist here", album: "album here", year: "year here", …}
-        let tr = table.insertRow(-1);
+        let tr = songSelector.insertRow(-1);
 
         for (const key of Object.keys(songTitle)) {  // with Object.keys() to get iterable keys. https://www.sejuku.net/blog/27965
             if (key === "created_at") continue; //continue: stop executing code below and continue to next loop;  break: stop executing rest of the loop
@@ -699,7 +699,7 @@ Object.defineProperty(this, 'displaySongList', {
 
         //cell for each song
         for (const song of songList) {
-            let tr = table.insertRow(-1);
+            let tr = songSelector.insertRow(-1);
             for (const [key, value] of Object.entries(song)) {
                 if (key === "created_at") continue;
                 tr.insertCell(-1).innerHTML = value;
