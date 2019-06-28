@@ -110,7 +110,7 @@ testing issues...4
 [X] replace "or click here" button with "Drop mp3 here!".
 
 [] server side: try, catch
-[] clean up server code
+[X] clean up server code
 [] clean up javascript
 
 [] documentation
