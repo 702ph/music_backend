@@ -157,6 +157,14 @@
     color: #bbb;
 }
 
+#drop_zone_message {
+    margin-bottom: 3%;
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 10s linear running;
+    font-weight: bold;
+}
+
 #drop_zone.is-dragover {
     background-color: rgb(237, 243, 250);
     border-color: black
@@ -197,7 +205,7 @@
     /* customizable */
     transition: all 0.3s ease-in-out;
     padding: 10px;
-    color: #ffffff;
+    color: rgba(255,255,255, 0.8);
     border-radius: 10px;
     box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.5);
 }
