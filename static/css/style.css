@@ -82,6 +82,12 @@ table {
     height: 90%;
 }
 
+.overflowY {
+    overflow: auto;
+    height: 350px;
+
+}
+
 body {
     height: 100vh;
     background: -webkit-radial-gradient(center ellipse, #564c84 0%, #0c0b17 100%);
@@ -89,6 +95,25 @@ body {
     color: #888;
     overflow-y:scroll;
 }
+
+/*================== COLORS ================================*/
+
+.red {
+    color: red;
+}
+
+.skyblue {
+    background-Color: skyblue;
+}
+
+.white {
+    color: white;
+}
+
+.greenYellow {
+    background-color: #44c767;
+}
+
 
 /*================================ MEDIA PLAYER AND SONG LIST =============================*/
 
@@ -109,12 +134,12 @@ body {
 
 .musicList {
     position: absolute;
-    top: 200%;
+    top: 112%;
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     width: 500px;
-    height: auto;
+    height: 400px;
     padding: 2%;
     margin-bottom: 5%;
     background: -webkit-radial-gradient(center ellipse, #444 0%, #111 100%);
@@ -123,6 +148,69 @@ body {
     box-sizing: border-box;
     border-radius: 0px 0px 10px 10px;
     transition: height 200ms;
+}
+
+/*================================ BUTTONS =====================================*/
+
+.lyricsButton {
+    margin-top: 7%;
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #459ec7), color-stop(1, #28dbd2));
+    background: -moz-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: -webkit-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: -o-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: -ms-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
+    background: linear-gradient(to bottom, #459ec7 5%, #28dbd2 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#459ec7', endColorstr='#28dbd2', GradientType=0);
+    background-color: #459ec7;
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+    border: 1px solid #ffffff;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 17px;
+    padding: 5px 20px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #3f3f3f;
+}
+
+.lyricsButton:hover {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #28dbd2), color-stop(1, #459ec7));
+    background: -moz-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: -webkit-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: -o-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: -ms-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
+    background: linear-gradient(to bottom, #28dbd2 5%, #459ec7 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#28dbd2', endColorstr='#459ec7', GradientType=0);
+    background-color: #28dbd2;
+}
+
+.playerButtons {
+    background-color: #44c767;
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
+    border: 1px solid #18ab29;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 10px;
+    padding: 5px 10px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #2f6627;
+    margin: 10px;
+}
+
+.playerButtons:hover {
+    background-color: #5cbf2a;
+}
+
+.playerButtons:active {
+    position: relative;
+    top: 1px;
 }
 
 /*===============================================*/
@@ -202,6 +290,7 @@ header .volume .volumeLine {
     background: #a900ff;
     box-shadow: 0 0 2px 2px #a900ff;
     margin-left: 17%;
+
 }
 
 header .volume .volumeIcon {
@@ -434,7 +523,7 @@ footer .time-tracker .timer {
     position: relative;
     float: left;
     width: 80%;
-    height: 2rem;
+    height: 2.2rem;
     cursor: pointer;
 }
 
@@ -472,4 +561,6 @@ footer #audioPlayBackProgressCounter {
     margin-right: 5%;
     line-height: 2rem;
 }
+
+
 
