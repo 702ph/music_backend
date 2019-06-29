@@ -102,8 +102,6 @@ testing issues...4
 [X] repeat on/off button
 [X] random on/off button
 
-[] log-in function
-
 [X] fix bug when playing newly added song
 [X] update row variable every after adding new song
 
@@ -112,9 +110,6 @@ testing issues...4
 [] server side: try, catch
 [X] clean up server code
 [] clean up javascript
-
-[] documentation
-
 
 [X] audio visualization?
 
@@ -126,11 +121,17 @@ testing issues...4
 [] defineProperty with prototype?
 https://www.sejuku.net/blog/25328
 
-
 [X] take this out of all functions: let songSelector = document.querySelector("#songSelectorTable");
 let rows = songSelector.children[0].rows; //<tr> in <table>
 
 -------------------
+06
+
+[] log-in function
+[] documentation
+
+---------------
+
 
 backlog
 
