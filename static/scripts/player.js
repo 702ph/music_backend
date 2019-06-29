@@ -7,12 +7,8 @@
 
 /***************** INITIALIZATION **********************/
 
-// let songSelector;
 let rows;
-
 let songSelector = document.querySelector("#songSelectorTable");
-// let rows = songSelector.children[0].rows; //<tr> in <table>
-
 let audioInformation = document.querySelector("#audioInformation");
 
 
@@ -23,14 +19,10 @@ window.addEventListener('load', async function () {
     await displaySongList();
 
     // set
-    // songSelector = document.querySelector("#songSelectorTable");
     rows = songSelector.children[0].rows; //<tr> in <table>
 
     // set songID
     selectedSongID = getFirstSongID(rows);
-
-    //TODO: this will be removed.
-    //document.querySelector("#songIDInput").value = selectedSongID;
 
     printAudioInformation();
     printLyrics(getSongInfo(selectedSongID));
@@ -73,10 +65,6 @@ function initAudioBufferSourceNode() {
         audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
         console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
 
-        // connect audio source with gain node
-        //audioBufferSourceNode.connect(gainNode);
-        //gainNode.connect(audioCtx.destination);
-
         // connect audio source with analyser, then with gain node
         audioBufferSourceNode.connect(AudioVisualizer.analyser);
         AudioVisualizer.analyser.connect(gainNode);
@@ -88,6 +76,10 @@ function initAudioBufferSourceNode() {
         AudioVisualizer.analyser.maxDecibels = AudioVisualizer.MAX_DECIBELS;
         AudioVisualizer.analyser.smoothingTimeConstant = AudioVisualizer.SMOOTHING;
 
+        //prepare array (doesn't work)
+        //AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
+        //AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
+
         // get frequencyBinCount
         AudioVisualizer.bufferLength = AudioVisualizer.analyser.frequencyBinCount;
         console.log(AudioVisualizer.bufferLength);
@@ -95,9 +87,6 @@ function initAudioBufferSourceNode() {
         // prepare array
         AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.bufferLength);
         AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.bufferLength);
-
-        //AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
-        //AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
 
         // clear previous analyzer
         canvasCtx.clearRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
