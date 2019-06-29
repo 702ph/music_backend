@@ -39,7 +39,7 @@
 }
 
 #drop_zone_message {
-    margin: 1% 0% 3% 1%;
+    margin: 1% 2% 3% 1%;
     display: inline-block;
     white-space: nowrap;
     font-weight: bold;
@@ -93,6 +93,8 @@
 
 #songSelectorTable {
     padding: 10px;
+    margin-bottom: 2%;
+    border: 1px solid #ccc;
 }
 
 /*======================== TOOLTIP ===============================*/
@@ -148,8 +150,8 @@
 
 .popup {
     margin: 70px auto;
-    padding: 20px;
-    background: #fff;
+    padding: 10px;
+    background: #161616;
     border-radius: 5px;
     width: 90%;
     height: 90%;
@@ -171,7 +173,7 @@
     font-size: 30px;
     font-weight: bold;
     text-decoration: none;
-    color: #333;
+    color: #999;
 }
 
 .popup .close:hover {
