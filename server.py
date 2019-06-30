@@ -8,9 +8,10 @@ from flask import Flask, json, jsonify, request, make_response, render_template,
 from flask_cors import CORS
 from flask_restful import Api, http_status_message
 from werkzeug.utils import secure_filename, redirect
+from werkzeug.security import safe_str_cmp
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
-
+from flask_jwt import JWT, jwt_required, current_identity
 ## problem installing modules. have to type ./env/bin/pip
 
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
@@ -23,9 +24,11 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["DB_PATH"] = "db/music.db"
 app.config['JSON_SORT_KEYS'] = False
 
+app.config["SECRET_KEY"] = "develop"
+app.config["JWT_AUTH_RULE"] = "/api/auth"
+
 api = Api(app)
 CORS(app)
-
 
 # return list of all column for song in json
 @app.route("/songs/", methods=['GET'])
@@ -415,8 +418,54 @@ def param_test2():
             return "no content type : application/json in header"
 
 
+"""""""""""""""""""""""""""""""JWT TEST"""""""""""""""""""""""""""
+# https://medium.com/@knt.yamada.800/python3-flask%E3%81%A7jwt%E8%AA%8D%E8%A8%BC-cc212f62e330
+# https://pythonhosted.org/Flask-JWT/
 
-## this should be after @app.route
+
+class User(object):
+    def __init__(self, id, username, password):
+        self.id = id
+        self.username = username
+        self.password = password
+
+    def __str__(self):
+        return "User(id='%s')" % self.id
+
+
+def authenticate(username, password):
+    user = username_table.get(username, None)
+    if user and safe_str_cmp(user.password.encode('utf-8'), password.encode('utf-8')):
+        return user
+
+
+def identity(payload):
+    user_id = payload['identity']
+    return userid_table.get(user_id, None)
+
+
+@app.route('/protected')
+@jwt_required()
+def protected():
+    return '%s' % current_identity
+
+
+users = [
+    User(1, 'user1', 'abcxyz'),
+    User(2, 'user2', 'abcxyz'),
+    User(3, 'user3', 'abc'),
+]
+
+username_table = {u.username: u for u in users}
+userid_table = {u.id: u for u in users}
+
+jwt = JWT(app, authenticate, identity)
+
+# ========================================
+# this should be after @app.route
+
+
 if __name__ == '__main__':
+    #jwt = JWT(app, authenticate, identity)
     app.debug = True
     app.run()
