@@ -14,18 +14,18 @@ from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
 ## problem installing modules. have to type ./env/bin/pip
 
-MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
-UPLOAD_FOLDER = "static/uploads"
+#MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
+#UPLOAD_FOLDER = "static/uploads"
 ALLOWED_EXTENSIONS = set(["mp3"])
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["DB_PATH"] = "db/music.db"
-app.config['JSON_SORT_KEYS'] = False
-
-app.config["SECRET_KEY"] = "develop"
-app.config["JWT_AUTH_RULE"] = "/api/auth"
+# app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+# app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+# app.config["DB_PATH"] = "db/music.db"
+# app.config['JSON_SORT_KEYS'] = False
+# app.config["SECRET_KEY"] = "develop"
+# app.config["JWT_AUTH_RULE"] = "/auth"
+app.config.from_pyfile("config.py")
 
 api = Api(app)
 CORS(app)
@@ -124,13 +124,22 @@ def save_to_db(file, file_name):
     # get date from mp
     year_mp3 = timestring.Date(mp3_infos["date"]).year
 
+    #
+    print("current_identity")
+    print(current_identity)
+
+    id = "10"
+
     # insert to db
     # at least one column should have value. if there are no tags in mp3, take file name for the title.
     if mp3_infos.get("title") is None:
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
+        # param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, id)
+
     else:
-        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
-    db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, id)
+    #db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+    db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
 
     db_cursor.close()
     db_connection.commit()
@@ -219,6 +228,7 @@ def update_db():
 
 
 @app.route("/songs", methods=["POST"])
+@jwt_required()
 def songs_post():
     if request.is_json:
         return update_db()
@@ -340,6 +350,8 @@ def hello_world():
     return "index page"
 
 
+#TODO: from here will be removed
+
 @app.route('/user/<username>')
 def show_user_profile(username):
     # show the user profile for that user
@@ -384,6 +396,8 @@ def login2():
     entries.append(new_entry)
     return redirect("/")
 
+#TODO: will be remove till here
+
 
 @app.route('/param_test', methods=['POST', 'GET'])
 def param_test():
@@ -422,26 +436,73 @@ def param_test2():
 # https://medium.com/@knt.yamada.800/python3-flask%E3%81%A7jwt%E8%AA%8D%E8%A8%BC-cc212f62e330
 # https://pythonhosted.org/Flask-JWT/
 
-
 class User(object):
-    def __init__(self, id, username, password):
+    def __init__(self, id, username, password):  # constructor
         self.id = id
         self.username = username
         self.password = password
 
-    def __str__(self):
+    def __str__(self):  # toString
         return "User(id='%s')" % self.id
 
 
+def get_user_info_from_db(username):
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
+
+    result = None
+    try:
+        db_cursor.execute("select * from user where name=?", (username,))
+        fetch_one = db_cursor.fetchone()
+
+        if fetch_one:
+            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
+        else:
+            result = None
+
+    except sqlite3.Error as e:
+        print("sqlite3.Error: ", e.args[0])
+
+    db_cursor.close()
+    db_connection.close()
+    return result
+
+
+def get_user_info_by_id_from_db(id):
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
+
+    result = None
+    try:
+        db_cursor.execute("select * from user where id=?", (id,))
+        fetch_one = db_cursor.fetchone()
+
+        if fetch_one:
+            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
+        else:
+            result = None
+
+    except sqlite3.Error as e:
+        print("sqlite3.Error: ", e.args[0])
+
+    db_cursor.close()
+    db_connection.close()
+    return result
+
+
+# this is called when /auth is accessed.
 def authenticate(username, password):
-    user = username_table.get(username, None)
-    if user and safe_str_cmp(user.password.encode('utf-8'), password.encode('utf-8')):
-        return user
+    user_info = get_user_info_from_db(username)
+    # None and True results in None. it's the same as false and followed statement will not be executed.
+    if user_info and safe_str_cmp(user_info.password.encode('utf-8'), password.encode('utf-8')):
+        return user_info
 
 
+# this is called when /protected is accessed.
 def identity(payload):
-    user_id = payload['identity']
-    return userid_table.get(user_id, None)
+    user_id = payload['identity']  # get value for key "identity" in payload
+    result = get_user_info_by_id_from_db(user_id)
+    return result
 
 
 @app.route('/protected')
@@ -450,14 +511,15 @@ def protected():
     return '%s' % current_identity
 
 
-users = [
-    User(1, 'user1', 'abcxyz'),
-    User(2, 'user2', 'abcxyz'),
-    User(3, 'user3', 'abc'),
-]
+# users = [
+#     User(1, 'user1', 'abc'),
+#     User(2, 'user2', 'abc'),
+#     User(3, 'user3', 'abc'),
+# ]
+#
+# username_table = {u.username: u for u in users}  # take user as u from users and then take out only username in u with u.username. u is a object of User class.
+# userid_table = {u.id: u for u in users}
 
-username_table = {u.username: u for u in users}
-userid_table = {u.id: u for u in users}
 
 jwt = JWT(app, authenticate, identity)
 
