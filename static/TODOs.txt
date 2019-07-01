@@ -127,7 +127,7 @@ let rows = songSelector.children[0].rows; //<tr> in <table>
 -------------------
 06
 
-[] log-in function
+[X] log-in function
 [] documentation
 
 ---------------
