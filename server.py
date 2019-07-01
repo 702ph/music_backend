@@ -461,7 +461,7 @@ class User(object):
         return "User(id='%s')" % self.id
 
 
-def get_user_info_from_db(username):
+def get_user_info_by_username_from_db(username):
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
@@ -507,17 +507,24 @@ def get_user_info_by_id_from_db(id):
 
 # this is called when /auth is accessed.
 def authenticate(username, password):
-    user_info = get_user_info_from_db(username)
+    user_info = get_user_info_by_username_from_db(username)
     # None and True results in None. it's the same as false and followed statement will not be executed.
     if user_info and safe_str_cmp(user_info.password.encode('utf-8'), password.encode('utf-8')):
         return user_info
 
 
-# this is called when /protected is accessed.
+# this is called when def with @jwt_required() is accessed.
 def identity(payload):
     user_id = payload['identity']  # get value for key "identity" in payload
     result = get_user_info_by_id_from_db(user_id)
     return result
+
+
+@app.route('/who')
+@jwt_required()
+def who_am_i():
+    request
+    return jsonify({"username": current_identity.username})
 
 
 @app.route('/protected')
@@ -527,6 +534,7 @@ def protected():
 
 
 # https://stackoverrun.com/ja/q/12207844
+# it's stateless. we don't need this, do we?
 @app.route('/logout', methods=['POST'])
 @jwt_required
 def logout():
@@ -536,16 +544,6 @@ def logout():
     # logout_user()
     # return jsonify({'success': True})
     return
-
-
-# users = [
-#     User(1, 'user1', 'abc'),
-#     User(2, 'user2', 'abc'),
-#     User(3, 'user3', 'abc'),
-# ]
-#
-# username_table = {u.username: u for u in users}  # take user as u from users and then take out only username in u with u.username. u is a object of User class.
-# userid_table = {u.id: u for u in users}
 
 
 jwt = JWT(app, authenticate, identity)
