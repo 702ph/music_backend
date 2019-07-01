@@ -16,23 +16,44 @@ const COOKIE_KEY_NAME = "token";
 // initial processes at page load
 window.addEventListener('load', async function () {
 
-    //display song list
-    await displaySongList();
+    // if token is in cookie, you're logged in.
+    const hasCookie = getTokenFromCookie();
+    if (hasCookie) {
+        try {
+            const loggedInUser = await whoAmI(hasCookie);
+            loggedInUserName = loggedInUser.username;
+            changeToLoggedInState();
 
-    // set
-    rows = songSelector.children[0].rows; //<tr> in <table>
+            //display song list
+            await displaySongList();
 
-    // set songID
-    selectedSongID = getFirstSongID(rows);
+            // set
+            rows = songSelector.children[0].rows; //<tr> in <table>
 
-    printAudioInformation();
-    printLyrics(getSongInfo(selectedSongID));
+            // set songID
+            selectedSongID = getFirstSongID(rows);
+
+            printAudioInformation();
+            printLyrics(getSongInfo(selectedSongID));
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    // //display song list
+    // await displaySongList();
+    //
+    // // set
+    // rows = songSelector.children[0].rows; //<tr> in <table>
+    //
+    // // set songID
+    // selectedSongID = getFirstSongID(rows);
+    //
+    // printAudioInformation();
+    // printLyrics(getSongInfo(selectedSongID));
 
     displayTime();
 
-    // debug
-    saveTokenInCookie("asdofnaoifeoianeoawnoefoiw");
-    console.log(getTokenFromCookie());
 });
 
 
@@ -126,7 +147,7 @@ function getTokenFromCookie() {
 }
 
 
-function addPrefix(token){
+function addPrefix(token) {
     return "JWT " + token;
 }
 
@@ -141,6 +162,7 @@ function saveTokenInCookie(token) {
 /***************** AUTHENTIFICATION **********************/
 
 let loggedIn;
+let loggedInUserName;
 let loginFieldMessage = document.querySelector("#loginFieldMessage");
 let loginUserName = document.querySelector('#loginUserName');
 let loginPassword = document.querySelector('#loginPassword');
@@ -184,22 +206,35 @@ async function doLogIn() {
             console.log("getTokenFromCookie():", getTokenFromCookie());
         }
 
-        //status change
-        loggedIn = true;
+        // set
+        loggedInUserName = username;
 
-        //change button
-        logInOutButton.value = "logout";
-
-        //log in status message
-        loginFieldMessage.textContent = "logged in as: " + username;
+        changeToLoggedInState();
 
         //song list
         await displaySongList();
 
+        //set rows
+        rows = songSelector.children[0].rows; //<tr> in <table>
     } catch (error) {
         console.log(error);
         loginFieldMessage.textContent = error.toString();
     }
+}
+
+function changeToLoggedInState() {
+    //status change
+    loggedIn = true;
+
+    //clear text field
+    loginUserName.value = "";
+    loginPassword.value = "";
+
+    //change button
+    logInOutButton.value = "logout";
+
+    //log in status message
+    loginFieldMessage.textContent = "logged in as: " + loggedInUserName;
 }
 
 
@@ -219,6 +254,14 @@ async function doLogOut() {
 
     //clear table
     clearTableContents();
+}
+
+
+// if token is in cookie, you're logged in.
+async function hasToken() {
+    if (getTokenFromCookie()) {
+        changeToLoggedInState()
+    }
 }
 
 
@@ -779,9 +822,9 @@ document.addEventListener('click', function (event) {
 
 /***************** TABLE CONTENTS **********************/
 
-function clearTableContents(){
+function clearTableContents() {
     while (songSelector.lastChild) {
-            songSelector.removeChild(songSelector.lastChild);
+        songSelector.removeChild(songSelector.lastChild);
     }
 }
 
@@ -966,7 +1009,7 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable', {
 
 /***************** SERVER COMMUNICATION **********************/
 
-
+// log in to user
 async function loginToServer(userInfo) {
 
     const resource = "/auth";
@@ -975,6 +1018,23 @@ async function loginToServer(userInfo) {
         credentials: "include",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(userInfo)
+    });
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+    const result = await response.json();
+    return result;
+}
+
+
+// get user name
+async function whoAmI(username) {
+    const resource = "/who";
+    let response = await fetch(resource, {
+        method: "GET",
+        credentials: "omit",
+        headers: {
+            "Authorization": addPrefix(username)
+        }
     });
     if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
