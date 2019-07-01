@@ -6,11 +6,12 @@
 
 
 /***************** INITIALIZATION **********************/
-
 let rows;
 let songSelector = document.querySelector("#songSelectorTable");
 let audioInformation = document.querySelector("#audioInformation");
 
+// JWT Token name
+const COOKIE_KEY_NAME = "token";
 
 // initial processes at page load
 window.addEventListener('load', async function () {
@@ -28,6 +29,10 @@ window.addEventListener('load', async function () {
     printLyrics(getSongInfo(selectedSongID));
 
     displayTime();
+
+    // debug
+    saveTokenInCokie("asdofnaoifeoianeoawnoefoiw");
+    console.log(getTokenFromCokie());
 });
 
 
@@ -94,6 +99,46 @@ function initAudioBufferSourceNode() {
     } catch (e) {
         console.log(e);
     }
+}
+
+/***************** COOKIE **********************/
+
+function getTokenFromCokie(){
+    let result = null;
+
+    const cookieName = COOKIE_KEY_NAME + '=';
+    let allcookies = document.cookie;
+
+    const position = allcookies.indexOf( cookieName );
+    if( position != -1 )
+    {
+        let startIndex = position + cookieName.length;
+
+        let endIndex = allcookies.indexOf( ';', startIndex );
+        if( endIndex == -1 )
+        {
+            endIndex = allcookies.length;
+        }
+
+        result = decodeURIComponent(
+            allcookies.substring( startIndex, endIndex ) );
+    }
+
+    return result;
+}
+
+
+function saveTokenInCokie(token){
+    const key = "token";
+    const cookie = key + "=" + token;
+    document.cookie = cookie;
+}
+
+
+/***************** AUTHENTIFICATION **********************/
+
+async function authentificate(){
+
 }
 
 
