@@ -36,7 +36,7 @@ CORS(app)
 @app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
 @jwt_required()
-def db_test():
+def get_song_list():
     print("/songs: current_identity: ", current_identity)
 
     db_connection = sqlite3.connect(app.config["DB_PATH"])
@@ -135,21 +135,18 @@ def save_to_db(file, file_name):
     print("current_identity")
     print(current_identity)
 
-    id = "10"
-
     # insert to db
     # at least one column should have value. if there are no tags in mp3, take file name for the title.
     if mp3_infos.get("title") is None:
         # param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, id)
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
 
     else:
         param = (
-        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, id)
+        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
     # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
     db_cursor.execute(
-        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);",
-        param)
+        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
 
     db_cursor.close()
     db_connection.commit()
@@ -226,8 +223,8 @@ def update_db():
     # update db
     for song in song_list:
         # print(song)
-        param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"],)
-        db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE id=?;", param)
+        param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"], current_identity.id,)
+        db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE (id=? and user_id=?);", param)
 
     # close db
     db_cursor.close()
@@ -258,13 +255,13 @@ def read_from_local_filesystem():
     return file
 
 
-def read_from_db(id):
+def read_from_db(song_id):
     # create response from db
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
     # execute SQL Query
-    db_cursor.execute("select data from song where id=?", (id,))
+    db_cursor.execute("select data from song where (id=? and user_id=?)", (song_id, current_identity.id))
     row = db_cursor.fetchone()
     file = row[0]  # get 1. row
 
@@ -275,10 +272,11 @@ def read_from_db(id):
     return file
 
 
-@app.route("/songs/<id>", methods=["GET"])
-def read_song(id):
+@app.route("/songs/<song_id>", methods=["GET"])
+@jwt_required()
+def read_song(song_id):
     filename = "song.mp3"  # have to be implemented
-    file = read_from_db(id)
+    file = read_from_db(song_id)
 
     # create response
     response = make_response()
@@ -292,19 +290,20 @@ def read_song(id):
     return response
 
 
-@app.route("/songs/<id>", methods=["DELETE"])
-def delete_song(id):
+@app.route("/songs/<song_id>", methods=["DELETE"])
+@jwt_required()
+def delete_song(song_id):
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
-    param = (id,)
+    param = (song_id, current_identity.id)
 
     fetch_all = None
     try:
         # delete
-        db_cursor.execute("delete from song where id = ?", param)
+        db_cursor.execute("delete from song where (id=? and user_id=?)", param)
 
         # after delete
-        db_cursor.execute("select id,title,album,year,genre,created_at from s")  # without data & path
+        db_cursor.execute("select id,title,album,year,genre,created_at from s where user_id=?", (current_identity.id,))
         fetch_all = db_cursor.fetchall()
     except sqlite3.Error as e:
         print("sqlite3.Error: ", e.args[0])
@@ -444,8 +443,7 @@ def param_test2():
             return "no content type : application/json in header"
 
 
-"""""""""""""""""""""""""""""""JWT TEST"""""""""""""""""""""""""""
-
+"""""""""""""""""""""""""""""""JWT"""""""""""""""""""""""""""
 
 # https://medium.com/@knt.yamada.800/python3-flask%E3%81%A7jwt%E8%AA%8D%E8%A8%BC-cc212f62e330
 # https://pythonhosted.org/Flask-JWT/

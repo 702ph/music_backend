@@ -386,7 +386,7 @@ async function handleFileDropped(evt) {
         rows = songSelector.children[0].rows;
     } catch (error) {
         console.log(error);
-        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error;
+        dropZoneMessage.innerHTML = "Check Error. Detail: " + error;
     }
 
     //reset style
@@ -1016,7 +1016,9 @@ async function loginToServer(userInfo) {
     let response = await fetch(resource, {
         method: "POST",
         credentials: "include",
-        headers: {"Content-Type": "application/json"},
+        headers: {
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify(userInfo)
     });
     if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
@@ -1052,9 +1054,10 @@ Object.defineProperty(this, 'deleteSong', {
         const resource = "/songs" + "/" + id;
         let response = await fetch(resource, {
             method: "DELETE",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
             headers: {
-                "Accept": "audio/*"
+                "Accept": "audio/*",
+                Authorization: addPrefix(getTokenFromCookie())
             }
         });
 
@@ -1076,12 +1079,12 @@ Object.defineProperty(this, 'loadSongFromURL', {
         const resource = "/songs/" + songID;
         let response = await fetch(resource, {
             method: "GET",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
             headers: {
-                "Accept": "audio/*"
+                "Accept": "audio/*",
+                Authorization: addPrefix(getTokenFromCookie())
             }
         });
-
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
         let arrayBuffer = await response.arrayBuffer();
@@ -1099,7 +1102,11 @@ Object.defineProperty(this, 'postSong', {
         const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                // Accept: "application/json",
+                "Authorization": addPrefix(getTokenFromCookie())
+            },
             body: formData,
         });
 
@@ -1144,30 +1151,29 @@ Object.defineProperty(this, 'postTableContents', {
         const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
             headers: {
                 'Accept': 'application/json',
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                Authorization: addPrefix(getTokenFromCookie())
             },
             body: json,
         });
-
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
         const result = await response.json();
         console.log(result);
-
         return result;
     }
 });
 
 
-Object.defineProperty(this, "getLyrics", {
-    enumerable: false,
-    writable: false,
-    value: (songInfo) => {
-    }
-});
+// Object.defineProperty(this, "getLyrics", {
+//     enumerable: false,
+//     writable: false,
+//     value: (songInfo) => {
+//     }
+// });
 
 
 Object.defineProperty(this, 'queryLyrics', {
@@ -1175,7 +1181,11 @@ Object.defineProperty(this, 'queryLyrics', {
         const apikey = "9rKTnZBFvEFwSc6eZHA7a7G7mXsrMyIgu7R4L015Lzv9MG8Af4J3OoI0TJ8VB8xs";
         const resource = "https://orion.apiseeds.com/api/music/lyric/" + songInfo.artist + "/" + songInfo.title + "?apikey=" + apikey;
 
-        let response = await fetch(resource, {method: 'GET', headers: {"Accept": "application/json"}});
+        let response = await fetch(resource, {
+            method: 'GET',
+            headers: {
+                "Accept": "application/json"}
+        });
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
         return response.json();
