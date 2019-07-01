@@ -12,10 +12,11 @@ from werkzeug.security import safe_str_cmp
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
+
 ## problem installing modules. have to type ./env/bin/pip
 
-#MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
-#UPLOAD_FOLDER = "static/uploads"
+# MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
+# UPLOAD_FOLDER = "static/uploads"
 ALLOWED_EXTENSIONS = set(["mp3"])
 
 app = Flask(__name__)
@@ -30,16 +31,22 @@ app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
 
+
 # return list of all column for song in json
 @app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
+@jwt_required()
 def db_test():
+    print("/songs: current_identity: ", current_identity)
+
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song")
+    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song where user_id=?", (current_identity.id,))
+    # db_cursor.execute("select id, title, artist, album, year, genre, created_at from song where user_id=?", (2,))
+
     fetch_all = db_cursor.fetchall()
-    description = db_cursor.description  # have to be placed after SQL Query
+    description = db_cursor.description  # has to be placed after SQL Query
 
     # 1. variation
     """
@@ -86,15 +93,15 @@ def db_test():
 
 def allowed_file(filename):
     return "." in filename and \
-           filename.rsplit(".",1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def save_to_local_filesysytem(file):
     filename = secure_filename(file.filename)
 
-    #1. variation
-    #filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
-    #absolute_filepath_name = filepath + "/" + filename
+    # 1. variation
+    # filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
+    # absolute_filepath_name = filepath + "/" + filename
 
     # 2. variation
     os.getcwd()
@@ -137,9 +144,12 @@ def save_to_db(file, file_name):
         param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, id)
 
     else:
-        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, id)
-    #db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
-    db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
+        param = (
+        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, id)
+    # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+    db_cursor.execute(
+        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);",
+        param)
 
     db_cursor.close()
     db_connection.commit()
@@ -170,7 +180,8 @@ def get_mp3_infos(file):
 
     # get tags. this one works.
     for key in mp3.ID3.valid_keys.keys():  # iterate through mp3 keys which in ID3 designated
-        value = mp3.tags.get(key)[0] if mp3.tags.get(key) is not None else None  # keys in 0. position in array. sometimes key doesn't has value so None have to be returned
+        value = mp3.tags.get(key)[0] if mp3.tags.get(
+            key) is not None else None  # keys in 0. position in array. sometimes key doesn't has value so None have to be returned
         id3_tags.update({key: value})
     return id3_tags
 
@@ -248,11 +259,11 @@ def read_from_local_filesystem():
 
 
 def read_from_db(id):
-    #create response from db
+    # create response from db
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    #execute SQL Query
+    # execute SQL Query
     db_cursor.execute("select data from song where id=?", (id,))
     row = db_cursor.fetchone()
     file = row[0]  # get 1. row
@@ -277,7 +288,7 @@ def read_song(id):
 
     print(response.mimetype)
 
-    #https://qiita.com/kekeho/items/58b24c2400ead44f3561
+    # https://qiita.com/kekeho/items/58b24c2400ead44f3561
     return response
 
 
@@ -304,22 +315,22 @@ def delete_song(id):
     return jsonify(fetch_all)
 
 
-## error handling debugging
+# error handling debugging
 @app.route('/poppop', methods=['POST'])
 def post_json():
-  try:
-    json = request.get_json()  # Get POST JSON
-    NAME = json['name']
-    result = {
-      "data": {
-        "id": 1,
-        "name": NAME
+    try:
+        json = request.get_json()  # Get POST JSON
+        NAME = json['name']
+        result = {
+            "data": {
+                "id": 1,
+                "name": NAME
+            }
         }
-      }
-    return jsonify(result)
-  except Exception as e:
-    result = error_handler(e)
-    return result
+        return jsonify(result)
+    except Exception as e:
+        result = error_handler(e)
+        return result
 
 
 @app.errorhandler(400)
@@ -328,10 +339,10 @@ def post_json():
 def error_handler(error):
     response = jsonify({
         "error": {
-                     "type": error.name,
-                     "message": error.description
-                 }
-                       })
+            "type": error.name,
+            "message": error.description
+        }
+    })
     return response, error.code
 
 
@@ -350,7 +361,7 @@ def hello_world():
     return "index page"
 
 
-#TODO: from here will be removed
+# TODO: from here will be removed
 
 @app.route('/user/<username>')
 def show_user_profile(username):
@@ -396,7 +407,8 @@ def login2():
     entries.append(new_entry)
     return redirect("/")
 
-#TODO: will be remove till here
+
+# TODO: will be remove till here
 
 
 @app.route('/param_test', methods=['POST', 'GET'])
@@ -424,7 +436,7 @@ def param_test2():
     else:  ## POST
         content_type = request.headers["Content-Type"]
         if content_type == "application/json":  # check if there is application/json in header
-            print(request.values)  #  value has headers and data in combinedMultiDict
+            print(request.values)  # value has headers and data in combinedMultiDict
             print((f'request.values: {request.values}'))  # same as above
             return json.dumps(request.json)
             # return request.data # to show whole message body
@@ -433,8 +445,11 @@ def param_test2():
 
 
 """""""""""""""""""""""""""""""JWT TEST"""""""""""""""""""""""""""
+
+
 # https://medium.com/@knt.yamada.800/python3-flask%E3%81%A7jwt%E8%AA%8D%E8%A8%BC-cc212f62e330
 # https://pythonhosted.org/Flask-JWT/
+
 
 class User(object):
     def __init__(self, id, username, password):  # constructor
@@ -511,6 +526,18 @@ def protected():
     return '%s' % current_identity
 
 
+# https://stackoverrun.com/ja/q/12207844
+@app.route('/logout', methods=['POST'])
+@jwt_required
+def logout():
+    # user = current_user
+    # user.authenticated = False
+    # db.session.commit()
+    # logout_user()
+    # return jsonify({'success': True})
+    return
+
+
 # users = [
 #     User(1, 'user1', 'abc'),
 #     User(2, 'user2', 'abc'),
@@ -528,6 +555,6 @@ jwt = JWT(app, authenticate, identity)
 
 
 if __name__ == '__main__':
-    #jwt = JWT(app, authenticate, identity)
+    # jwt = JWT(app, authenticate, identity)
     app.debug = True
     app.run()

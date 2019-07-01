@@ -31,8 +31,8 @@ window.addEventListener('load', async function () {
     displayTime();
 
     // debug
-    saveTokenInCokie("asdofnaoifeoianeoawnoefoiw");
-    console.log(getTokenFromCokie());
+    saveTokenInCookie("asdofnaoifeoianeoawnoefoiw");
+    console.log(getTokenFromCookie());
 });
 
 
@@ -103,32 +103,35 @@ function initAudioBufferSourceNode() {
 
 /***************** COOKIE **********************/
 
-function getTokenFromCokie(){
+function getTokenFromCookie() {
     let result = null;
 
     const cookieName = COOKIE_KEY_NAME + '=';
     let allcookies = document.cookie;
 
-    const position = allcookies.indexOf( cookieName );
-    if( position != -1 )
-    {
+    const position = allcookies.indexOf(cookieName);
+    if (position != -1) {
         let startIndex = position + cookieName.length;
 
-        let endIndex = allcookies.indexOf( ';', startIndex );
-        if( endIndex == -1 )
-        {
+        let endIndex = allcookies.indexOf(';', startIndex);
+        if (endIndex == -1) {
             endIndex = allcookies.length;
         }
 
         result = decodeURIComponent(
-            allcookies.substring( startIndex, endIndex ) );
+            allcookies.substring(startIndex, endIndex));
     }
 
     return result;
 }
 
 
-function saveTokenInCokie(token){
+function addPrefix(token){
+    return "JWT " + token;
+}
+
+
+function saveTokenInCookie(token) {
     const key = "token";
     const cookie = key + "=" + token;
     document.cookie = cookie;
@@ -137,8 +140,85 @@ function saveTokenInCokie(token){
 
 /***************** AUTHENTIFICATION **********************/
 
-async function authentificate(){
+let loggedIn;
+let loginFieldMessage = document.querySelector("#loginFieldMessage");
+let loginUserName = document.querySelector('#loginUserName');
+let loginPassword = document.querySelector('#loginPassword');
+let logInOutButton = document.querySelector('#logInOutButton');
+logInOutButton.onclick = () => doLogInOut();
 
+
+function doLogInOut() {
+    if (loggedIn) {
+        doLogOut();
+    } else {
+        doLogIn();
+    }
+}
+
+
+async function doLogIn() {
+    // if nothing entered, return.
+    if (loginUserName.value === "" || loginPassword.value === "") {
+        loginFieldMessage.textContent = "User name or Password should not be empty.";
+        return;
+    }
+
+    //get username and password
+    const username = loginUserName.value;
+    const password = loginPassword.value;
+    console.log(username, password);
+
+    // communicate with server
+    try {
+        // login to server
+        const response = await loginToServer({
+            "username": username,
+            "password": password
+        });
+        console.log(response);
+
+        // save access token in cookie
+        if (response.access_token) {
+            saveTokenInCookie(response.access_token);
+            console.log("getTokenFromCookie():", getTokenFromCookie());
+        }
+
+        //status change
+        loggedIn = true;
+
+        //change button
+        logInOutButton.value = "logout";
+
+        //log in status message
+        loginFieldMessage.textContent = "logged in as: " + username;
+
+        //song list
+        await displaySongList();
+
+    } catch (error) {
+        console.log(error);
+        loginFieldMessage.textContent = error.toString();
+    }
+}
+
+
+async function doLogOut() {
+    // overwrite cookie
+    saveTokenInCookie("not logged in")
+    console.log("getTokenFromCookie():", getTokenFromCookie());
+
+    //status change
+    loggedIn = false;
+
+    //change button
+    logInOutButton.value = "login";
+
+    //log in status message
+    loginFieldMessage.textContent = "";
+
+    //clear table
+    clearTableContents();
 }
 
 
@@ -335,7 +415,7 @@ async function uploadSongButton(evt) {
 
 
 const showOpenFileDialog = () => {
-    return new Promise( resolve => {
+    return new Promise(resolve => {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "audio/mp3";
@@ -699,6 +779,13 @@ document.addEventListener('click', function (event) {
 
 /***************** TABLE CONTENTS **********************/
 
+function clearTableContents(){
+    while (songSelector.lastChild) {
+            songSelector.removeChild(songSelector.lastChild);
+    }
+}
+
+
 //display song list on in table
 Object.defineProperty(this, 'displaySongList', {
     enumerable: false,
@@ -711,9 +798,10 @@ Object.defineProperty(this, 'displaySongList', {
         let songSelector = document.querySelector("#songSelectorTable");
 
         // clear previous data
-        while (songSelector.lastChild) {
-            songSelector.removeChild(songSelector.lastChild);
-        }
+        // while (songSelector.lastChild) {
+        //     songSelector.removeChild(songSelector.lastChild);
+        // }
+        clearTableContents();
 
         //create table
         let table = document.createElement("table");
@@ -878,6 +966,23 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable', {
 
 /***************** SERVER COMMUNICATION **********************/
 
+
+async function loginToServer(userInfo) {
+
+    const resource = "/auth";
+    let response = await fetch(resource, {
+        method: "POST",
+        credentials: "include",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(userInfo)
+    });
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+    const result = await response.json();
+    return result;
+}
+
+
 //send delete request to server
 Object.defineProperty(this, 'deleteSong', {
     enumerable: false,
@@ -888,6 +993,9 @@ Object.defineProperty(this, 'deleteSong', {
         let response = await fetch(resource, {
             method: "DELETE",
             credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                "Accept": "audio/*"
+            }
         });
 
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
@@ -954,8 +1062,11 @@ Object.defineProperty(this, 'getSongList', {
 
         let response = await fetch(resource, {
             method: 'GET',
-            credentials: "include", //https://chaika.hatenablog.com/entry/2019/01/08/123000
-            headers: {Accept: "application/json"}
+            credentials: "omit", //https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                // Accept: "application/json",
+                "Authorization": addPrefix(getTokenFromCookie())
+            }
         });
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
         let result = await response.json();
@@ -1540,14 +1651,14 @@ function getSongInfo(id) {
     for (const tr of Array.prototype.slice.call(rows)) {
         if (tr.cells[0].innerText === id) {
             const songID =
-             {
-                id: tr.cells[0].innerText,
-                title: tr.cells[1].innerText,
-                artist: tr.cells[2].innerText,
-                album: tr.cells[3].innerText,
-                year: tr.cells[4].innerText,
-                genre: tr.cells[5].innerText
-            }
+                {
+                    id: tr.cells[0].innerText,
+                    title: tr.cells[1].innerText,
+                    artist: tr.cells[2].innerText,
+                    album: tr.cells[3].innerText,
+                    year: tr.cells[4].innerText,
+                    genre: tr.cells[5].innerText
+                }
             return songID;
         }
     }
