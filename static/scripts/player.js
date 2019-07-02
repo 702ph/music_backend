@@ -40,18 +40,6 @@ window.addEventListener('load', async function () {
         }
     }
 
-    // //display song list
-    // await displaySongList();
-    //
-    // // set
-    // rows = songSelector.children[0].rows; //<tr> in <table>
-    //
-    // // set songID
-    // selectedSongID = getFirstSongID(rows);
-    //
-    // printAudioInformation();
-    // printLyrics(getSongInfo(selectedSongID));
-
     displayTime();
 
 });
@@ -211,15 +199,22 @@ async function doLogIn() {
 
         changeToLoggedInState();
 
+    } catch (error) {
+        console.log(error);
+        loginFieldMessage.textContent = error.toString();
+    }
+
+    // display song list
+    try {
         //song list
         await displaySongList();
 
         //set rows
         rows = songSelector.children[0].rows; //<tr> in <table>
-    } catch (error) {
-        console.log(error);
-        loginFieldMessage.textContent = error.toString();
+    } catch (e){
+        console.log(e);
     }
+
 }
 
 function changeToLoggedInState() {
