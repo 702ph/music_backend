@@ -59,6 +59,7 @@ textarea {
     font-size: 12pt;
     border-color: #161616;
     text-shadow: #0c0b17;
+    padding-left: 1%;
 }
 
 /* Scrollbar styles */
