@@ -315,24 +315,6 @@ def delete_song(song_id):
     return jsonify(fetch_all)
 
 
-# error handling debugging
-@app.route('/poppop', methods=['POST'])
-def post_json():
-    try:
-        json = request.get_json()  # Get POST JSON
-        NAME = json['name']
-        result = {
-            "data": {
-                "id": 1,
-                "name": NAME
-            }
-        }
-        return jsonify(result)
-    except Exception as e:
-        result = error_handler(e)
-        return result
-
-
 @app.errorhandler(400)
 @app.errorhandler(404)
 @app.errorhandler(500)
