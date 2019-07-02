@@ -109,7 +109,7 @@ testing issues...4
 
 [] server side: try, catch
 [X] clean up server code
-[] clean up javascript
+[X] clean up javascript
 
 [X] audio visualization?
 
@@ -128,6 +128,7 @@ let rows = songSelector.children[0].rows; //<tr> in <table>
 06
 
 [X] log-in function
+[X] password by hash
 [] documentation
 
 ---------------
