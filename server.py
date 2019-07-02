@@ -3,6 +3,7 @@ import sqlite3
 import io
 import datetime
 import timestring
+import hashlib
 
 from flask import Flask, json, jsonify, request, make_response, render_template, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
@@ -505,9 +506,17 @@ def get_user_info_by_id_from_db(id):
 
 # this is called when /auth is accessed.
 def authenticate(username, password):
+    # get user info from db
     user_info = get_user_info_by_username_from_db(username)
+
+    # user info from db
+    password_from_db = user_info.password.encode('utf-8')
+
+    # user info from browser. make hash.
+    password_from_request = hashlib.sha256(password.encode('utf-8')).hexdigest()
+
     # None and True results in None. it's the same as false and followed statement will not be executed.
-    if user_info and safe_str_cmp(user_info.password.encode('utf-8'), password.encode('utf-8')):
+    if user_info and safe_str_cmp(password_from_db, password_from_request):
         return user_info
 
 
@@ -529,19 +538,6 @@ def who_am_i():
 @jwt_required()
 def protected():
     return '%s' % current_identity
-
-
-# https://stackoverrun.com/ja/q/12207844
-# it's stateless. we don't need this, do we?
-@app.route('/logout', methods=['POST'])
-@jwt_required
-def logout():
-    # user = current_user
-    # user.authenticated = False
-    # db.session.commit()
-    # logout_user()
-    # return jsonify({'success': True})
-    return
 
 
 jwt = JWT(app, authenticate, identity)
