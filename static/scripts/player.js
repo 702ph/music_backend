@@ -835,10 +835,6 @@ Object.defineProperty(this, 'displaySongList', {
         //get div
         let songSelector = document.querySelector("#songSelectorTable");
 
-        // clear previous data
-        // while (songSelector.lastChild) {
-        //     songSelector.removeChild(songSelector.lastChild);
-        // }
         clearTableContents();
 
         //create table
@@ -875,10 +871,6 @@ Object.defineProperty(this, 'displaySongList', {
 let inDeleteConfirmedState = false;
 let deleteConfirmBtn = document.querySelector("#deleteConfirmButton");
 deleteConfirmBtn.onclick = () => {
-    //get table
-    //let songSelector = document.querySelector("#songSelectorTable");
-    //let rows = songSelector.children[0].rows; //<tr> in <table>
-
     if (inDeleteConfirmedState) {
         // remove highlights
         removeHighlightsFromTable(rows);
@@ -913,9 +905,6 @@ Object.defineProperty(this, 'deleteSongs', {
     enumerable: false,
     configurable: false,
     value: async function () {
-
-        //get buttons
-        //let deleteBtn = document.querySelector("#deleteButton");
 
         // change to delete song mode, if not in the mode.
         if (!inDeleteSongMode) {
@@ -1691,27 +1680,6 @@ Object.defineProperty(this, 'getFirstSongID', {
 });
 
 
-// get song info
-// Object.defineProperty(this, 'getSongInfo', {
-//     enumerable: false,
-//     configurable: false,
-//     value: (id) => {
-//         for (const tr of Array.prototype.slice.call(rows)) {
-//             if (tr.cells[0].innerText === id) {
-//                 return {
-//                     id: tr.cells[0].innerText,
-//                     title: tr.cells[1].innerText,
-//                     artist: tr.cells[2].innerText,
-//                     album: tr.cells[3].innerText,
-//                     year: tr.cells[4].innerText,
-//                     genre: tr.cells[5].innerText
-//                 }
-//             }
-//         }
-//     }
-// });
-
-
 function getSongInfo(id) {
     for (const tr of Array.prototype.slice.call(rows)) {
         if (tr.cells[0].innerText === id) {
@@ -1896,7 +1864,6 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
     //audioVolumeDisplay.innerText = maxGain * ratio;
 
     //change volume
-    //gainNode.gain.value = maxGain * ratio;
     changeGainVolume(maxGain * ratio);
 });
 

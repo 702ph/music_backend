@@ -16,19 +16,9 @@ from flask_jwt import JWT, jwt_required, current_identity
 
 ## problem installing modules. have to type ./env/bin/pip
 
-# MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
-# UPLOAD_FOLDER = "static/uploads"
 ALLOWED_EXTENSIONS = set(["mp3"])
-
 app = Flask(__name__)
-# app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
-# app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-# app.config["DB_PATH"] = "db/music.db"
-# app.config['JSON_SORT_KEYS'] = False
-# app.config["SECRET_KEY"] = "develop"
-# app.config["JWT_AUTH_RULE"] = "/auth"
 app.config.from_pyfile("config.py")
-
 api = Api(app)
 CORS(app)
 
@@ -44,7 +34,6 @@ def get_song_list():
     db_cursor = db_connection.cursor()
 
     db_cursor.execute("select id, title, artist, album, year, genre, created_at from song where user_id=?", (current_identity.id,))
-    # db_cursor.execute("select id, title, artist, album, year, genre, created_at from song where user_id=?", (2,))
 
     fetch_all = db_cursor.fetchall()
     description = db_cursor.description  # has to be placed after SQL Query
