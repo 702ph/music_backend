@@ -6,36 +6,42 @@
 
 
 /***************** INITIALIZATION **********************/
-
-// let songSelector;
 let rows;
-
 let songSelector = document.querySelector("#songSelectorTable");
-// let rows = songSelector.children[0].rows; //<tr> in <table>
-
 let audioInformation = document.querySelector("#audioInformation");
 
+// JWT Token name
+const COOKIE_KEY_NAME = "token";
 
 // initial processes at page load
 window.addEventListener('load', async function () {
 
-    //display song list
-    await displaySongList();
+    // if token is in cookie, you're logged in.
+    const hasCookie = getTokenFromCookie();
+    if (hasCookie) {
+        try {
+            const loggedInUser = await whoAmI(hasCookie);
+            loggedInUserName = loggedInUser.username;
+            changeToLoggedInState();
 
-    // set
-    // songSelector = document.querySelector("#songSelectorTable");
-    rows = songSelector.children[0].rows; //<tr> in <table>
+            //display song list
+            await displaySongList();
 
-    // set songID
-    selectedSongID = getFirstSongID(rows);
+            // set
+            rows = songSelector.children[0].rows; //<tr> in <table>
 
-    //TODO: this will be removed.
-    //document.querySelector("#songIDInput").value = selectedSongID;
+            // set songID
+            selectedSongID = getFirstSongID(rows);
 
-    printAudioInformation();
-    printLyrics(getSongInfo(selectedSongID));
+            printAudioInformation();
+            printLyrics(getSongInfo(selectedSongID));
+        } catch (e) {
+            console.log(e);
+        }
+    }
 
     displayTime();
+
 });
 
 
@@ -73,10 +79,6 @@ function initAudioBufferSourceNode() {
         audioBufferSourceDuration = audioBufferSourceNode.buffer.duration;
         console.log("audioBufferSourceDuration: " + audioBufferSourceDuration);
 
-        // connect audio source with gain node
-        //audioBufferSourceNode.connect(gainNode);
-        //gainNode.connect(audioCtx.destination);
-
         // connect audio source with analyser, then with gain node
         audioBufferSourceNode.connect(AudioVisualizer.analyser);
         AudioVisualizer.analyser.connect(gainNode);
@@ -88,6 +90,10 @@ function initAudioBufferSourceNode() {
         AudioVisualizer.analyser.maxDecibels = AudioVisualizer.MAX_DECIBELS;
         AudioVisualizer.analyser.smoothingTimeConstant = AudioVisualizer.SMOOTHING;
 
+        //prepare array (doesn't work)
+        //AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
+        //AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
+
         // get frequencyBinCount
         AudioVisualizer.bufferLength = AudioVisualizer.analyser.frequencyBinCount;
         console.log(AudioVisualizer.bufferLength);
@@ -96,14 +102,160 @@ function initAudioBufferSourceNode() {
         AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.bufferLength);
         AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.bufferLength);
 
-        //AudioVisualizer.frequencyDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
-        //AudioVisualizer.timeDataArray = new Uint8Array(AudioVisualizer.analyser.frequencyBinCount);
-
         // clear previous analyzer
         canvasCtx.clearRect(0, 0, AudioVisualizer.CANVAS_WIDTH, AudioVisualizer.CANVAS_HEIGHT);
 
     } catch (e) {
         console.log(e);
+    }
+}
+
+/***************** COOKIE **********************/
+
+function getTokenFromCookie() {
+    let result = null;
+
+    const cookieName = COOKIE_KEY_NAME + '=';
+    let allcookies = document.cookie;
+
+    const position = allcookies.indexOf(cookieName);
+    if (position != -1) {
+        let startIndex = position + cookieName.length;
+
+        let endIndex = allcookies.indexOf(';', startIndex);
+        if (endIndex == -1) {
+            endIndex = allcookies.length;
+        }
+
+        result = decodeURIComponent(
+            allcookies.substring(startIndex, endIndex));
+    }
+
+    return result;
+}
+
+
+function addPrefix(token) {
+    return "JWT " + token;
+}
+
+
+function saveTokenInCookie(token) {
+    const key = "token";
+    const cookie = key + "=" + token;
+    document.cookie = cookie;
+}
+
+
+/***************** AUTHENTIFICATION **********************/
+
+let loggedIn;
+let loggedInUserName;
+let loginFieldMessage = document.querySelector("#loginFieldMessage");
+let loginUserName = document.querySelector('#loginUserName');
+let loginPassword = document.querySelector('#loginPassword');
+let logInOutButton = document.querySelector('#logInOutButton');
+logInOutButton.onclick = () => doLogInOut();
+
+
+function doLogInOut() {
+    if (loggedIn) {
+        doLogOut();
+    } else {
+        doLogIn();
+    }
+}
+
+
+async function doLogIn() {
+    // if nothing entered, return.
+    if (loginUserName.value === "" || loginPassword.value === "") {
+        loginFieldMessage.textContent = "User name or Password should not be empty.";
+        return;
+    }
+
+    //get username and password
+    const username = loginUserName.value;
+    const password = loginPassword.value;
+    console.log(username, password);
+
+    // communicate with server
+    try {
+        // login to server
+        const response = await loginToServer({
+            "username": username,
+            "password": password
+        });
+        console.log(response);
+
+        // save access token in cookie
+        if (response.access_token) {
+            saveTokenInCookie(response.access_token);
+            console.log("getTokenFromCookie():", getTokenFromCookie());
+        }
+
+        // set
+        loggedInUserName = username;
+
+        changeToLoggedInState();
+
+    } catch (error) {
+        console.log(error);
+        loginFieldMessage.textContent = error.toString();
+    }
+
+    // display song list
+    try {
+        //song list
+        await displaySongList();
+
+        //set rows
+        rows = songSelector.children[0].rows; //<tr> in <table>
+    } catch (e){
+        console.log(e);
+    }
+
+}
+
+function changeToLoggedInState() {
+    //status change
+    loggedIn = true;
+
+    //clear text field
+    loginUserName.value = "";
+    loginPassword.value = "";
+
+    //change button
+    logInOutButton.value = "logout";
+
+    //log in status message
+    loginFieldMessage.textContent = "logged in as: " + loggedInUserName;
+}
+
+
+async function doLogOut() {
+    // overwrite cookie
+    saveTokenInCookie("not logged in")
+    console.log("getTokenFromCookie():", getTokenFromCookie());
+
+    //status change
+    loggedIn = false;
+
+    //change button
+    logInOutButton.value = "login";
+
+    //log in status message
+    loginFieldMessage.textContent = "";
+
+    //clear table
+    clearTableContents();
+}
+
+
+// if token is in cookie, you're logged in.
+async function hasToken() {
+    if (getTokenFromCookie()) {
+        changeToLoggedInState()
     }
 }
 
@@ -229,7 +381,7 @@ async function handleFileDropped(evt) {
         rows = songSelector.children[0].rows;
     } catch (error) {
         console.log(error);
-        dropZoneMessage.innerHTML = "Check Internet Connection. Detail: " + error;
+        dropZoneMessage.innerHTML = "Check Error. Detail: " + error;
     }
 
     //reset style
@@ -301,7 +453,7 @@ async function uploadSongButton(evt) {
 
 
 const showOpenFileDialog = () => {
-    return new Promise( resolve => {
+    return new Promise(resolve => {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "audio/mp3";
@@ -665,6 +817,13 @@ document.addEventListener('click', function (event) {
 
 /***************** TABLE CONTENTS **********************/
 
+function clearTableContents() {
+    while (songSelector.lastChild) {
+        songSelector.removeChild(songSelector.lastChild);
+    }
+}
+
+
 //display song list on in table
 Object.defineProperty(this, 'displaySongList', {
     enumerable: false,
@@ -676,10 +835,7 @@ Object.defineProperty(this, 'displaySongList', {
         //get div
         let songSelector = document.querySelector("#songSelectorTable");
 
-        // clear previous data
-        while (songSelector.lastChild) {
-            songSelector.removeChild(songSelector.lastChild);
-        }
+        clearTableContents();
 
         //create table
         let table = document.createElement("table");
@@ -715,10 +871,6 @@ Object.defineProperty(this, 'displaySongList', {
 let inDeleteConfirmedState = false;
 let deleteConfirmBtn = document.querySelector("#deleteConfirmButton");
 deleteConfirmBtn.onclick = () => {
-    //get table
-    //let songSelector = document.querySelector("#songSelectorTable");
-    //let rows = songSelector.children[0].rows; //<tr> in <table>
-
     if (inDeleteConfirmedState) {
         // remove highlights
         removeHighlightsFromTable(rows);
@@ -753,9 +905,6 @@ Object.defineProperty(this, 'deleteSongs', {
     enumerable: false,
     configurable: false,
     value: async function () {
-
-        //get buttons
-        //let deleteBtn = document.querySelector("#deleteButton");
 
         // change to delete song mode, if not in the mode.
         if (!inDeleteSongMode) {
@@ -844,6 +993,42 @@ Object.defineProperty(this, 'confirmSelectedItemsInTable', {
 
 /***************** SERVER COMMUNICATION **********************/
 
+// log in to user
+async function loginToServer(userInfo) {
+
+    const resource = "/auth";
+    let response = await fetch(resource, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(userInfo)
+    });
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+    const result = await response.json();
+    return result;
+}
+
+
+// get user name
+async function whoAmI(username) {
+    const resource = "/who";
+    let response = await fetch(resource, {
+        method: "GET",
+        credentials: "omit",
+        headers: {
+            "Authorization": addPrefix(username)
+        }
+    });
+    if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+
+    const result = await response.json();
+    return result;
+}
+
+
 //send delete request to server
 Object.defineProperty(this, 'deleteSong', {
     enumerable: false,
@@ -853,7 +1038,11 @@ Object.defineProperty(this, 'deleteSong', {
         const resource = "/songs" + "/" + id;
         let response = await fetch(resource, {
             method: "DELETE",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                "Accept": "audio/*",
+                Authorization: addPrefix(getTokenFromCookie())
+            }
         });
 
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
@@ -874,12 +1063,12 @@ Object.defineProperty(this, 'loadSongFromURL', {
         const resource = "/songs/" + songID;
         let response = await fetch(resource, {
             method: "GET",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
             headers: {
-                "Accept": "audio/*"
+                "Accept": "audio/*",
+                Authorization: addPrefix(getTokenFromCookie())
             }
         });
-
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
         let arrayBuffer = await response.arrayBuffer();
@@ -897,7 +1086,11 @@ Object.defineProperty(this, 'postSong', {
         const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                // Accept: "application/json",
+                "Authorization": addPrefix(getTokenFromCookie())
+            },
             body: formData,
         });
 
@@ -920,8 +1113,11 @@ Object.defineProperty(this, 'getSongList', {
 
         let response = await fetch(resource, {
             method: 'GET',
-            credentials: "include", //https://chaika.hatenablog.com/entry/2019/01/08/123000
-            headers: {Accept: "application/json"}
+            credentials: "omit", //https://chaika.hatenablog.com/entry/2019/01/08/123000
+            headers: {
+                // Accept: "application/json",
+                "Authorization": addPrefix(getTokenFromCookie())
+            }
         });
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
         let result = await response.json();
@@ -939,30 +1135,29 @@ Object.defineProperty(this, 'postTableContents', {
         const resource = "/songs";
         let response = await fetch(resource, {
             method: "POST",
-            credentials: "include",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
+            credentials: "omit",　//https://chaika.hatenablog.com/entry/2019/01/08/123000
             headers: {
                 'Accept': 'application/json',
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                Authorization: addPrefix(getTokenFromCookie())
             },
             body: json,
         });
-
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
         const result = await response.json();
         console.log(result);
-
         return result;
     }
 });
 
 
-Object.defineProperty(this, "getLyrics", {
-    enumerable: false,
-    writable: false,
-    value: (songInfo) => {
-    }
-});
+// Object.defineProperty(this, "getLyrics", {
+//     enumerable: false,
+//     writable: false,
+//     value: (songInfo) => {
+//     }
+// });
 
 
 Object.defineProperty(this, 'queryLyrics', {
@@ -970,7 +1165,11 @@ Object.defineProperty(this, 'queryLyrics', {
         const apikey = "9rKTnZBFvEFwSc6eZHA7a7G7mXsrMyIgu7R4L015Lzv9MG8Af4J3OoI0TJ8VB8xs";
         const resource = "https://orion.apiseeds.com/api/music/lyric/" + songInfo.artist + "/" + songInfo.title + "?apikey=" + apikey;
 
-        let response = await fetch(resource, {method: 'GET', headers: {"Accept": "application/json"}});
+        let response = await fetch(resource, {
+            method: 'GET',
+            headers: {
+                "Accept": "application/json"}
+        });
         if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
 
         return response.json();
@@ -1481,39 +1680,18 @@ Object.defineProperty(this, 'getFirstSongID', {
 });
 
 
-// get song info
-// Object.defineProperty(this, 'getSongInfo', {
-//     enumerable: false,
-//     configurable: false,
-//     value: (id) => {
-//         for (const tr of Array.prototype.slice.call(rows)) {
-//             if (tr.cells[0].innerText === id) {
-//                 return {
-//                     id: tr.cells[0].innerText,
-//                     title: tr.cells[1].innerText,
-//                     artist: tr.cells[2].innerText,
-//                     album: tr.cells[3].innerText,
-//                     year: tr.cells[4].innerText,
-//                     genre: tr.cells[5].innerText
-//                 }
-//             }
-//         }
-//     }
-// });
-
-
 function getSongInfo(id) {
     for (const tr of Array.prototype.slice.call(rows)) {
         if (tr.cells[0].innerText === id) {
             const songID =
-             {
-                id: tr.cells[0].innerText,
-                title: tr.cells[1].innerText,
-                artist: tr.cells[2].innerText,
-                album: tr.cells[3].innerText,
-                year: tr.cells[4].innerText,
-                genre: tr.cells[5].innerText
-            }
+                {
+                    id: tr.cells[0].innerText,
+                    title: tr.cells[1].innerText,
+                    artist: tr.cells[2].innerText,
+                    album: tr.cells[3].innerText,
+                    year: tr.cells[4].innerText,
+                    genre: tr.cells[5].innerText
+                }
             return songID;
         }
     }
@@ -1686,7 +1864,6 @@ audioPlayBackVolumeController.addEventListener("click", (e) => {
     //audioVolumeDisplay.innerText = maxGain * ratio;
 
     //change volume
-    //gainNode.gain.value = maxGain * ratio;
     changeGainVolume(maxGain * ratio);
 });
 

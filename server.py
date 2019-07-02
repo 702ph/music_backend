@@ -3,26 +3,22 @@ import sqlite3
 import io
 import datetime
 import timestring
+import hashlib
 
 from flask import Flask, json, jsonify, request, make_response, render_template, url_for  # なぜかrequestsでは動かない。
 from flask_cors import CORS
 from flask_restful import Api, http_status_message
 from werkzeug.utils import secure_filename, redirect
+from werkzeug.security import safe_str_cmp
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
+from flask_jwt import JWT, jwt_required, current_identity
 
 ## problem installing modules. have to type ./env/bin/pip
 
-MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # max file size = 16MB
-UPLOAD_FOLDER = "static/uploads"
 ALLOWED_EXTENSIONS = set(["mp3"])
-
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["DB_PATH"] = "db/music.db"
-app.config['JSON_SORT_KEYS'] = False
-
+app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
 
@@ -30,13 +26,17 @@ CORS(app)
 # return list of all column for song in json
 @app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
-def db_test():
+@jwt_required()
+def get_song_list():
+    print("/songs: current_identity: ", current_identity)
+
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song")
+    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song where user_id=?", (current_identity.id,))
+
     fetch_all = db_cursor.fetchall()
-    description = db_cursor.description  # have to be placed after SQL Query
+    description = db_cursor.description  # has to be placed after SQL Query
 
     # 1. variation
     """
@@ -83,15 +83,15 @@ def db_test():
 
 def allowed_file(filename):
     return "." in filename and \
-           filename.rsplit(".",1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def save_to_local_filesysytem(file):
     filename = secure_filename(file.filename)
 
-    #1. variation
-    #filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
-    #absolute_filepath_name = filepath + "/" + filename
+    # 1. variation
+    # filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
+    # absolute_filepath_name = filepath + "/" + filename
 
     # 2. variation
     os.getcwd()
@@ -121,13 +121,22 @@ def save_to_db(file, file_name):
     # get date from mp
     year_mp3 = timestring.Date(mp3_infos["date"]).year
 
+    #
+    print("current_identity")
+    print(current_identity)
+
     # insert to db
     # at least one column should have value. if there are no tags in mp3, take file name for the title.
     if mp3_infos.get("title") is None:
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
+        # param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
+
     else:
-        param = (mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
-    db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+        param = (
+        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
+    # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+    db_cursor.execute(
+        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
 
     db_cursor.close()
     db_connection.commit()
@@ -158,7 +167,8 @@ def get_mp3_infos(file):
 
     # get tags. this one works.
     for key in mp3.ID3.valid_keys.keys():  # iterate through mp3 keys which in ID3 designated
-        value = mp3.tags.get(key)[0] if mp3.tags.get(key) is not None else None  # keys in 0. position in array. sometimes key doesn't has value so None have to be returned
+        value = mp3.tags.get(key)[0] if mp3.tags.get(
+            key) is not None else None  # keys in 0. position in array. sometimes key doesn't has value so None have to be returned
         id3_tags.update({key: value})
     return id3_tags
 
@@ -203,8 +213,8 @@ def update_db():
     # update db
     for song in song_list:
         # print(song)
-        param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"],)
-        db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE id=?;", param)
+        param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"], current_identity.id,)
+        db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE (id=? and user_id=?);", param)
 
     # close db
     db_cursor.close()
@@ -216,6 +226,7 @@ def update_db():
 
 
 @app.route("/songs", methods=["POST"])
+@jwt_required()
 def songs_post():
     if request.is_json:
         return update_db()
@@ -234,13 +245,13 @@ def read_from_local_filesystem():
     return file
 
 
-def read_from_db(id):
-    #create response from db
+def read_from_db(song_id):
+    # create response from db
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
-    #execute SQL Query
-    db_cursor.execute("select data from song where id=?", (id,))
+    # execute SQL Query
+    db_cursor.execute("select data from song where (id=? and user_id=?)", (song_id, current_identity.id))
     row = db_cursor.fetchone()
     file = row[0]  # get 1. row
 
@@ -251,10 +262,11 @@ def read_from_db(id):
     return file
 
 
-@app.route("/songs/<id>", methods=["GET"])
-def read_song(id):
+@app.route("/songs/<song_id>", methods=["GET"])
+@jwt_required()
+def read_song(song_id):
     filename = "song.mp3"  # have to be implemented
-    file = read_from_db(id)
+    file = read_from_db(song_id)
 
     # create response
     response = make_response()
@@ -264,23 +276,24 @@ def read_song(id):
 
     print(response.mimetype)
 
-    #https://qiita.com/kekeho/items/58b24c2400ead44f3561
+    # https://qiita.com/kekeho/items/58b24c2400ead44f3561
     return response
 
 
-@app.route("/songs/<id>", methods=["DELETE"])
-def delete_song(id):
+@app.route("/songs/<song_id>", methods=["DELETE"])
+@jwt_required()
+def delete_song(song_id):
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
-    param = (id,)
+    param = (song_id, current_identity.id)
 
     fetch_all = None
     try:
         # delete
-        db_cursor.execute("delete from song where id = ?", param)
+        db_cursor.execute("delete from song where (id=? and user_id=?)", param)
 
         # after delete
-        db_cursor.execute("select id,title,album,year,genre,created_at from s")  # without data & path
+        db_cursor.execute("select id,title,album,year,genre,created_at from s where user_id=?", (current_identity.id,))
         fetch_all = db_cursor.fetchall()
     except sqlite3.Error as e:
         print("sqlite3.Error: ", e.args[0])
@@ -291,34 +304,16 @@ def delete_song(id):
     return jsonify(fetch_all)
 
 
-## error handling debugging
-@app.route('/poppop', methods=['POST'])
-def post_json():
-  try:
-    json = request.get_json()  # Get POST JSON
-    NAME = json['name']
-    result = {
-      "data": {
-        "id": 1,
-        "name": NAME
-        }
-      }
-    return jsonify(result)
-  except Exception as e:
-    result = error_handler(e)
-    return result
-
-
 @app.errorhandler(400)
 @app.errorhandler(404)
 @app.errorhandler(500)
 def error_handler(error):
     response = jsonify({
         "error": {
-                     "type": error.name,
-                     "message": error.description
-                 }
-                       })
+            "type": error.name,
+            "message": error.description
+        }
+    })
     return response, error.code
 
 
@@ -327,96 +322,105 @@ def web_app_main_page():
     return render_template("player.html")
 
 
-@app.route('/world')  # more routes can be defined
-def hello_world():
-    h = "Hello2"
-    s = " 1"
-    w = "World!1"
-    # return "Hello World!"
-    # return h+s+w
-    return "index page"
+"""""""""""""""""""""""""""""""JWT"""""""""""""""""""""""""""
+
+class User(object):
+    def __init__(self, id, username, password):  # constructor
+        self.id = id
+        self.username = username
+        self.password = password
+
+    def __str__(self):  # toString
+        return "User(id='%s')" % self.id
 
 
-@app.route('/user/<username>')
-def show_user_profile(username):
-    # show the user profile for that user
-    # pass
-    return username
+def get_user_info_by_username_from_db(username):
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
 
+    result = None
+    try:
+        db_cursor.execute("select * from user where name=?", (username,))
+        fetch_one = db_cursor.fetchone()
 
-@app.route('/post/<int:post_id>')
-def show_post(post_id):
-    # show the post with the given id, the id is an integer
-    # passS
-    return str(post_id)
-
-
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    searchWord = request.args.get("param1", "")
-    print(searchWord)
-    error = None
-    if request.method == 'POST':
-        if valid_login(request.form['username'],
-                       request.form['password']):
-            return log_the_user_in(request.form['username'])
+        if fetch_one:
+            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
         else:
-            error = 'Invalid username/password'
-    # this is executed if the request method was GET or the
-    # credentials were invalid
+            result = None
+
+    except sqlite3.Error as e:
+        print("sqlite3.Error: ", e.args[0])
+
+    db_cursor.close()
+    db_connection.close()
+    return result
 
 
-@app.route('/login2', methods=['POST', 'GET'])
-def login2():
-    searchWord = request.args.get("param1", "")
-    print(searchWord)
-    error = None
-    if request.method == 'POST':
-        username = request.form["username"]
-        password = request.form["password"]
-    new_entry = {
-        "username": username,
-        "password": password
-    }
-    entries.append(new_entry)
-    return redirect("/")
+def get_user_info_by_id_from_db(id):
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
 
+    result = None
+    try:
+        db_cursor.execute("select * from user where id=?", (id,))
+        fetch_one = db_cursor.fetchone()
 
-@app.route('/param_test', methods=['POST', 'GET'])
-def param_test():
-    p1 = request.args.get("p1", "")
-    p2 = request.args.get("p2", "")
-    params = {
-        "p1": p1,
-        "p2": p2
-    }
-    return json.dumps(params)
-
-
-@app.route('/param_test2', methods=['POST', 'GET'])
-def param_test2():
-    ## method of request : https://a2c.bitbucket.io/flask/api.html#flask.request
-    if request.method == 'GET':
-        p1 = request.args.get("p1", "")
-        p2 = request.args.get("p2", "")
-        params = {
-            "p1": p1,
-            "p2": p2
-        }
-        return json.dumps(params)
-    else:  ## POST
-        content_type = request.headers["Content-Type"]
-        if content_type == "application/json":  # check if there is application/json in header
-            print(request.values)  #  value has headers and data in combinedMultiDict
-            print((f'request.values: {request.values}'))  # same as above
-            return json.dumps(request.json)
-            # return request.data # to show whole message body
+        if fetch_one:
+            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
         else:
-            return "no content type : application/json in header"
+            result = None
+
+    except sqlite3.Error as e:
+        print("sqlite3.Error: ", e.args[0])
+
+    db_cursor.close()
+    db_connection.close()
+    return result
 
 
+# this is called when /auth is accessed.
+def authenticate(username, password):
+    # get user info from db
+    user_info = get_user_info_by_username_from_db(username)
 
-## this should be after @app.route
+    # user info from db
+    password_from_db = user_info.password.encode('utf-8')
+
+    # user info from browser. make hash.
+    password_from_request = hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+    # None and True results in None. it's the same as false and followed statement will not be executed.
+    if user_info and safe_str_cmp(password_from_db, password_from_request):
+        return user_info
+
+
+# this is called when def with @jwt_required() is accessed.
+def identity(payload):
+    user_id = payload['identity']  # get value for key "identity" in payload
+    result = get_user_info_by_id_from_db(user_id)
+    return result
+
+
+@app.route('/who')
+@jwt_required()
+def who_am_i():
+    request
+    return jsonify({"username": current_identity.username})
+
+
+@app.route('/protected')
+@jwt_required()
+def protected():
+    return '%s' % current_identity
+
+
+jwt = JWT(app, authenticate, identity)
+
+# ========================================
+# this should be after @app.route
+
+
 if __name__ == '__main__':
+    # jwt = JWT(app, authenticate, identity)
     app.debug = True
     app.run()
