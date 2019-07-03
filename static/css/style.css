@@ -178,7 +178,7 @@ body {
 /* Background style for the playlist */
 .musicList {
     position: absolute;
-    top: 112%;
+    top: 108%;
     left: 50%;
     -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
