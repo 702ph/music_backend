@@ -62,6 +62,18 @@ textarea {
     padding-left: 1%;
 }
 
+td {
+    padding: 5px;
+    border: 1px solid #ccc;
+    margin-right: 3%;
+}
+
+tr:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    transition: all 0.3s ease-in-out;
+}
+
 /* Scrollbar styles */
 ::-webkit-scrollbar {
     width: 12px;
@@ -232,6 +244,37 @@ body {
     border-radius: 10px;
     padding: 10px 35px;
     border: 1px solid #ccc;
+}
+
+#logInOutButton {
+    margin-top: 2%;
+    margin-left: 35%;
+    background-color: rgba(0, 0, 0, 0.3);
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-family: Arial;
+    font-size: 15px;
+    padding: 5px 20px;
+    text-decoration: none;
+    text-shadow: 0px 1px 0px #3f3f3f;
+}
+
+#logInOutButton:hover {
+    background-color: rgba(124,0,197,0.71);
+    transition: all 0.3s ease-in-out;
+}
+
+#loginFieldMessage {
+    position: absolute;
+    top: 85%;
+    left: 32%;
+    text-transform: uppercase;
+    transition: opacity 0.5ms ease;
 }
 
 /*================================ BUTTONS =====================================*/
@@ -429,6 +472,8 @@ main .player {
     border: solid 2px #000;
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 4px 2px rgba(0, 0, 0, 0.2);
 }
+
+/*************** PLAYER BUTTONS ****************/
 
 main .player .buttons {
     position: absolute;
