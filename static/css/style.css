@@ -68,6 +68,10 @@ td {
     margin-right: 3%;
 }
 
+tr {
+    color: #eeeeee;
+}
+
 tr:hover {
     background-color: rgba(0, 0, 0, 0.6);
     color: white;
@@ -209,7 +213,7 @@ body {
 
 .login:hover {
     opacity: 1;
-    transition: opacity 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 #loginField {
@@ -218,6 +222,7 @@ body {
     right: 7%;
     z-index: 1000;
     width: 250px;
+    height: auto;
     float: right;
     border-radius: 10px;
     overflow: hidden;
@@ -234,21 +239,23 @@ body {
     border-radius: 10px;
     padding: 10px 35px;
     border: 1px solid #ccc;
-    margin-left: 15%;
+    margin-left: 13%;
+    color: white;
 }
 
 #loginPassword {
     background-color: rgba(0, 0, 0, 0.3);
     margin-top: 2%;
-    margin-left: 15%;
+    margin-left: 13%;
     border-radius: 10px;
     padding: 10px 35px;
     border: 1px solid #ccc;
+    color: white;
 }
 
 #logInOutButton {
     margin-top: 2%;
-    margin-left: 35%;
+    margin-left: 34%;
     background-color: rgba(0, 0, 0, 0.3);
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
@@ -272,21 +279,22 @@ body {
 #loginFieldMessage {
     position: absolute;
     top: 85%;
-    left: 32%;
+    left: 25%;
     text-transform: uppercase;
     transition: opacity 0.5ms ease;
+
 }
 
 /*================================ BUTTONS =====================================*/
 
 .lyricsButton {
     margin-top: 4%;
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #459ec7), color-stop(1, #28dbd2));
-    background: -moz-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: -webkit-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: -o-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: -ms-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: linear-gradient(to bottom, #459ec7 5%, #28dbd2 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #2b85c6), color-stop(1, #d01688));
+    background: -moz-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: -webkit-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: -o-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: -ms-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: linear-gradient(to bottom, #2b85c6 5%, #d01688 100%);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#459ec7', endColorstr='#28dbd2', GradientType=0);
     background-color: #459ec7;
     -moz-border-radius: 20px;
@@ -301,26 +309,22 @@ body {
     padding: 5px 20px;
     text-decoration: none;
     text-shadow: 0px 1px 0px #3f3f3f;
+    opacity: 0.7;
+
 }
 
 .lyricsButton:hover {
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #28dbd2), color-stop(1, #459ec7));
-    background: -moz-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: -webkit-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: -o-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: -ms-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: linear-gradient(to bottom, #28dbd2 5%, #459ec7 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#28dbd2', endColorstr='#459ec7', GradientType=0);
-    background-color: #28dbd2;
+    opacity: 1;
+    transition: all 0.3s ease-in-out;
 }
 
 .playerButtons {
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #459ec7), color-stop(1, #28dbd2));
-    background: -moz-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: -webkit-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: -o-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: -ms-linear-gradient(top, #459ec7 5%, #28dbd2 100%);
-    background: linear-gradient(to bottom, #459ec7 5%, #28dbd2 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #2b85c6), color-stop(1, #d01688));
+    background: -moz-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: -webkit-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: -o-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: -ms-linear-gradient(top, #2b85c6 5%, #d01688 100%);
+    background: linear-gradient(to bottom, #2b85c6 5%, #d01688 100%);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#459ec7', endColorstr='#28dbd2', GradientType=0);
     background-color: #459ec7;
     -moz-border-radius: 20px;
@@ -337,17 +341,12 @@ body {
     text-shadow: 0px 1px 0px #3f3f3f;
     margin-bottom: 3%;
     margin-right: 3%;
+    opacity: 0.7;
 }
 
 .playerButtons:hover {
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0.05, #28dbd2), color-stop(1, #459ec7));
-    background: -moz-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: -webkit-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: -o-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: -ms-linear-gradient(top, #28dbd2 5%, #459ec7 100%);
-    background: linear-gradient(to bottom, #28dbd2 5%, #459ec7 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#28dbd2', endColorstr='#459ec7', GradientType=0);
-    background-color: #28dbd2;
+    opacity: 1;
+    transition: all 0.3s ease-in-out;
 }
 
 .playerButtons:active {

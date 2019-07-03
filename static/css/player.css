@@ -139,6 +139,7 @@
     transition: opacity 500ms;
     visibility: hidden;
     opacity: 0;
+    z-index: 900;
 }
 
 .overlay:target {
@@ -147,13 +148,14 @@
 }
 
 .popup {
-    margin: 70px auto;
+    position: relative;
+    margin: 10px auto;
     padding: 10px;
     background: #161616;
     border-radius: 5px;
     width: 90%;
     height: 90%;
-    position: relative;
+    z-index: 800;
     transition: all 5s ease-in-out;
 }
 
