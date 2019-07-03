@@ -2151,6 +2151,16 @@ function showHideListFunction() {
     }
 }
 
+function showHideLogin() {
+    let x = document.getElementById("showLogin");
+    if (x.style.display === "block") {
+        x.style.display = "none";
+    } else {
+        x.style.display = "block";
+
+    }
+}
+
 /**************** PRELOADER ********************/
 
 $(window).on('load', function () { // makes sure the whole site is loaded
