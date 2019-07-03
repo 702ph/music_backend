@@ -11,22 +11,25 @@
 </head>
 <body>
 
-
-<div id="loginField">
-    username:
-    <input type="text" id="loginUserName">
-
-    <br>
-    password:
-    <input type="text" id="loginPassword">
-
-    <br>
-    <input type="button" value="login" id="logInOutButton">
-
-    <br>
-    <span id="loginFieldMessage"></span>
+<div onclick="showHideLogin()">
+    <img class="login" src="static/images/Login.png"/>
 </div>
 
+<div class="hidden" id="showLogin">
+    <div id="loginField">
+
+        <input placeholder="USERNAME" type="text" id="loginUserName">
+
+        <br>
+        <input placeholder="PASSWORD" type="text" id="loginPassword">
+
+        <br>
+        <input type="button" value="login" id="logInOutButton">
+
+        <br>
+        <span class="white" id="loginFieldMessage"></span>
+    </div>
+</div>
 
 <div id="audioController">
 
@@ -134,9 +137,9 @@
     <div>
         <a class="lyricsButton" href="#popup1">SHOW LYRICS</a>
     </div>
-        <div class="drop_zone_message_container">
-            <span id="drop_zone_message"></span>
-        </div>
+    <div class="drop_zone_message_container">
+        <span id="drop_zone_message"></span>
+    </div>
     <div id="popup1" class="overlay">
         <div class="popup">
             <a class="close" href="#">&times;</a>
@@ -154,35 +157,35 @@
 </div>
 
 
-<div class="space musicList overflow" id="showList" style="scrollbar-base-color: #0c0b17">
+<div class="space musicList overflow" id="showList">
 
-    <div id="edit_buttons">
-        <input type="button" class="playerButtons" id="editStartButton" value="EDIT">
-        <input type="button" class="playerButtons" id="editCancelButton" value="CANCEL">
-        <input type="button" class="playerButtons" id="deleteButton" value="CUT">
-        <input type="button" class="playerButtons" id="deleteConfirmButton" value="CONFIRM">
-        <input type="button" class="playerButtons" id="deleteCancelButton" value="CANCEL">
+<div id="edit_buttons">
+    <input type="button" class="playerButtons" id="editStartButton" value="EDIT">
+    <input type="button" class="playerButtons" id="editCancelButton" value="CANCEL">
+    <input type="button" class="playerButtons" id="deleteButton" value="CUT">
+    <input type="button" class="playerButtons" id="deleteConfirmButton" value="CONFIRM">
+    <input type="button" class="playerButtons" id="deleteCancelButton" value="CANCEL">
+</div>
+
+<div id="delete_buttons">
+
+</div>
+
+<div>
+    <!--
+    <div class="padding" id="songSelectorTable"></div>
+    -->
+
+    <!-- NEW PROTOTYPE -->
+    <div class="padding">
+        <table id="songSelectorTable">
+            <tr>
+                <td></td>
+            </tr>
+        </table>
     </div>
-
-    <div id="delete_buttons">
-
-    </div>
-
-    <div>
-        <!--
-        <div class="padding" id="songSelectorTable"></div>
-        -->
-
-        <!-- NEW PROTOTYPE -->
-        <div class="padding">
-            <table id="songSelectorTable">
-                <tr>
-                    <td></td>
-                </tr>
-            </table>
-        </div>
-        <div class="margin" id="tableDebug"></div>
-    </div>
+    <div class="margin" id="tableDebug"></div>
+</div>
 </div>
 
 <div id="preloader">
