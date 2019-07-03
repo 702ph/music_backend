@@ -234,6 +234,9 @@ function changeToLoggedInState() {
     //show buttons
     let editButtons = document.querySelector('#edit_buttons');
     editButtons.classList.remove("hidden");
+
+    //show table
+    songSelector.classList.remove("hidden");
 }
 
 
@@ -263,6 +266,9 @@ function changeToLoggedOutState() {
     // hide buttons
     let editButtons = document.querySelector('#edit_buttons');
     editButtons.classList.add("hidden");
+
+    //hide table
+    songSelector.classList.add("hidden");
 }
 
 
