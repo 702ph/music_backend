@@ -226,7 +226,7 @@ function changeToLoggedInState() {
     loginPassword.value = "";
 
     //change button
-    logInOutButton.value = "logout";
+    logInOutButton.value = "LOGOUT";
 
     //log in status message
     loginFieldMessage.textContent = "logged in as: " + loggedInUserName;
@@ -255,7 +255,7 @@ function changeToLoggedOutState() {
     loggedIn = false;
 
     //change button
-    logInOutButton.value = "login";
+    logInOutButton.value = "LOGIN";
 
     //log in status message
     loginFieldMessage.textContent = "";
@@ -1900,6 +1900,7 @@ function changeMuteIcon(volume) {
 
 
 /***************** VOLUME MUTE BUTTON **********************/
+
 let volumeIcon = document.querySelector("#volumeIcon");
 let muteIcon = document.querySelector("#muteIcon");
 let volumeBeforeMute;
