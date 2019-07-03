@@ -230,6 +230,10 @@ function changeToLoggedInState() {
 
     //log in status message
     loginFieldMessage.textContent = "logged in as: " + loggedInUserName;
+
+    //show buttons
+    let editButtons = document.querySelector('#edit_buttons');
+    editButtons.classList.remove("hidden");
 }
 
 
@@ -238,6 +242,15 @@ async function doLogOut() {
     saveTokenInCookie("not logged in")
     console.log("getTokenFromCookie():", getTokenFromCookie());
 
+    // change
+    changeToLoggedOutState()
+
+    //clear table
+    clearTableContents();
+}
+
+
+function changeToLoggedOutState() {
     //status change
     loggedIn = false;
 
@@ -247,9 +260,11 @@ async function doLogOut() {
     //log in status message
     loginFieldMessage.textContent = "";
 
-    //clear table
-    clearTableContents();
+    // hide buttons
+    let editButtons = document.querySelector('#edit_buttons');
+    editButtons.classList.add("hidden");
 }
+
 
 
 // if token is in cookie, you're logged in.
