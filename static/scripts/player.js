@@ -230,6 +230,10 @@ function changeToLoggedInState() {
 
     //log in status message
     loginFieldMessage.textContent = "logged in as: " + loggedInUserName;
+
+    //show buttons
+    let editButtons = document.querySelector('#edit_buttons');
+    editButtons.classList.remove("hidden");
 }
 
 
@@ -238,6 +242,15 @@ async function doLogOut() {
     saveTokenInCookie("not logged in")
     console.log("getTokenFromCookie():", getTokenFromCookie());
 
+    // change
+    changeToLoggedOutState()
+
+    //clear table
+    clearTableContents();
+}
+
+
+function changeToLoggedOutState() {
     //status change
     loggedIn = false;
 
@@ -247,8 +260,9 @@ async function doLogOut() {
     //log in status message
     loginFieldMessage.textContent = "";
 
-    //clear table
-    clearTableContents();
+    // hide buttons
+    let editButtons = document.querySelector('#edit_buttons');
+    editButtons.classList.add("hidden");
 }
 
 
@@ -849,6 +863,7 @@ Object.defineProperty(this, 'displaySongList', {
         let tr = songSelector.insertRow(-1);
 
         for (const key of Object.keys(songTitle)) {  // with Object.keys() to get iterable keys. https://www.sejuku.net/blog/27965
+            if (key === "genre") continue;
             if (key === "created_at") continue; //continue: stop executing code below and continue to next loop;  break: stop executing rest of the loop
             tr.insertCell(-1).innerHTML = key;
         }
@@ -857,6 +872,7 @@ Object.defineProperty(this, 'displaySongList', {
         for (const song of songList) {
             let tr = songSelector.insertRow(-1);
             for (const [key, value] of Object.entries(song)) {
+                if (key === "genre") continue;
                 if (key === "created_at") continue;
                 tr.insertCell(-1).innerHTML = value;
             }
@@ -1690,7 +1706,7 @@ function getSongInfo(id) {
                     artist: tr.cells[2].innerText,
                     album: tr.cells[3].innerText,
                     year: tr.cells[4].innerText,
-                    genre: tr.cells[5].innerText
+                    // genre: tr.cells[5].innerText
                 }
             return songID;
         }
