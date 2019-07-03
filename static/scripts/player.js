@@ -211,11 +211,17 @@ async function doLogIn() {
 
         //set rows
         rows = songSelector.rows; //<tr> in <table>
+
+        // set songID
+        selectedSongID = getFirstSongID(rows);
+
+        printAudioInformation();
+        printLyrics(getSongInfo(selectedSongID));
     } catch (e){
         console.log(e);
     }
-
 }
+
 
 function changeToLoggedInState() {
     //status change
