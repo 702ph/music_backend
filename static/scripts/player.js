@@ -422,7 +422,7 @@ const selectFileLabel = document.querySelector("#selectFileLabel");
 selectFileBtn.addEventListener('change', uploadSongButton, false); //doesn't work with define property ??
 
 // upload file with button
-//TODO: partly overlapped with which for drag and drop
+//TODO: partly overlapped with which for drag and drop. it should be refactored in the future.
 async function uploadSongButton(evt) {
 
     //assign file from dialog. use only the first file
@@ -777,9 +777,6 @@ document.addEventListener('click', function (e) {
                 if (!isPlaying) {
                     printAudioInformation();
                 }
-
-                //TODO: to be removed
-                //document.querySelector("#songIDInput").value = selectedSongID;
 
                 // for debug table
                 let tableDebug = document.querySelector('#tableDebug');
@@ -1378,9 +1375,9 @@ startBtn.onclick = () => start();
 
 async function start() {
 
-    //TODO: we need this?
-    startBtn.setAttribute('disabled', 'disabled');
-    startBtn.setAttribute('disabled', 'disabled');
+    //TODO: to be removed
+    //startBtn.setAttribute('disabled', 'disabled');
+    //startBtn.setAttribute('disabled', 'disabled');
 
     //debug
     //susresBtn.removeAttribute('disabled');
@@ -1858,7 +1855,6 @@ Object.defineProperty(this, "printLyrics", {
 
 /***************** VOLUME CONTROL BAR **********************/
 
-//todo: let do this function more task. i.e. change icon. bar.
 Object.defineProperty(this, 'changeGainVolume', {
     enumerable: false,
     configurable: false,
