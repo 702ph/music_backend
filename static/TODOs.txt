@@ -129,9 +129,14 @@ let rows = songSelector.children[0].rows; //<tr> in <table>
 
 [X] log-in function
 [X] password by hash
-[] documentation
+[X] documentation
 
 ---------------
+07
+
+SQL Alchemy
+
+------
 
 
 backlog

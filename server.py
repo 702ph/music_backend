@@ -13,6 +13,10 @@ from werkzeug.security import safe_str_cmp
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Integer, Column, String
 
 ## problem installing modules. have to type ./env/bin/pip
 
@@ -21,6 +25,34 @@ app = Flask(__name__)
 app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
+
+engine = create_engine("sqlite:///db/music.db")
+Session = sessionmaker(bind=engine)
+session = Session()
+
+Base = declarative_base()
+
+
+# class Song(Base):
+#     __tablename__ = "song"
+#     __table_args__ = {'extend_existing': True}
+
+
+class UserSQL(Base):
+    __tablename__ = "user"
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    text = Column(String)
+
+
+@app.route("/sql_test")
+def show_songs():
+    # songs = session.query(Song).all()
+    # return jsonify(songs)
+    users = session.query(UserSQL).all()
+    return jsonify(users)
+
 
 
 # return list of all column for song in json
