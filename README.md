@@ -5,7 +5,7 @@
 
 ### Frontend
 - pure Javascript
-- HTML5
+- HTML5 / CSS3
 - that's all!
 
 
