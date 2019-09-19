@@ -17,6 +17,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Integer, Column, String
+# from flask_sqlalchemy import SQLAlchemy
+# from flask_marshmallow import Marshmallow
 
 ## problem installing modules. have to type ./env/bin/pip
 
@@ -25,17 +27,26 @@ app = Flask(__name__)
 app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
+# db = SQLAlchemy(app)
+# ma = Marshmallow(app)
 
 engine = create_engine("sqlite:///db/music.db")
 Session = sessionmaker(bind=engine)
 session = Session()
-
 Base = declarative_base()
 
 
-# class Song(Base):
-#     __tablename__ = "song"
-#     __table_args__ = {'extend_existing': True}
+class Song(Base):
+    __tablename__ = "song"
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key= True)
+    title = Column(String)
+    album = Column(String)
+    year = Column(String)  # TODO: redactor with some date type?
+    genre = Column(String)
+    created_at = Column(String)  # TODO: redactor some date type?
+    artist = Column(String)
+    user_id = Column(Integer)
 
 
 class UserSQL(Base):
@@ -43,16 +54,31 @@ class UserSQL(Base):
     __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    text = Column(String)
+    password = Column(String)
 
 
-@app.route("/sql_test")
-def show_songs():
-    # songs = session.query(Song).all()
-    # return jsonify(songs)
+# ================= for SQLAlchemy implementation ===============
+
+
+@app.route("/sql_users")
+def show_users():
     users = session.query(UserSQL).all()
+    # print("users: ", users)
+    for user in users:
+        print(user)
+        for value in user:
+            print(value)
+
     return jsonify(users)
 
+
+@app.route("/sql_songs")
+def show_songs():
+    songs = session.query(Song).all()
+    print("songs: ", songs)
+    return jsonify(songs)
+
+# ================= for SQLAlchemy implementation ===============
 
 
 # return list of all column for song in json
