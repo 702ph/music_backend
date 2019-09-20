@@ -34,6 +34,7 @@ engine = create_engine("sqlite:///db/music.db")
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
+#Base.query = session.query_property()
 
 
 class Song(Base):
@@ -59,24 +60,28 @@ class UserSQL(Base):
 
 # ================= for SQLAlchemy implementation ===============
 
-
+# we don't need user list
 @app.route("/sql_users")
 def show_users():
     users = session.query(UserSQL).all()
     # print("users: ", users)
     for user in users:
         print(user)
-        for value in user:
-            print(value)
+
+        # for value in user: ##TODO: user(UserSQL) is not iterable.
+        #    print(value)
 
     return jsonify(users)
+    return users.json
 
 
 @app.route("/sql_songs")
 def show_songs():
     songs = session.query(Song).all()
     print("songs: ", songs)
-    return jsonify(songs)
+    #return jsonify(songs)
+    return songs.json
+
 
 # ================= for SQLAlchemy implementation ===============
 
@@ -382,6 +387,7 @@ def web_app_main_page():
 
 """""""""""""""""""""""""""""""JWT"""""""""""""""""""""""""""
 
+
 class User(object):
     def __init__(self, id, username, password):  # constructor
         self.id = id
@@ -466,6 +472,7 @@ def who_am_i():
     return jsonify({"username": current_identity.username})
 
 
+# for debug
 @app.route('/protected')
 @jwt_required()
 def protected():
