@@ -17,10 +17,10 @@ const COOKIE_KEY_NAME = "token";
 window.addEventListener('load', async function () {
 
     // if token is in cookie, you're logged in.
-    const hasCookie = getTokenFromCookie();
-    if (hasCookie) {
+    const token = getTokenFromCookie();
+    if (token) {
         try {
-            const loggedInUser = await whoAmI(hasCookie);
+            const loggedInUser = await whoAmI(token);
             loggedInUserName = loggedInUser.username;
             changeToLoggedInState();
 
@@ -1038,13 +1038,13 @@ async function loginToServer(userInfo) {
 
 
 // get user name
-async function whoAmI(username) {
+async function whoAmI(token) {
     const resource = "/who";
     let response = await fetch(resource, {
         method: "GET",
         credentials: "omit",
         headers: {
-            "Authorization": addPrefix(username)
+            "Authorization": addPrefix(token)
         }
     });
     if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
