@@ -42,15 +42,6 @@ session = Session()
 Base = declarative_base()
 
 
-# class Serializer(object):
-#     def serialize(self):
-#         return {c: getattr(self, c) for c in inspect(self).attrs.keys()}
-#
-#     @staticmethod
-#     def serialize_list(l):
-#         return [m.serialize() for m in l]
-
-
 class Song(Base):
     __tablename__ = "song"
     __table_args__ = {'extend_existing': True}
@@ -63,11 +54,6 @@ class Song(Base):
     artist = Column(String)
     user_id = Column(Integer)
     data = Column(LargeBinary)
-
-
-    # def serialize(self):
-    #     d = Serializer.serialize(self)
-    #     return d
 
     # return dictionary without user_id
     def to_dict(self):
