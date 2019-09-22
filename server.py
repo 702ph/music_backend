@@ -13,15 +13,17 @@ from werkzeug.security import safe_str_cmp
 from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
-from sqlalchemy import create_engine
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+
+#todo: refactor
 from sqlalchemy import Integer, Column, String
-from sqlalchemy.inspection import inspect
+from sqlalchemy import create_engine, LargeBinary
 
 #from sqlalchemy.ext.serializer import loads, dumps
-
 # from flask_sqlalchemy import SQLAlchemy
+
 from flask_marshmallow import Marshmallow
 
 ## problem installing modules. have to type ./env/bin/pip
@@ -32,7 +34,7 @@ app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
 # db = SQLAlchemy(app)
-ma = Marshmallow(app)
+# ma = Marshmallow(app)
 
 engine = create_engine("sqlite:///db/music.db")
 Session = sessionmaker(bind=engine)
@@ -55,13 +57,13 @@ class Song(Base):
     id = Column(Integer, primary_key= True)
     title = Column(String)
     album = Column(String)
-    year = Column(String)  # TODO: redactor with some date type?
+    year = Column(String)  # TODO: redactor with some date type? -> ie. date
     genre = Column(String)
-    created_at = Column(String)  # TODO: redactor some date type?
+    created_at = Column(String)  # TODO: redactor some date type? ->ie. date
     artist = Column(String)
     user_id = Column(Integer)
-    #todo: add for column, and data type?
-    #data = Column(Base.metadata)
+    data = Column(LargeBinary)
+
 
     # def serialize(self):
     #     d = Serializer.serialize(self)
