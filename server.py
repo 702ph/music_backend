@@ -334,7 +334,7 @@ def read_from_local_filesystem():
 @app.route("/songs/<song_id>", methods=["GET"])
 @jwt_required()
 def read_song(song_id):
-    filename = "song.mp3"  # have to be implemented
+    filename = "song.mp3"  # needed by browser
     # file = read_from_db(song_id)
     file = read_from_db_alchemy(song_id)
 
