@@ -378,7 +378,7 @@ def read_from_db_alchemy(song_id):
     # file = row[0]  # get 1. row
 
     song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
-    file = song.
+    file = song.data
 
     # close db
     # db_cursor.close()
