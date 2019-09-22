@@ -286,6 +286,7 @@ def save_songs():
         return jsonify(result)
 
 
+# update database (except binary data)
 def update_db():
     print("update_db")
 
@@ -320,7 +321,7 @@ def songs_post():
         return save_songs()
 
 
-# create response from local filesystem
+# create response from local filesystem. not used anymore. remains for test purpose
 def read_from_local_filesystem():
     filename = "Lied.mp3"
     os.getcwd()  # get current path where this project exists
@@ -335,6 +336,8 @@ def read_from_local_filesystem():
 @jwt_required()
 def read_song(song_id):
     filename = "song.mp3"  # needed by browser
+
+    #todo: rename and replace with alchemy version
     # file = read_from_db(song_id)
     file = read_from_db_alchemy(song_id)
 
@@ -369,7 +372,6 @@ def read_from_db(song_id):
 
 # create response from db
 def read_from_db_alchemy(song_id):
-
     # query
     song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
 
@@ -385,6 +387,7 @@ def read_from_db_alchemy(song_id):
 @app.route("/songs/<song_id>", methods=["DELETE"])
 @jwt_required()
 def delete_song(song_id):
+    #todo: rename and replace with alchemy version
     return delete_song_from_db_alchemy(song_id)
 
 
