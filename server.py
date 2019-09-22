@@ -369,31 +369,29 @@ def read_from_db(song_id):
 
 # create response from db
 def read_from_db_alchemy(song_id):
-    # db_connection = sqlite3.connect(app.config["DB_PATH"])
-    # db_cursor = db_connection.cursor()
-    #
-    # # execute SQL Query
-    # db_cursor.execute("select data from song where (id=? and user_id=?)", (song_id, current_identity.id))
-    # row = db_cursor.fetchone()
-    # file = row[0]  # get 1. row
 
+    # query
     song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
-    file = song.data
 
-    # close db
-    # db_cursor.close()
-    # db_connection.commit()
-    # db_connection.close()
+    # extract binary data
+    file = song[0].data
+
+    # close session
+    session.close()
+
     return file
 
 
 @app.route("/songs/<song_id>", methods=["DELETE"])
 @jwt_required()
 def delete_song(song_id):
+    return delete_song_from_db_alchemy(song_id)
+
+
+def delete_song_from_db(song_id):
     db_connection = sqlite3.connect("db/music.db")
     db_cursor = db_connection.cursor()
     param = (song_id, current_identity.id)
-
     fetch_all = None
     try:
         # delete
@@ -404,11 +402,31 @@ def delete_song(song_id):
         fetch_all = db_cursor.fetchall()
     except sqlite3.Error as e:
         print("sqlite3.Error: ", e.args[0])
-
     db_cursor.close()
     db_connection.commit()  # changes will not be saved without commit
     db_connection.close()
     return jsonify(fetch_all)
+
+
+def delete_song_from_db_alchemy(song_id):
+    entries = []  # array for all dictionaries(all songs)
+    try:
+        # delete song specified
+        session.query(Song).filter(Song.id == song_id).delete()
+
+        # after delete
+        songs = session.query(Song).filter(Song.user_id == current_identity.id).all()
+
+        for song in songs:
+            entries.append(song.to_dict())
+
+        session.commit()
+        session.close()
+
+    except Exception as e:
+        print("Exception args: ", e.args)
+
+    return jsonify(entries)
 
 
 @app.errorhandler(400)
