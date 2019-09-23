@@ -59,7 +59,7 @@ class Song(Base):
     def to_dict(self):
         entry = {}
         for column in self.__table__.columns:
-            if not column.name == "user_id":
+            if not (column.name == "user_id" or column.name == "data"):
                 entry[column.name] = str(getattr(self, column.name))
         return entry
 
@@ -89,14 +89,15 @@ def show_users():
     return users.json
 
 
-@app.route("/sql_songs/", methods=['GET'])
-@app.route("/sql_songs", methods=['GET'])
+@app.route("/songs/", methods=['GET'])
+@app.route("/songs", methods=['GET'])
 #@jwt_required()
 def show_songs():
     # songs = session.query(Song).all()
     # songs = session.query(Song.id, Song.title, Song.artist, Song.album, Song.genre, Song.created_at).filter(Song.user_id == current_identity.id)
     # songs = session.query(Song.id, Song.title, Song.artist, Song.album, Song.genre, Song.created_at).filter(Song.user_id == 2).all()
     songs = session.query(Song).filter(Song.user_id == 2).all()
+    session.close()
 
     entries = []  # array for all dictionaries(all songs)
     for song in songs:
@@ -110,8 +111,8 @@ def show_songs():
 
 
 # return list of all column for song in json
-@app.route("/songs/", methods=['GET'])
-@app.route("/songs", methods=['GET'])
+# @app.route("/songs/", methods=['GET'])
+# @app.route("/songs", methods=['GET'])
 @jwt_required()
 def get_song_list():
     print("/songs: current_identity: ", current_identity)
@@ -207,7 +208,7 @@ def save_to_db(file, file_name):
     # get date from mp
     year_mp3 = timestring.Date(mp3_infos["date"]).year
 
-    #
+    #debug
     print("current_identity")
     print(current_identity)
 
@@ -223,6 +224,56 @@ def save_to_db(file, file_name):
     # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
     db_cursor.execute(
         "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
+
+    db_cursor.close()
+    db_connection.commit()
+    db_connection.close()
+    return True
+
+#TODO: can be refactored to one parameter
+def save_to_db_alchemy(file, file_name):
+    db_connection = sqlite3.connect(app.config["DB_PATH"])
+    db_cursor = db_connection.cursor()
+
+    # https://codeday.me/jp/qa/20190110/126212.html
+    # binary = sqlite3.Binary(file.stream.read()) # works!
+    binary = sqlite3.Binary(file.read())  # works! same!
+
+    # get mp3 tags
+    mp3_infos = get_mp3_infos(binary)
+
+    print("save_to_db():")
+    print(mp3_infos)
+
+    # get current date time
+    date_now = datetime.datetime.now()
+
+    # get date from mp
+    year_mp3 = timestring.Date(mp3_infos["date"]).year
+
+    #
+    print("current_identity")
+    print(current_identity)
+
+
+    song = Song()
+
+    # insert to db
+    # at least one column should have value. if there are no tags in mp3, take file name for the title.
+    if mp3_infos.get("title") is None:
+        # param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
+        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
+
+    else:
+        param = (
+        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
+    # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
+    db_cursor.execute(
+        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
+
+
+
+
 
     db_cursor.close()
     db_connection.commit()
@@ -280,16 +331,26 @@ def save_songs():
 
     if file and allowed_file(file.filename):
         # save_file_to_local(file)
-        result = save_to_db(file, file.filename)
+        result = save_to_db_alchemy(file, file.filename)
 
         # return redirect(url_for("uploaded_file", filename=filename))
         return jsonify(result)
 
 
+# update database (except binary data) or save new song data
+@app.route("/songs", methods=["POST"])
+@jwt_required()
+def songs_post():
+    if request.is_json:
+        # todo: replace with alchemy version
+        # return update_db()
+        return update_db_alchemy()
+    else:
+        return save_songs()
+
+
 # update database (except binary data)
 def update_db():
-    print("update_db")
-
     # get json
     song_list = request.json
 
@@ -312,13 +373,48 @@ def update_db():
     return jsonify({"update": status})
 
 
-@app.route("/songs", methods=["POST"])
-@jwt_required()
-def songs_post():
-    if request.is_json:
-        return update_db()
-    else:
-        return save_songs()
+# update database (except binary data)
+def update_db_alchemy():
+
+    # get json
+    song_list = request.json
+
+    # prepare db
+    # db_connection = sqlite3.connect(app.config["DB_PATH"])
+    # db_cursor = db_connection.cursor()
+
+    # def update(s, db):
+    #     db.title
+    #     pass
+
+    # update db
+    for song in song_list:
+        # print(song)
+        # param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"], current_identity.id,)
+        # db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE (id=? and user_id=?);", param)
+
+        # query
+        song_in_db = session.query(Song).filter(Song.id == song["id"], Song.user_id == current_identity.id).first()
+
+        # update
+        song_in_db.title = song["title"]
+        song_in_db.artist = song["artist"]
+        song_in_db.album = song["album"]
+        song_in_db.year = song["year"]
+        song_in_db.genre = song["genre"]
+
+    session.commit()
+    session.close()
+
+    # close db
+    # db_cursor.close()
+    # db_connection.commit()
+    # db_connection.close()
+
+    #todo: try-except
+
+    status = True
+    return jsonify({"update": status})
 
 
 # create response from local filesystem. not used anymore. remains for test purpose
