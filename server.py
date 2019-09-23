@@ -275,9 +275,9 @@ def update_db_alchemy():
         song_in_db.artist = song["artist"]
         song_in_db.album = song["album"]
         song_in_db.year = song["year"]
-        song_in_db.genre = song["genre"]
+        # song_in_db.genre = song["genre"]
+        session.commit()
 
-    session.commit()
     session.close()
 
     # close db
