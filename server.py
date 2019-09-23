@@ -48,9 +48,9 @@ class Song(Base):
     id = Column(Integer, primary_key= True)
     title = Column(String)
     album = Column(String)
-    year = Column(String)  # TODO: redactor with some date type? -> ie. date
+    year = Column(String)
     genre = Column(String)
-    created_at = Column(String)  # TODO: redactor some date type? ->ie. date
+    created_at = Column(String)
     artist = Column(String)
     user_id = Column(Integer)
     data = Column(LargeBinary)
@@ -91,12 +91,9 @@ def show_users():
 
 @app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
-#@jwt_required()
+@jwt_required()
 def show_songs():
-    # songs = session.query(Song).all()
-    # songs = session.query(Song.id, Song.title, Song.artist, Song.album, Song.genre, Song.created_at).filter(Song.user_id == current_identity.id)
-    # songs = session.query(Song.id, Song.title, Song.artist, Song.album, Song.genre, Song.created_at).filter(Song.user_id == 2).all()
-    songs = session.query(Song).filter(Song.user_id == 2).all()
+    songs = session.query(Song).filter(Song.user_id == current_identity.id).all()
     session.close()
 
     entries = []  # array for all dictionaries(all songs)
@@ -188,13 +185,10 @@ def save_to_local_filesysytem(file):
     file.save(absolute_filepath_name)
 
 
-def save_to_db(file, file_name):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
-    # https://codeday.me/jp/qa/20190110/126212.html
-    # binary = sqlite3.Binary(file.stream.read()) # works!
-    binary = sqlite3.Binary(file.read())  # works! same!
+# TODO: can be refactored to one parameter
+def save_to_db_alchemy(file, file_name):
+    # get data
+    binary = file.read()
 
     # get mp3 tags
     mp3_infos = get_mp3_infos(binary)
@@ -208,30 +202,36 @@ def save_to_db(file, file_name):
     # get date from mp
     year_mp3 = timestring.Date(mp3_infos["date"]).year
 
-    #debug
-    print("current_identity")
-    print(current_identity)
+    # initialize model
+    song = Song()
 
-    # insert to db
+    # add value to model
     # at least one column should have value. if there are no tags in mp3, take file name for the title.
     if mp3_infos.get("title") is None:
-        # param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
-
+        song.title = file_name
     else:
-        param = (
-        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
-    # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
-    db_cursor.execute(
-        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
+        song.title = mp3_infos["title"]
 
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
+    # add the rest values to model
+    song.artist = mp3_infos["artist"]
+    song.album = mp3_infos["album"]
+    song.year = year_mp3
+    song.genre = mp3_infos["genre"]
+    song.data = binary
+    song.created_at = date_now
+    song.user_id = current_identity.id
+
+    try:
+        session.add(song)
+        session.commit()
+    except Exception as e:
+        print("Exception args: ", e.args)
+        return False
+
     return True
 
-#TODO: can be refactored to one parameter
-def save_to_db_alchemy(file, file_name):
+
+def save_to_db_old(file, file_name):
     db_connection = sqlite3.connect(app.config["DB_PATH"])
     db_cursor = db_connection.cursor()
 
@@ -270,9 +270,6 @@ def save_to_db_alchemy(file, file_name):
     # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
     db_cursor.execute(
         "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
-
-
-
 
 
     db_cursor.close()
