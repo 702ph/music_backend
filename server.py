@@ -17,16 +17,11 @@ from flask_jwt import JWT, jwt_required, current_identity
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-#todo: refactor
+# todo: refactor
 from sqlalchemy import Integer, Column, String
 from sqlalchemy import create_engine, LargeBinary
 
-#from sqlalchemy.ext.serializer import loads, dumps
-# from flask_sqlalchemy import SQLAlchemy
-
-from flask_marshmallow import Marshmallow
-
-## problem installing modules. have to type ./env/bin/pip
+## to installing modules. have to type ./env/bin/pip
 
 ALLOWED_EXTENSIONS = set(["mp3"])
 app = Flask(__name__)
@@ -74,20 +69,6 @@ class UserSQL(Base):
 
 # ================= for SQLAlchemy implementation Restful ===============
 
-# we don't need user list
-@app.route("/sql_users")
-def show_users():
-    users = session.query(UserSQL).all()
-    # print("users: ", users)
-    for user in users:
-        print(user)
-
-        # for value in user: ##TODO: user(UserSQL) is not iterable.
-        #    print(value)
-
-    #return jsonify(users)
-    return users.json
-
 
 @app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
@@ -106,63 +87,6 @@ def show_songs():
 
 # ================= for SQLAlchemy implementation ===============
 
-
-# return list of all column for song in json
-# @app.route("/songs/", methods=['GET'])
-# @app.route("/songs", methods=['GET'])
-@jwt_required()
-def get_song_list():
-    print("/songs: current_identity: ", current_identity)
-
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
-    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song where user_id=?", (current_identity.id,))
-
-    fetch_all = db_cursor.fetchall()
-    description = db_cursor.description  # has to be placed after SQL Query
-
-    # 1. variation
-    """
-    entries = []
-    for row in fetch_all:
-        entries.append({
-            "id": row[0],
-            "title": row[1],
-            "album": row[2],
-            "year": row[3],
-            "genre": row[4],
-            "created_at": row[5]
-        })
-    """
-
-    # 2. variation as in slide from prof.
-    """
-    entries = [{
-        "id": row[0],
-        "title": row[1],
-        "album": row[2],
-        "year": row[3],
-        "genre": row[4],
-        "created_at": row[5]
-    }for row in fetch_all]
-    """
-
-    # 3. variation (automatic key generation)
-    entries = []  # array for all dictionaries
-    for row in fetch_all:
-
-        # dictionary for each row
-        entry = {}
-        for i_desc, val_desc in enumerate(description):
-            entry.update({val_desc[0]: row[i_desc]})
-        entries.append(entry)
-
-    db_cursor.close()
-    db_connection.close()
-
-    result = jsonify(entries)
-    return result
 
 
 def allowed_file(filename):
@@ -228,53 +152,6 @@ def save_to_db_alchemy(file, file_name):
         print("Exception args: ", e.args)
         return False
 
-    return True
-
-
-def save_to_db_old(file, file_name):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
-    # https://codeday.me/jp/qa/20190110/126212.html
-    # binary = sqlite3.Binary(file.stream.read()) # works!
-    binary = sqlite3.Binary(file.read())  # works! same!
-
-    # get mp3 tags
-    mp3_infos = get_mp3_infos(binary)
-
-    print("save_to_db():")
-    print(mp3_infos)
-
-    # get current date time
-    date_now = datetime.datetime.now()
-
-    # get date from mp
-    year_mp3 = timestring.Date(mp3_infos["date"]).year
-
-    #
-    print("current_identity")
-    print(current_identity)
-
-
-    song = Song()
-
-    # insert to db
-    # at least one column should have value. if there are no tags in mp3, take file name for the title.
-    if mp3_infos.get("title") is None:
-        # param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
-
-    else:
-        param = (
-        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
-    # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
-    db_cursor.execute(
-        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
-
-
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
     return True
 
 
@@ -447,23 +324,6 @@ def read_song(song_id):
 
 
 # create response from db
-def read_from_db(song_id):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
-    # execute SQL Query
-    db_cursor.execute("select data from song where (id=? and user_id=?)", (song_id, current_identity.id))
-    row = db_cursor.fetchone()
-    file = row[0]  # get 1. row
-
-    ## close db
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
-    return file
-
-
-# create response from db
 def read_from_db_alchemy(song_id):
     # query
     song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
@@ -482,26 +342,6 @@ def read_from_db_alchemy(song_id):
 def delete_song(song_id):
     #todo: rename and replace with alchemy version
     return delete_song_from_db_alchemy(song_id)
-
-
-def delete_song_from_db(song_id):
-    db_connection = sqlite3.connect("db/music.db")
-    db_cursor = db_connection.cursor()
-    param = (song_id, current_identity.id)
-    fetch_all = None
-    try:
-        # delete
-        db_cursor.execute("delete from song where (id=? and user_id=?)", param)
-
-        # after delete
-        db_cursor.execute("select id,title,album,year,genre,created_at from s where user_id=?", (current_identity.id,))
-        fetch_all = db_cursor.fetchall()
-    except sqlite3.Error as e:
-        print("sqlite3.Error: ", e.args[0])
-    db_cursor.close()
-    db_connection.commit()  # changes will not be saved without commit
-    db_connection.close()
-    return jsonify(fetch_all)
 
 
 def delete_song_from_db_alchemy(song_id):
