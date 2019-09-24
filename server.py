@@ -12,13 +12,9 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import safe_str_cmp
 from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
-
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
-# todo: refactor
-from sqlalchemy import Integer, Column, String
-from sqlalchemy import create_engine, LargeBinary
+from sqlalchemy import Integer, Column, String, create_engine, LargeBinary
 
 ## to install modules. have to type ./env/bin/pip
 
