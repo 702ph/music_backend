@@ -1,52 +1,29 @@
-import os
-import sqlite3
 import io
 import datetime
 import timestring
 import hashlib
 
-from flask import Flask, json, jsonify, request, make_response, render_template, url_for  # なぜかrequestsでは動かない。
+from flask import Flask, jsonify, request, make_response, render_template
 from flask_cors import CORS
-from flask_restful import Api, http_status_message
-from werkzeug.utils import secure_filename, redirect
+from flask_restful import Api
 from werkzeug.security import safe_str_cmp
-from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Integer, Column, String
-from sqlalchemy.inspection import inspect
+from sqlalchemy import Integer, Column, String, create_engine, LargeBinary
 
-#from sqlalchemy.ext.serializer import loads, dumps
+## to install modules. have to type ./env/bin/pip
 
-# from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
-
-## problem installing modules. have to type ./env/bin/pip
-
-ALLOWED_EXTENSIONS = set(["mp3"])
 app = Flask(__name__)
 app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
-# db = SQLAlchemy(app)
-ma = Marshmallow(app)
 
-engine = create_engine("sqlite:///db/music.db")
+engine = create_engine(app.config["DB_PATH_ALCHEMY"])
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
-
-
-# class Serializer(object):
-#     def serialize(self):
-#         return {c: getattr(self, c) for c in inspect(self).attrs.keys()}
-#
-#     @staticmethod
-#     def serialize_list(l):
-#         return [m.serialize() for m in l]
 
 
 class Song(Base):
@@ -55,23 +32,18 @@ class Song(Base):
     id = Column(Integer, primary_key= True)
     title = Column(String)
     album = Column(String)
-    year = Column(String)  # TODO: redactor with some date type?
+    year = Column(String)
     genre = Column(String)
-    created_at = Column(String)  # TODO: redactor some date type?
+    created_at = Column(String)
     artist = Column(String)
     user_id = Column(Integer)
-    #todo: add for column, and data type?
-    #data = Column(Base.metadata)
+    data = Column(LargeBinary)
 
-    # def serialize(self):
-    #     d = Serializer.serialize(self)
-    #     return d
-
-    # return dictionary without user_id
+    # return dictionary without user_id & data
     def to_dict(self):
         entry = {}
         for column in self.__table__.columns:
-            if not column.name == "user_id":
+            if not (column.name == "user_id" or column.name == "data"):
                 entry[column.name] = str(getattr(self, column.name))
         return entry
 
@@ -84,31 +56,12 @@ class UserSQL(Base):
     password = Column(String)
 
 
-# ================= for SQLAlchemy implementation Restful ===============
-
-# we don't need user list
-@app.route("/sql_users")
-def show_users():
-    users = session.query(UserSQL).all()
-    # print("users: ", users)
-    for user in users:
-        print(user)
-
-        # for value in user: ##TODO: user(UserSQL) is not iterable.
-        #    print(value)
-
-    #return jsonify(users)
-    return users.json
-
-
-@app.route("/sql_songs/", methods=['GET'])
-@app.route("/sql_songs", methods=['GET'])
-#@jwt_required()
+@app.route("/songs/", methods=['GET'])
+@app.route("/songs", methods=['GET'])
+@jwt_required()
 def show_songs():
-    # songs = session.query(Song).all()
-    # songs = session.query(Song.id, Song.title, Song.artist, Song.album, Song.genre, Song.created_at).filter(Song.user_id == current_identity.id)
-    # songs = session.query(Song.id, Song.title, Song.artist, Song.album, Song.genre, Song.created_at).filter(Song.user_id == 2).all()
-    songs = session.query(Song).filter(Song.user_id == 2).all()
+    songs = session.query(Song).filter(Song.user_id == current_identity.id).all()
+    session.close()
 
     entries = []  # array for all dictionaries(all songs)
     for song in songs:
@@ -118,94 +71,14 @@ def show_songs():
     return result
 
 
-# ================= for SQLAlchemy implementation ===============
-
-
-# return list of all column for song in json
-@app.route("/songs/", methods=['GET'])
-@app.route("/songs", methods=['GET'])
-@jwt_required()
-def get_song_list():
-    print("/songs: current_identity: ", current_identity)
-
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
-    db_cursor.execute("select id, title, artist, album, year, genre, created_at from song where user_id=?", (current_identity.id,))
-
-    fetch_all = db_cursor.fetchall()
-    description = db_cursor.description  # has to be placed after SQL Query
-
-    # 1. variation
-    """
-    entries = []
-    for row in fetch_all:
-        entries.append({
-            "id": row[0],
-            "title": row[1],
-            "album": row[2],
-            "year": row[3],
-            "genre": row[4],
-            "created_at": row[5]
-        })
-    """
-
-    # 2. variation as in slide from prof.
-    """
-    entries = [{
-        "id": row[0],
-        "title": row[1],
-        "album": row[2],
-        "year": row[3],
-        "genre": row[4],
-        "created_at": row[5]
-    }for row in fetch_all]
-    """
-
-    # 3. variation (automatic key generation)
-    entries = []  # array for all dictionaries
-    for row in fetch_all:
-
-        # dictionary for each row
-        entry = {}
-        for i_desc, val_desc in enumerate(description):
-            entry.update({val_desc[0]: row[i_desc]})
-        entries.append(entry)
-
-    db_cursor.close()
-    db_connection.close()
-
-    result = jsonify(entries)
-    return result
-
-
 def allowed_file(filename):
     return "." in filename and \
-           filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def save_to_local_filesysytem(file):
-    filename = secure_filename(file.filename)
-
-    # 1. variation
-    # filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
-    # absolute_filepath_name = filepath + "/" + filename
-
-    # 2. variation
-    os.getcwd()
-    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
-
-    print(absolute_filepath_name)
-    file.save(absolute_filepath_name)
+           filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
 
 
 def save_to_db(file, file_name):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
-    # https://codeday.me/jp/qa/20190110/126212.html
-    # binary = sqlite3.Binary(file.stream.read()) # works!
-    binary = sqlite3.Binary(file.read())  # works! same!
+    # get data
+    binary = file.read()
 
     # get mp3 tags
     mp3_infos = get_mp3_infos(binary)
@@ -219,26 +92,32 @@ def save_to_db(file, file_name):
     # get date from mp
     year_mp3 = timestring.Date(mp3_infos["date"]).year
 
-    #
-    print("current_identity")
-    print(current_identity)
+    # initialize model
+    song = Song()
 
-    # insert to db
+    # add value to model
     # at least one column should have value. if there are no tags in mp3, take file name for the title.
     if mp3_infos.get("title") is None:
-        # param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now,)
-        param = (file_name, mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
-
+        song.title = file_name
     else:
-        param = (
-        mp3_infos["title"], mp3_infos["artist"], mp3_infos["album"], year_mp3, mp3_infos["genre"], binary, date_now, current_identity.id,)
-    # db_cursor.execute("insert into song(title, artist, album, year, genre, data, created_at) values(?, ?, ?, ?, ?, ?, ?);", param)
-    db_cursor.execute(
-        "insert into song(title, artist, album, year, genre, data, created_at, user_id) values(?, ?, ?, ?, ?, ?, ?, ?);", param)
+        song.title = mp3_infos["title"]
 
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
+    # add the rest values to model
+    song.artist = mp3_infos["artist"]
+    song.album = mp3_infos["album"]
+    song.year = year_mp3
+    song.genre = mp3_infos["genre"]
+    song.data = binary
+    song.created_at = date_now
+    song.user_id = current_identity.id
+
+    try:
+        session.add(song)
+        session.commit()
+    except Exception as e:
+        print("Exception args: ", e.args)
+        return False
+
     return True
 
 
@@ -298,31 +177,7 @@ def save_songs():
         return jsonify(result)
 
 
-def update_db():
-    print("update_db")
-
-    # get json
-    song_list = request.json
-
-    # prepare db
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
-    # update db
-    for song in song_list:
-        # print(song)
-        param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"], current_identity.id,)
-        db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE (id=? and user_id=?);", param)
-
-    # close db
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
-
-    status = True
-    return jsonify({"update": status})
-
-
+# update database (except binary data) or save new song data
 @app.route("/songs", methods=["POST"])
 @jwt_required()
 def songs_post():
@@ -332,23 +187,39 @@ def songs_post():
         return save_songs()
 
 
-# create response from local filesystem
-def read_from_local_filesystem():
-    filename = "Lied.mp3"
-    os.getcwd()  # get current path where this project exists
-    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
-    # https://docs.python.org/ja/3/library/functions.html#open
-    # r:read, b:binary for second parameter
-    file = open(absolute_filepath_name, "rb").read()
-    return file
+# update database (except binary data)
+def update_db():
+
+    # get json
+    song_list = request.json
+
+    try:
+    # update db
+        for song in song_list:
+            # query
+            song_in_db = session.query(Song).filter(Song.id == song["id"], Song.user_id == current_identity.id).first()
+
+            # update
+            song_in_db.title = song["title"]
+            song_in_db.artist = song["artist"]
+            song_in_db.album = song["album"]
+            song_in_db.year = song["year"]
+            session.commit()
+
+        session.close()
+    except Exception as e:
+        print("Exception args: ", e.args)
+
+    status = True
+    return jsonify({"update": status})
 
 
+# create response
 @app.route("/songs/<song_id>", methods=["GET"])
 @jwt_required()
 def read_song(song_id):
-    filename = "song.mp3"  # have to be implemented
-    # file = read_from_db(song_id)
-    file = read_from_db_alchemy(song_id)
+    filename = "song.mp3"  # needed for browser
+    file = read_from_db(song_id)
 
     # create response
     response = make_response()
@@ -362,65 +233,48 @@ def read_song(song_id):
     return response
 
 
-# create response from db
+# read data from db
 def read_from_db(song_id):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
+    try:
+        # query
+        song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
 
-    # execute SQL Query
-    db_cursor.execute("select data from song where (id=? and user_id=?)", (song_id, current_identity.id))
-    row = db_cursor.fetchone()
-    file = row[0]  # get 1. row
+        # extract binary data
+        file = song[0].data
 
-    ## close db
-    db_cursor.close()
-    db_connection.commit()
-    db_connection.close()
-    return file
+        # close session
+        session.close()
+    except Exception as e:
+        print("Exception args: ", e.args)
 
-
-# create response from db
-def read_from_db_alchemy(song_id):
-    # db_connection = sqlite3.connect(app.config["DB_PATH"])
-    # db_cursor = db_connection.cursor()
-    #
-    # # execute SQL Query
-    # db_cursor.execute("select data from song where (id=? and user_id=?)", (song_id, current_identity.id))
-    # row = db_cursor.fetchone()
-    # file = row[0]  # get 1. row
-
-    song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
-    file = song.
-
-    # close db
-    # db_cursor.close()
-    # db_connection.commit()
-    # db_connection.close()
     return file
 
 
 @app.route("/songs/<song_id>", methods=["DELETE"])
 @jwt_required()
 def delete_song(song_id):
-    db_connection = sqlite3.connect("db/music.db")
-    db_cursor = db_connection.cursor()
-    param = (song_id, current_identity.id)
+    return delete_song_from_db(song_id)
 
-    fetch_all = None
+
+def delete_song_from_db(song_id):
+    entries = []  # array for all dictionaries(all songs)
     try:
-        # delete
-        db_cursor.execute("delete from song where (id=? and user_id=?)", param)
+        # delete song specified
+        session.query(Song).filter(Song.id == song_id).delete()
 
         # after delete
-        db_cursor.execute("select id,title,album,year,genre,created_at from s where user_id=?", (current_identity.id,))
-        fetch_all = db_cursor.fetchall()
-    except sqlite3.Error as e:
-        print("sqlite3.Error: ", e.args[0])
+        songs = session.query(Song).filter(Song.user_id == current_identity.id).all()
 
-    db_cursor.close()
-    db_connection.commit()  # changes will not be saved without commit
-    db_connection.close()
-    return jsonify(fetch_all)
+        for song in songs:
+            entries.append(song.to_dict())
+
+        session.commit()
+        session.close()
+
+    except Exception as e:
+        print("Exception args: ", e.args)
+
+    return jsonify(entries)
 
 
 @app.errorhandler(400)
@@ -455,46 +309,37 @@ class User(object):
 
 
 def get_user_info_by_username_from_db(username):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
     result = None
     try:
-        db_cursor.execute("select * from user where name=?", (username,))
-        fetch_one = db_cursor.fetchone()
+        # query
+        user = session.query(UserSQL).filter(UserSQL.name == username).first()
 
-        if fetch_one:
-            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
-        else:
-            result = None
+        # get user infos
+        result = User(user.id, user.name, user.password)
 
-    except sqlite3.Error as e:
-        print("sqlite3.Error: ", e.args[0])
+        session.close()
 
-    db_cursor.close()
-    db_connection.close()
+    except Exception as e:
+        print("get_user_info_by_username_from_db(): Exception args: ", e.args)
+
     return result
 
 
-def get_user_info_by_id_from_db(id):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
+def get_user_info_by_id_from_db(user_id):
 
     result = None
     try:
-        db_cursor.execute("select * from user where id=?", (id,))
-        fetch_one = db_cursor.fetchone()
+        # query
+        user = session.query(UserSQL).filter(UserSQL.id == user_id).first()
 
-        if fetch_one:
-            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
-        else:
-            result = None
+        # get user infos
+        result = User(user.id, user.name, user.password)
 
-    except sqlite3.Error as e:
-        print("sqlite3.Error: ", e.args[0])
+        session.close()
 
-    db_cursor.close()
-    db_connection.close()
+    except Exception as e:
+        print("get_user_info_by_id_from_db(): Exception args: ", e.args)
+
     return result
 
 
