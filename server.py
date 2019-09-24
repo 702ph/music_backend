@@ -18,13 +18,12 @@ from sqlalchemy import Integer, Column, String, create_engine, LargeBinary
 
 ## to install modules. have to type ./env/bin/pip
 
-ALLOWED_EXTENSIONS = set(["mp3"])
 app = Flask(__name__)
 app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
 
-engine = create_engine("sqlite:///db/music.db")
+engine = create_engine(app.config["DB_PATH_ALCHEMY"])
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
@@ -77,7 +76,7 @@ def show_songs():
 
 def allowed_file(filename):
     return "." in filename and \
-           filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
 
 
 def save_to_local_filesysytem(file):
