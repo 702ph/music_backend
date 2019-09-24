@@ -1,5 +1,3 @@
-import os
-import sqlite3
 import io
 import datetime
 import timestring
@@ -8,7 +6,6 @@ import hashlib
 from flask import Flask, jsonify, request, make_response, render_template
 from flask_cors import CORS
 from flask_restful import Api
-from werkzeug.utils import secure_filename
 from werkzeug.security import safe_str_cmp
 from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
@@ -77,21 +74,6 @@ def show_songs():
 def allowed_file(filename):
     return "." in filename and \
            filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
-
-
-def save_to_local_filesysytem(file):
-    filename = secure_filename(file.filename)
-
-    # 1. variation
-    # filepath = os.path.dirname(os.path.abspath(__file__)) + app.config["UPLOAD_FOLDER"]
-    # absolute_filepath_name = filepath + "/" + filename
-
-    # 2. variation
-    os.getcwd()
-    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
-
-    print(absolute_filepath_name)
-    file.save(absolute_filepath_name)
 
 
 def save_to_db(file, file_name):
@@ -231,16 +213,6 @@ def update_db():
     status = True
     return jsonify({"update": status})
 
-
-# create response from local filesystem. not used anymore. remains for test purpose
-def read_from_local_filesystem():
-    filename = "Lied.mp3"
-    os.getcwd()  # get current path where this project exists
-    absolute_filepath_name = os.path.abspath(app.config["UPLOAD_FOLDER"]) + "/" + filename
-    # https://docs.python.org/ja/3/library/functions.html#open
-    # r:read, b:binary for second parameter
-    file = open(absolute_filepath_name, "rb").read()
-    return file
 
 # create response
 @app.route("/songs/<song_id>", methods=["GET"])
