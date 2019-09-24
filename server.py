@@ -94,7 +94,6 @@ def save_to_local_filesysytem(file):
     file.save(absolute_filepath_name)
 
 
-# TODO: can be refactored to one parameter
 def save_to_db(file, file_name):
     # get data
     binary = file.read()
@@ -212,21 +211,22 @@ def update_db():
     # get json
     song_list = request.json
 
+    try:
     # update db
-    for song in song_list:
-        # query
-        song_in_db = session.query(Song).filter(Song.id == song["id"], Song.user_id == current_identity.id).first()
+        for song in song_list:
+            # query
+            song_in_db = session.query(Song).filter(Song.id == song["id"], Song.user_id == current_identity.id).first()
 
-        # update
-        song_in_db.title = song["title"]
-        song_in_db.artist = song["artist"]
-        song_in_db.album = song["album"]
-        song_in_db.year = song["year"]
-        session.commit()
+            # update
+            song_in_db.title = song["title"]
+            song_in_db.artist = song["artist"]
+            song_in_db.album = song["album"]
+            song_in_db.year = song["year"]
+            session.commit()
 
-    session.close()
-
-    #todo: try-except
+        session.close()
+    except Exception as e:
+        print("Exception args: ", e.args)
 
     status = True
     return jsonify({"update": status})
@@ -263,14 +263,17 @@ def read_song(song_id):
 
 # read data from db
 def read_from_db(song_id):
-    # query
-    song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
+    try:
+        # query
+        song = session.query(Song).filter(Song.id == song_id, Song.user_id == current_identity.id).all()
 
-    # extract binary data
-    file = song[0].data
+        # extract binary data
+        file = song[0].data
 
-    # close session
-    session.close()
+        # close session
+        session.close()
+    except Exception as e:
+        print("Exception args: ", e.args)
 
     return file
 
@@ -334,46 +337,37 @@ class User(object):
 
 
 def get_user_info_by_username_from_db(username):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
-
     result = None
     try:
-        db_cursor.execute("select * from user where name=?", (username,))
-        fetch_one = db_cursor.fetchone()
+        # query
+        user = session.query(UserSQL).filter(UserSQL.name == username).first()
 
-        if fetch_one:
-            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
-        else:
-            result = None
+        # get user infos
+        result = User(user.id, user.name, user.password)
 
-    except sqlite3.Error as e:
-        print("sqlite3.Error: ", e.args[0])
+        session.close()
 
-    db_cursor.close()
-    db_connection.close()
+    except Exception as e:
+        print("get_user_info_by_username_from_db(): Exception args: ", e.args)
+
     return result
 
 
-def get_user_info_by_id_from_db(id):
-    db_connection = sqlite3.connect(app.config["DB_PATH"])
-    db_cursor = db_connection.cursor()
+def get_user_info_by_id_from_db(user_id):
 
     result = None
     try:
-        db_cursor.execute("select * from user where id=?", (id,))
-        fetch_one = db_cursor.fetchone()
+        # query
+        user = session.query(UserSQL).filter(UserSQL.id == user_id).first()
 
-        if fetch_one:
-            result = User(fetch_one[0], fetch_one[1], fetch_one[2])
-        else:
-            result = None
+        # get user infos
+        result = User(user.id, user.name, user.password)
 
-    except sqlite3.Error as e:
-        print("sqlite3.Error: ", e.args[0])
+        session.close()
 
-    db_cursor.close()
-    db_connection.close()
+    except Exception as e:
+        print("get_user_info_by_id_from_db(): Exception args: ", e.args)
+
     return result
 
 
