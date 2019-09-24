@@ -5,12 +5,11 @@ import datetime
 import timestring
 import hashlib
 
-from flask import Flask, json, jsonify, request, make_response, render_template, url_for  # なぜかrequestsでは動かない。
+from flask import Flask, jsonify, request, make_response, render_template
 from flask_cors import CORS
-from flask_restful import Api, http_status_message
-from werkzeug.utils import secure_filename, redirect
+from flask_restful import Api
+from werkzeug.utils import secure_filename
 from werkzeug.security import safe_str_cmp
-from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import EasyMP3
 from flask_jwt import JWT, jwt_required, current_identity
 
@@ -28,8 +27,6 @@ app = Flask(__name__)
 app.config.from_pyfile("config.py")
 api = Api(app)
 CORS(app)
-# db = SQLAlchemy(app)
-# ma = Marshmallow(app)
 
 engine = create_engine("sqlite:///db/music.db")
 Session = sessionmaker(bind=engine)
@@ -50,7 +47,7 @@ class Song(Base):
     user_id = Column(Integer)
     data = Column(LargeBinary)
 
-    # return dictionary without user_id
+    # return dictionary without user_id & data
     def to_dict(self):
         entry = {}
         for column in self.__table__.columns:
@@ -67,9 +64,6 @@ class UserSQL(Base):
     password = Column(String)
 
 
-# ================= for SQLAlchemy implementation Restful ===============
-
-
 @app.route("/songs/", methods=['GET'])
 @app.route("/songs", methods=['GET'])
 @jwt_required()
@@ -83,10 +77,6 @@ def show_songs():
 
     result = jsonify(entries)
     return result
-
-
-# ================= for SQLAlchemy implementation ===============
-
 
 
 def allowed_file(filename):
@@ -253,20 +243,8 @@ def update_db_alchemy():
     # get json
     song_list = request.json
 
-    # prepare db
-    # db_connection = sqlite3.connect(app.config["DB_PATH"])
-    # db_cursor = db_connection.cursor()
-
-    # def update(s, db):
-    #     db.title
-    #     pass
-
     # update db
     for song in song_list:
-        # print(song)
-        # param = (song["title"], song["artist"], song["album"], song["year"], song["genre"], song["id"], current_identity.id,)
-        # db_cursor.execute("UPDATE song SET title=?, artist=?, album=?, year=?, genre=? WHERE (id=? and user_id=?);", param)
-
         # query
         song_in_db = session.query(Song).filter(Song.id == song["id"], Song.user_id == current_identity.id).first()
 
@@ -275,15 +253,9 @@ def update_db_alchemy():
         song_in_db.artist = song["artist"]
         song_in_db.album = song["album"]
         song_in_db.year = song["year"]
-        # song_in_db.genre = song["genre"]
         session.commit()
 
     session.close()
-
-    # close db
-    # db_cursor.close()
-    # db_connection.commit()
-    # db_connection.close()
 
     #todo: try-except
 
